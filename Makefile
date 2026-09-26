@@ -1,0 +1,27 @@
+PYTHON ?= .venv/bin/python
+CSV ?= data/raw/complaints.csv
+DATA_DIR ?= data
+export PYTHONPATH := src
+
+.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike
+setup:
+	uv venv --allow-existing .venv
+	uv pip install --python $(PYTHON) -e '.[dev]'
+ingest:
+	$(PYTHON) -m ews.ingest.complaints ingest --csv "$(CSV)" --data-dir "$(DATA_DIR)"
+delta:
+	$(PYTHON) -m ews.ingest.complaints delta --data-dir "$(DATA_DIR)"
+test:
+	$(PYTHON) -m pytest
+lint:
+	$(PYTHON) -m ruff check src tests
+	$(PYTHON) -m black --check src tests
+format:
+	$(PYTHON) -m ruff check --fix src tests
+	$(PYTHON) -m black src tests
+fdic:
+	$(PYTHON) -m ews.ingest.fdic
+enforcement:
+	$(PYTHON) -m ews.ingest.enforcement
+hmda-spike:
+	$(PYTHON) -m ews.ingest.hmda

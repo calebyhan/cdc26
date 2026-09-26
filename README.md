@@ -48,7 +48,7 @@ Profiled from the CFPB complaint export (`complaints.csv`, pulled 2026-09-26):
 | [10_risks_limitations.md](docs/10_risks_limitations.md) | Methodological, ethical, and data caveats |
 | [11_presentation.md](docs/11_presentation.md) | Narrative arc, demo script, rubric mapping |
 
-## Planned repository layout
+## Repository layout
 
 ```
 cfpb-ews/
@@ -77,14 +77,47 @@ cfpb-ews/
 
 Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly · GitHub Actions (daily refresh)
 
-## Quickstart (planned)
+## Quickstart (M0 implemented)
+
+Requires Python 3.11+, `uv`, and `make` (macOS/Linux).
 
 ```bash
-make setup      # create env, install deps
-make ingest     # download bulk files and convert all sources to Parquet
-make delta      # daily: pull new + trailing-30-day complaints from the CCDB API and upsert
-make resolve    # build canonical company IDs and crosswalk
-make features   # build company-month panel
-make backtest   # run rolling-cutoff evaluation
-make app        # launch dashboard
+make setup      # create .venv and install the editable package + dev tools
+make ingest     # download CSV if absent; rebuild all-product Parquet and mortgage staging
+make delta      # new complaints + 30-day overlap, upsert by complaint_id
+make test
+make lint       # ruff + black
 ```
+
+Run commands from the repository root. For an existing export:
+`make ingest CSV=/absolute/path/complaints.csv`. `DATA_DIR=/path/to/data` overrides
+the output root; crosswalks remain in this repository's `data/reference/`.
+A first download needs network access and about 6 GB of free space. Subsequent
+`make ingest` runs reuse the raw CSV but **rebuild both Parquet files**; to reconcile
+against a newer bulk export, replace the CSV with a fresh download first.
+
+Outputs are `data/staging/complaints_all.parquet` (all products) and
+`data/staging/stg_complaints.parquet` (Mortgage only). `data/staging/ews.duckdb`
+exposes `stg_complaints` as a SQL view over its Parquet file, avoiding two mutable
+copies. The view stores an absolute path; rerun ingestion after relocating data.
+Dates are typed DATE, IDs BIGINT, ZIP codes strings, and `ingested_at` is UTC.
+Issue and response crosswalks add severity and response eligibility columns;
+in-progress/unknown responses remain available for future updates.
+
+Delta pulls use JSON content-type checks, `search_after`, and 3.1-second pacing.
+The overlap starts 29 days before the existing maximum received date (or today,
+whichever is earlier), so missed days are included after downtime. Raw delta
+JSONL is retained under `data/raw/deltas/`. A file lock prevents concurrent writers; complete
+validation precedes atomic staging-file replacement. Failed pulls leave staging
+unchanged; repeated unchanged payloads preserve ingestion timestamps.
+
+Additional source tools: `make fdic`, `make enforcement`, `make hmda-spike`.
+FDIC/enforcement ports retain the spike behavior; further productionization is M1.
+Normalization and blocked candidate matching are in `ews.resolve.matching`.
+`make format` applies formatting. To enable Git hooks, run
+`.venv/bin/pre-commit install`. The original `spike/` remains unchanged.
+
+Resolution, features, models, backtesting, and the app are later milestones;
+the corresponding package directories are scaffolded, not yet implemented.
+See [FINDINGS §9](FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26)
+for measured M0 results and HMDA constraints.

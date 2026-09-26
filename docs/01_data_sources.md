@@ -2,7 +2,7 @@
 
 Every source gets a **point-in-time rule**: the earliest date its data could have been known publicly. Features at scoring month *t* may only use data available before *t*. This rule is what keeps the backtest honest.
 
-**Spike status.** CCDB, enforcement actions, and FDIC BankFind were tested live on 2026-09-26. Details, limits, and gotchas are in [FINDINGS.md](../FINDINGS.md). HMDA, GLEIF, FFIEC NIC, and FR Y-9C have **not been spiked yet**. Everything written about them below comes from documentation, and needs to be verified in M0 (see [08_roadmap.md](08_roadmap.md)).
+**Spike status.** CCDB, enforcement actions, and FDIC BankFind were tested live on 2026-09-26. Details, limits, and gotchas are in [FINDINGS.md](../FINDINGS.md). The HMDA follow-up measured 2017–2025 snapshot sizes and inspected Reporter Panels; see [FINDINGS §9](../FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26). GLEIF, FFIEC NIC, and FR Y-9C have **not been spiked yet**.
 
 ## Summary
 
@@ -11,7 +11,7 @@ Every source gets a **point-in-time rule**: the earliest date its data could hav
 | CFPB complaints (CCDB) | Behavioral signal | Complaint | `Company` (text), `Complaint ID` | Use `Date received` plus a 1-month lag, which covers the publication delay and the ~15-day window for company responses | ✅ |
 | CFPB enforcement actions | Target (event) | Action × party | Slug; party name (text) | Event date is the filing date shown on the listing | ✅ |
 | FDIC BankFind Suite | Bank size, holding company, mergers | CERT × quarter | CERT (int), FED_RSSD, RSSDHCR | Call Report quarter `REPDTE` counts as known about 45 days later. Lag by one full quarter | ✅ |
-| HMDA | Mortgage-activity denominator | Loan application | LEI (2018+), Respondent ID + Agency (pre-2018) | Year-Y data counts as known from its public release date in the following year. Record the date per vintage | ❌ |
+| HMDA | Mortgage-activity denominator | Loan application | LEI (2018+), Respondent ID + Agency (pre-2018) | Year-Y data counts as known from its public release date in the following year. Record the date per vintage | ✅ (metadata/panels) |
 | GLEIF | LEIs, parents | Legal entity | LEI | Relationship validity dates | ❌ |
 | FFIEC NIC | Ownership structure, mergers | Entity, relationship | RSSD | Start and end dates | ❌ |
 | FR Y-9C | Holding-company financials | BHC × quarter | RSSD | Lag by one quarter | ❌ |
@@ -75,13 +75,15 @@ Every source gets a **point-in-time rule**: the earliest date its data could hav
 
 **Fields for MVP 1:** `ASSET`, `DEP`, `EQ`, residential real-estate loans, noncurrent loans, provisions (from `/financials`), `REPDTE`, `RSSDHCR`, `NAMEHCR`, and merger history from `/history`.
 
-## HMDA (not yet spiked)
+## HMDA (M0 metadata and Reporter Panel spike complete)
 
-- **Access (from docs):** the FFIEC/CFPB HMDA data browser and bulk files. We need the Transmittal Sheet / Reporter Panel (lender identity, parent RSSD) and lender-year counts aggregated from the loan-level LAR data.
+- **Access:** the FFIEC/CFPB HMDA data browser and bulk files. We need the Transmittal Sheet / Reporter Panel (lender identity, parent RSSD) and lender-year counts aggregated from the loan-level LAR data.
 - **Aggregate to lender × year:** applications, originations, denial rate, purchase vs. refinance mix, top-state share, number of states.
 - **Identifier break:** LEI starts with 2018 data. Earlier years use Respondent ID + Agency Code, bridged through the Reporter Panel and RSSD.
 - **Known gap:** HMDA measures originations, not servicing (see ADR-007).
-- **Spike questions for M0:** bulk-file size and format per year, exact release date per vintage, and whether the Reporter Panel carries RSSD for nonbanks.
+- **Verified in M0:** 2017–2025 snapshot ZIP sizes and panel schemas, plus vintage-specific public-release evidence, are in FINDINGS §9. LAR ZIPs range from 156 MB to 1.52 GB; expanded recent vintages reach 10.2 GB.
+- **Identity gaps:** the official snapshot manifest marks the 2024/2025 Reporter Panels unavailable. Nonbank RSSDs are incomplete even in 2023 (e.g. Rocket is populated, Nationstar is missing). Preserve LEI and use reviewed, dated supplementary links.
+- **Remaining M3 work:** full LAR aggregation and pre-2017 archive retrieval. Do not equate the snapshot freeze date or S3 Last-Modified with public availability, or backdate revised datasets.
 
 ## GLEIF, FFIEC NIC, FR Y-9C (not yet spiked)
 

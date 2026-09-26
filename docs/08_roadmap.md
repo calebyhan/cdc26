@@ -5,13 +5,15 @@ Each milestone ends with a demoable artifact. If time runs out, the project is c
 **Already done (data spike, 2026-09-26):** CCDB access and limits, enforcement scraper, FDIC roster, and the entity-matching prototype. See [FINDINGS.md](../FINDINGS.md) and `spike/`.
 
 ## M0: Setup and ingestion
-- [ ] Repo, `pyproject.toml`, Makefile, pre-commit (ruff, black). Move `spike/` code into `src/ews/ingest/` and `src/ews/resolve/`
-- [ ] Convert the bulk `complaints.csv` to Parquet, then filter to mortgage (`stg_complaints`)
-- [ ] `make delta`: API pull using `search_after`, trailing-30-day re-pull, upsert on `complaint_id`, JSON content-type check
-- [ ] Fill the issue crosswalk (old and new taxonomy) and the response crosswalk (pre-2017 values) with severity tiers
-- [ ] **HMDA spike:** file sizes, release date per vintage, Reporter Panel fields, and whether nonbanks carry RSSD. Write it up as a new FINDINGS section
+- [x] Repo, `pyproject.toml`, Makefile, pre-commit (ruff, black). Move `spike/` code into `src/ews/ingest/` and `src/ews/resolve/`
+- [x] Convert the bulk `complaints.csv` to Parquet, then filter to mortgage (`stg_complaints`)
+- [x] `make delta`: API pull using `search_after`, trailing-30-day re-pull, upsert on `complaint_id`, JSON content-type check
+- [x] Fill the issue crosswalk (old and new taxonomy) and the response crosswalk (pre-2017 values) with severity tiers
+- [x] **HMDA spike:** file sizes, release date per vintage, Reporter Panel fields, and whether nonbanks carry RSSD. Write it up as a new FINDINGS section
 
 **Exit:** `make ingest` rebuilds complaint staging in under 5 minutes, `make delta` runs cleanly twice in a row, and the HMDA spike is written up.
+
+**Verified 2026-09-26:** full CSV rebuild 6.57 s; two live deltas 13.95 s / 10.21 s, each 1,810 rows fetched and 461,350 staged. See [FINDINGS §9](../FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26).
 
 ## M1: Labels (the riskiest step, so do it first)
 - [ ] Productionize the enforcement scraper: stop-on-no-new-slugs, check against the 386 total, save raw HTML

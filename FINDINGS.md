@@ -1,6 +1,6 @@
 # Data Source Spike: CFPB Complaint Early-Warning System
 
-**Investigated:** 2026-09-26 · **Scope:** feasibility, schema, and gotchas for the three sources. No pipeline has been built.
+**Investigated:** 2026-09-26 · **Scope:** feasibility, schema, and gotchas for the three sources. Original spike scope; M0 ingestion and HMDA follow-up are recorded in §9.
 Every number below comes from live calls made on this date unless marked *(from docs/source)*. Runnable code is in [`spike/`](spike/).
 
 ---
@@ -481,3 +481,153 @@ python3 -m venv .venv && .venv/bin/pip install -r spike/requirements.txt
 ```
 
 Outputs are written to `spike/data/` (about 2 MB). On macOS with python.org Python, use the venv's `requests` (which bundles certifi); stdlib `urllib` failed TLS verification on this machine.
+
+## 9. HMDA spike and M0 ingestion validation (2026-09-26)
+
+### 9.1 Access, file sizes, and reproducibility
+
+`make hmda-spike` runs [`src/ews/ingest/hmda.py`](src/ews/ingest/hmda.py).
+It reads the CFPB frontend's [official snapshot manifest](https://github.com/cfpb/hmda-frontend/blob/master/src/data-publication/constants/snapshot-dataset.jsx),
+uses HTTP HEAD for compressed size, and HTTP Range requests for ZIP central-directory
+uncompressed sizes. It downloads only the small Reporter Panels, **not the national
+LAR files**. The exact URLs, byte counts, Last-Modified headers, panel headers, row
+counts, and example records are preserved in
+[`docs/hmda_probe_2026-09-26.json`](docs/hmda_probe_2026-09-26.json).
+Local downloads and repeat-run output go to `data/raw/hmda/`.
+
+The download pattern is
+`https://files.ffiec.cfpb.gov/static-data/snapshot/{year}/{year}_public_{lar|ts|panel}_csv.zip`.
+All measurements below are for **snapshot CSV ZIPs**, not dynamic or revised one-/three-year files.
+MB and GB are decimal; expanded size comes from ZIP metadata, not a full download.
+
+| Activity vintage | LAR ZIP MB | Expanded LAR GB | TS ZIP KB | Panel ZIP KB | Panel rows |
+|---|---:|---:|---:|---:|---:|
+| 2017 | 155.9 | 1.791 | 262.8 | 216.6 | 5,852 |
+| 2018 | 823.7 | 5.856 | 229.4 | 322.5 | 5,683 |
+| 2019 | 980.1 | 6.816 | 221.5 | 317.5 | 5,508 |
+| 2020 | 1,460.3 | 10.030 | 183.0 | 228.8 | 4,475 |
+| 2021 | 1,517.9 | 10.206 | 178.1 | 221.0 | 4,333 |
+| 2022 | 877.7 | 6.058 | 182.6 | 227.6 | 4,467 |
+| 2023 | 624.5 | 4.340 | 208.2 | 282.4 | 5,113 |
+| 2024 | 664.2 | 4.625 | 199.1 | unavailable | — |
+| 2025 | 737.1 | 5.114 | 194.2 | unavailable | — |
+
+**Plan-changing finding:** the official manifest explicitly marks the **2024 and
+2025 Reporter Panels unavailable**, while offering LAR and Transmittal Sheet (TS)
+files. Do not construct panel URLs blindly or assume annual RSSD/parent mappings
+are present. Use TS for reporter identities and LEIs, and dated prior panels or
+separately reviewed identity sources for missing links. Never treat carried-forward
+ownership information as freshly verified. The [Philadelphia Fed methodology](https://www.philadelphiafed.org/surveys-and-data/consumer-finance-data/hmda-lender-methodology)
+is another official source to evaluate for the M2 crosswalk.
+
+The modern download probe covers 2017–2025. Pre-2017 archive sizes were **not
+measured**: the former `ffiec.gov/hmda/hmdaflat.htm` URL now returns 404, and the
+[current FFIEC HMDA page](https://www.ffiec.gov/data/hmda) redirects users conceptually
+to the CFPB platform. Legacy archive retrieval remains separate M3 work; do not
+apply the modern URL pattern or schema to those years.
+
+### 9.2 Release date per vintage: availability is not the freeze date
+
+The table records documented national-data publication/announcement dates. Use
+these as conservative `available_from` dates for the corresponding original
+release, not January 1 of the following year. The 2024 and 2025 announcements say
+“recently published,” so they establish availability **by** that date, not necessarily
+the exact first upload day. Revised files downloaded today require their own
+release provenance; these dates do not make later revisions historically available.
+
+| Activity vintage | Public release / conservative availability | Snapshot freeze (frontend manifest) | Official evidence |
+|---|---|---|---|
+| 2012 | 2013-09-18 | legacy; not probed | [CFPB report, footnote 90](https://files.consumerfinance.gov/f/201510_cfpb_financial-literacy-annual-report.pdf) |
+| 2013 | 2014-09-22 | legacy; not probed | [FFIEC annual report](https://www.ffiec.gov/sites/default/files/data/publications/annrpt14.pdf) |
+| 2014 | 2015-09-22 | legacy; not probed | [FFIEC release](https://www.ffiec.gov/news/press-releases/2015/pr-09-22) |
+| 2015 | 2016-09-29 | legacy; not probed | [FFIEC release](https://www.ffiec.gov/news/press-releases/2016/pr-09-29) |
+| 2016 | 2017-09-28 | legacy; not probed | [FFIEC release](https://www.ffiec.gov/news/press-releases/2017/pr-09-28) |
+| 2017 | 2018-05-07 | 2018-04-18 | [Federal Reserve Consumer Compliance Outlook](https://www.consumercomplianceoutlook.org/-/media/cco/2018/second-issue/ccoi22018.pdf) |
+| 2018 | 2019-08-30 | 2019-08-07 | [FFIEC release](https://www.ffiec.gov/news/press-releases/2019/pr-08-30) |
+| 2019 | 2020-06-24 | 2020-04-27 | [FFIEC release](https://www.ffiec.gov/news/press-releases/2021/pr1-06-24) |
+| 2020 | 2021-06-17 | 2021-05-03 | [FFIEC release](https://www.ffiec.gov/news/press-releases/2021/pr-06-17) |
+| 2021 | 2022-06-16 | 2022-04-30 | [FFIEC release](https://www.ffiec.gov/news/press-releases/2022/pr-06-16) |
+| 2022 | 2023-06-29 | 2023-05-01 | [CFPB fair-lending report, p. 18](https://files.consumerfinance.gov/f/documents/cfpb_fair-lending-report_fy-2023.pdf) |
+| 2023 | 2024-07-11 | 2024-05-01 | [FFIEC release (URL year is misleading)](https://www.ffiec.gov/news/press-releases/2015/pr-07-11) |
+| 2024 | by 2025-07-07 | 2025-05-19 | [FFIEC announcement](https://www.ffiec.gov/news/press-releases/2025/an-07-07) |
+| 2025 | by 2026-06-23 | 2026-06-02 | [FFIEC announcement](https://www.ffiec.gov/news/press-releases/2026/an-06-23) |
+
+There are small source disagreements: the 2021 announcement describes a May 1
+freeze while the frontend says April 30; the 2025 announcement says June 1 while
+the frontend says June 2. Preserve both source interpretations; neither affects
+the later conservative public-availability date. S3 Last-Modified is an object
+upload/replacement timestamp and is not evidence of initial public availability.
+
+Institution-level **modified LAR** is a different release: for example, the CFPB
+announced 2024 modified LAR on [2025-03-31](https://www.consumerfinance.gov/about-us/newsroom/2024-hmda-data-on-mortgage-lending-now-available/)
+and 2025 modified LAR on [2026-03-31](https://www.consumerfinance.gov/about-us/newsroom/2025-hmda-data-on-mortgage-lending-now-available/).
+Do not backdate the later national snapshot or Reporter Panel to those dates.
+
+### 9.3 Reporter Panel fields and nonbank RSSDs
+
+The downloaded 2020–2023 CSV panels have these 15 columns (actual headers):
+
+```
+activity_year, lei, tax_id, agency_code, id_2017, respondent_rssd,
+respondent_name, respondent_state, respondent_city, assets, other_lender_code,
+parent_rssd, parent_name, topholder_rssd, topholder_name
+```
+
+The 2018–2019 panels also contain `arid_2017`. The 2017 panel is a **headerless,
+19-column** CSV; parsing it with an inferred header loses a reporter and invents
+column names from the first record. Use its separate [legacy format specification](https://files.ffiec.cfpb.gov/static-data/snapshot/2017/2017_publicstatic_dataformat.pdf).
+
+LEI is the modern join key. Legacy IDs need the agency context and the official
+ARID2017-to-LEI crosswalk. Preserve identifiers as strings, including leading zeros.
+Treat blank and `-1` RSSDs/assets as missing, never as real identifiers or negative
+exposure. Parent and top-holder RSSDs are different from the reporter RSSD.
+The [official identifier FAQ](https://ffiec.beta.cfpb.gov/documentation/faq/identifiers-faq)
+says `other_lender_code=0` denotes depositories; agency code alone does not identify
+bank/nonbank status. Exclude unknown `-1` lender codes from classified counts.
+
+**Nonbanks can carry RSSDs, but coverage is incomplete.** Directly observed in the
+[2023 panel](https://files.ffiec.cfpb.gov/static-data/snapshot/2023/2023_public_panel_csv.zip):
+
+| Reporter | LEI | respondent_rssd | other_lender_code |
+|---|---|---|---|
+| ROCKET MORTGAGE, LLC | 549300FGXN1K3HLB1R50 | 3870679 | 3 |
+| UNITED WHOLESALE MORTGAGE, LLC | 549300HW662MN1WU8550 | 3870651 | 3 |
+| FREEDOM MORTGAGE CORPORATION | 549300LYRWPSYPK6S325 | 3966116 | 3 |
+| NATIONSTAR MORTGAGE LLC | 549300LBCBNR1OT00651 | -1 (missing) | 3 |
+
+Across code 3 reporters, **569/927 (61.4%)** have a positive/nonmissing reporter RSSD;
+across known non-depository codes 1, 2, 3, and 5, **668/1,029 (64.9%)** do.
+These are panel-file counts, not an assertion that every ID has been independently
+validated against NIC. In particular, Nationstar has a populated `id_2017` despite
+missing `respondent_rssd`; do not copy one into the other. RSSD presence also does
+not imply FDIC coverage or an appropriate bank-asset denominator.
+
+For M3, aggregate LAR with DuckDB to lender-year counts before joining complaints;
+count originations using the vintage's action code definition. Budget up to roughly
+10 GB expanded LAR for a single recent vintage, while panels are under 1 MB expanded.
+HMDA measures origination activity, not servicing exposure: ADR-006/007 still apply.
+
+### 9.4 M0 verification on the full complaint export
+
+Run on macOS / Python 3.11.14 / DuckDB 1.5.5, 2026-09-26:
+
+- `make ingest`: **6.57 seconds**, rebuilding from the local bulk CSV (download time
+  excluded). All-product Parquet: **18,023,390 rows**, 141,214,755 bytes. Mortgage
+  staging: **461,350 rows and distinct IDs**, 5,116,446 bytes, 2011-12-01–2026-09-25.
+- Two consecutive live `make delta` runs: **13.95 s** and **10.21 s**, each fetching
+  **1,810 rows**, zero changed rows, and retaining **461,350** unique IDs. Each used
+  1,000-row pages followed by `search_after` and a terminal empty page. The first
+  daily overlap was 2026-08-27–2026-09-26, including 30 days through the existing
+  maximum received date plus the new day.
+- Unit tests cover changed responses and new IDs, history preservation, unchanged
+  reruns, downtime catch-up, empty deltas, rejected taxonomy/duplicate/product
+  payloads, failed pagination, repeated cursors, and HTML-with-200 rejection.
+- Crosswalks cover every issue and response observed in the full mortgage file,
+  including one blank response (unknown, excluded from response metrics). Severity
+  assignments and the separate response tier are documented in
+  [`data/reference/README.md`](data/reference/README.md).
+
+Daily deltas cannot discover revisions to complaints older than the overlap or
+historical removals/product reclassifications. A fresh bulk download and rebuild
+is the reconciliation mechanism. Today's response values are not historical
+point-in-time response snapshots; this remains a backtest limitation.

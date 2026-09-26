@@ -1,0 +1,21 @@
+issue,issue_std,severity_tier,taxonomy
+"Loan modification,collection,foreclosure",loss_mitigation_foreclosure,3,legacy
+"Loan servicing payments escrow account",servicing_payments_escrow,2,legacy
+"Loan servicing, payments, escrow account",servicing_payments_escrow,2,legacy
+"Application, originator, mortgage broker",application_refinance,1,legacy
+"Settlement process and costs",settlement_costs,1,legacy
+"Credit decision / Underwriting",underwriting,1,legacy
+"Credit decision/Underwriting",underwriting,1,legacy
+"Other",other,1,legacy
+"Struggling to pay mortgage",loss_mitigation_foreclosure,3,current
+"Trouble during payment process",servicing_payments_escrow,2,current
+"Applying for a mortgage or refinancing an existing mortgage",application_refinance,1,current
+"Closing on a mortgage",closing,2,current
+"Problem with a credit reporting company's investigation into an existing problem",credit_reporting_investigation,1,current
+"Incorrect information on your report",credit_reporting_accuracy,1,current
+"Improper use of your report",credit_reporting_use,1,current
+"Unable to get your credit report or credit score",credit_reporting_access,1,current
+"Credit monitoring or identity theft protection services",credit_monitoring,1,current
+"Problem with fraud alerts or security freezes",credit_reporting_security,1,current
+"Problem with credit report or credit score",credit_reporting_accuracy,1,current
+"Problem with a company's investigation into an existing problem",credit_reporting_investigation,1,current
