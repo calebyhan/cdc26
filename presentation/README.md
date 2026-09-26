@@ -1,60 +1,56 @@
-# Presentation deck
+# Not My Debt — opening story
 
-`deck.html` is the whole presentation in one file: page, animation code and data.
-It needs no server.
+Open `index.html` directly in a modern browser. The seven-slide deck is self-contained
+and works offline; source links and the live app need their respective connections.
+No build step, dependencies, remote fonts, or image downloads are required.
 
-## Present it
+From the repository root, an optional local server is:
 
-Open `deck.html` in Chrome, Edge, Firefox or Safari (double-click, or drag it into a
-window). Keys:
-
-| Key | Action |
-| --- | --- |
-| → / Space / PageDown / click | next step; during an animation, finish it |
-| ← / PageUp | previous step |
-| 1–5 | jump to a section |
-| S | playback speed 0.5× / 1× / 2× / 4× |
-| R | replay the current step |
-| F | fullscreen |
-
-Presentation clickers send PageDown/PageUp, so they work too. Adding `#b=6` to the
-address opens a specific step (numbered from 0).
-
-The font (Public Sans) loads from Google Fonts. Offline, the page falls back to
-system fonts and still works.
-
-The deck stops at "In the dashboard" for the live demo; the click path is on that
-slide and in [docs/11_presentation.md](../docs/11_presentation.md).
-
-## Edit it
-
-All text lives in `deck.template.html`:
-
-- **Headlines and captions**: the `BEATS` array, one entry per click. Captions are
-  HTML; `${...}` pulls a number from the data, so an edited caption stays in step
-  with the backtest.
-- **Limitations rows**: the `LIMITS` array.
-- **Demo steps and closing slide**: the `#demo` and `#end` sections in the markup.
-- **Colours and font**: the `:root` block at the top. Each colour means one thing:
-  green-teal is complaint volume, violet is the change score (Model A), crimson is
-  a CFPB filing, grey is comparison only.
-
-Then rebuild:
-
-```bash
-.venv/bin/python presentation/build_deck.py
+```sh
+python3 -m http.server 8765
 ```
 
-## Refresh the data
+Then open <http://localhost:8765/presentation/>.
 
-Only needed if the backtest, dashboard bundle or complaint snapshot changes. It
-reads `data/staging` (not in git), `data/dashboard` and `reports/`:
+## Present
 
-```bash
-PYTHONPATH=src .venv/bin/python scripts/export_deck_data.py
-.venv/bin/python presentation/build_deck.py
+- **Right / Space / Page Down:** next slide. **Left / Page Up:** previous.
+- **Home / End:** first / last. Bottom dots jump to a slide. Touch supports swiping.
+- **F:** fullscreen. **N:** speaker notes. **Escape:** close notes.
+- Slides advance manually. Short entrance animations follow each advance.
+- The browser's reduced-motion preference removes entrance motion.
+- Print from the browser for a static 16:9 copy of all seven slides.
+
+The script is approximately 1 minute 45 seconds before the app demo. Notes are
+visible to anyone looking at this browser window; keep them closed on the projector.
+The demo button opens `http://localhost:8501` in a new tab. Start the app beforehand:
+
+```sh
+uv run streamlit run streamlit_app.py
 ```
 
-The export stops with an error if an input no longer has the shape the deck
-assumes (for example, a different number of cutoffs), rather than drawing a
-misleading chart.
+## Scope and editing
+
+This checkpoint contains only the opening story, one CFPB statistic, the product
+introduction, and the live-demo handoff. The technical explanation, evaluation,
+business model, and closing slides have not been added.
+
+Each `<section class="slide">` is a slide. Edit its visible HTML and associated
+`<aside class="notes">` together. Colors and type are controlled by CSS variables
+at the top. All document visuals are editable HTML excerpts, not screenshots of
+real patient records. The evidence-summary visual is illustrative, not an app capture.
+
+Maya's names, amounts, account, and dates match the `paid` fixture in
+[`src/not_my_debt/examples.py`](../src/not_my_debt/examples.py). All are fictional.
+The collection notice is explicitly an excerpt, not a complete legal notice.
+
+The real CFPB number comes from the committed
+[`research.json`](../data/research/research.json) snapshot and
+[`source_manifest.json`](../data/research/source_manifest.json): 1,005 complaints
+categorized “Debt was paid” within 8,843 medical-debt collection complaints received
+in 2025. It counts complaint records, not unique people or verified billing errors.
+The chart's filled share is 1,005 / 8,843 (approximately 11.4%). The slide links to
+the exact official query and the snapshot. Update both numbers and the chart if
+you refresh the source. CFPB does not supply the demo's underlying documents.
+
+Story, design, and implementation created with assistance from OpenAI Codex.

@@ -1,0 +1,367 @@
+{
+  "schema_version": "1.0",
+  "retrieved_at": "2026-09-26T21:38:23+00:00",
+  "generated_at": "2026-09-26T21:42:02+00:00",
+  "scope": {
+    "year": 2025,
+    "product": "Debt collection",
+    "sub_product": "Medical debt"
+  },
+  "api": {
+    "total_complaints": 8843,
+    "issue_counts": [
+      {
+        "label": "Attempts to collect debt not owed",
+        "count": 3809
+      },
+      {
+        "label": "Written notification about debt",
+        "count": 2129
+      },
+      {
+        "label": "False statements or representation",
+        "count": 1003
+      },
+      {
+        "label": "Took or threatened to take negative or legal action",
+        "count": 735
+      },
+      {
+        "label": "Communication tactics",
+        "count": 697
+      },
+      {
+        "label": "Electronic communications",
+        "count": 312
+      },
+      {
+        "label": "Threatened to contact someone or share information improperly",
+        "count": 158
+      }
+    ],
+    "not_owed_count": 3809,
+    "not_owed_subissues": [
+      {
+        "label": "Debt is not yours",
+        "count": 2245
+      },
+      {
+        "label": "Debt was paid",
+        "count": 1005
+      },
+      {
+        "label": "Debt was result of identity theft",
+        "count": 404
+      },
+      {
+        "label": "Debt was already discharged in bankruptcy and is no longer owed",
+        "count": 155
+      }
+    ],
+    "source_url": "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&date_received_min=2025-01-01&date_received_max=2025-12-31&product=Debt+collection%E2%80%A2Medical+debt",
+    "filter_verified_sample_size": 3,
+    "narratives_present_in_sample": 0,
+    "narrative_status": "Current API supplies structured fields, not complaint narratives. Narrative analysis uses the historical archive.",
+    "last_indexed": "2026-09-26T12:00:00-05:00"
+  },
+  "archive": {
+    "period": "January–February 2025",
+    "source_url": "https://files.consumerfinance.gov/f/documents/CCDB_Export_9_January_2025_through_February_2025.zip",
+    "sha256": "11c18bb0973eed8f5e4f66e2979346af0671a3aefcb5a6b9eec73009d53cff64",
+    "compressed_bytes": 75475199,
+    "archive_total_rows": 811019,
+    "medical_total": 1644,
+    "medical_with_narrative": 819,
+    "medical_without_narrative": 825,
+    "unique_narratives": 812,
+    "duplicate_narratives": 7,
+    "narrative_coverage_pct": 49.82,
+    "deduplication": "SHA-256 of casefolded text with whitespace collapsed; not semantic or near-duplicate detection.",
+    "monthly_counts": [
+      {
+        "label": "2025-01",
+        "count": 956
+      },
+      {
+        "label": "2025-02",
+        "count": 688
+      }
+    ],
+    "issue_counts": [
+      {
+        "label": "Attempts to collect debt not owed",
+        "count": 683
+      },
+      {
+        "label": "Written notification about debt",
+        "count": 420
+      },
+      {
+        "label": "False statements or representation",
+        "count": 172
+      },
+      {
+        "label": "Communication tactics",
+        "count": 147
+      },
+      {
+        "label": "Took or threatened to take negative or legal action",
+        "count": 145
+      },
+      {
+        "label": "Electronic communications",
+        "count": 50
+      },
+      {
+        "label": "Threatened to contact someone or share information improperly",
+        "count": 27
+      }
+    ],
+    "not_owed_subissues": [
+      {
+        "label": "Debt is not yours",
+        "count": 393
+      },
+      {
+        "label": "Debt was paid",
+        "count": 189
+      },
+      {
+        "label": "Debt was result of identity theft",
+        "count": 83
+      },
+      {
+        "label": "Debt was already discharged in bankruptcy and is no longer owed",
+        "count": 18
+      }
+    ],
+    "narrative_issue_counts_before_dedup": [
+      {
+        "label": "Attempts to collect debt not owed",
+        "count": 344
+      },
+      {
+        "label": "Written notification about debt",
+        "count": 197
+      },
+      {
+        "label": "False statements or representation",
+        "count": 89
+      },
+      {
+        "label": "Communication tactics",
+        "count": 77
+      },
+      {
+        "label": "Took or threatened to take negative or legal action",
+        "count": 75
+      },
+      {
+        "label": "Electronic communications",
+        "count": 26
+      },
+      {
+        "label": "Threatened to contact someone or share information improperly",
+        "count": 11
+      }
+    ],
+    "unique_not_owed_subissues": [
+      {
+        "label": "Debt is not yours",
+        "count": 192
+      },
+      {
+        "label": "Debt was paid",
+        "count": 99
+      },
+      {
+        "label": "Debt was result of identity theft",
+        "count": 38
+      },
+      {
+        "label": "Debt was already discharged in bankruptcy and is no longer owed",
+        "count": 8
+      }
+    ],
+    "patterns": [
+      {
+        "id": "paid_language",
+        "label": "Already-paid language",
+        "description": "Mentions already paid, paid in full, or a zero balance; does not verify payment.",
+        "regex": "\\b(?:already|previously)\\s+(?:been\\s+)?paid\\b|\\bpaid\\s+in\\s+full\\b|\\b(?:zero|0(?:\\.00)?)\\s+balance\\b|\\bbalance\\s+(?:was|is|of)\\s+(?:zero|\\$?0(?:\\.00)?)\\b",
+        "count": 41
+      },
+      {
+        "id": "insurance_language",
+        "label": "Insurance / coverage language",
+        "description": "Mentions insurance, insurer, coverage, or an explanation of benefits; does not establish an insurance error.",
+        "regex": "\\b(?:insurance|insurer|coverage|eob)\\b|\\bexplanation\\s+of\\s+benefits\\b",
+        "count": 178
+      },
+      {
+        "id": "identity_language",
+        "label": "Identity / recognition language",
+        "description": "Mentions identity theft, not mine, not my debt, or wrong person; does not establish identity theft.",
+        "regex": "\\bidentity\\s+theft\\b|\\bnot\\s+(?:my\\s+debt|mine)\\b|\\bwrong\\s+person\\b",
+        "count": 57
+      },
+      {
+        "id": "verification_language",
+        "label": "Verification / documentation language",
+        "description": "Mentions validation, verification, or requests for proof/documentation; does not establish that documents were missing.",
+        "regex": "\\b(?:validat\\w*|verif\\w*|documentation)\\b|\\bproof\\s+of\\b",
+        "count": 244
+      },
+      {
+        "id": "amount_language",
+        "label": "Amount / duplicate-billing language",
+        "description": "Mentions a wrong/incorrect amount, overcharge, or duplicate bill/charge; does not prove a billing discrepancy.",
+        "regex": "\\b(?:wrong|incorrect|inaccurate)\\s+(?:amount|balance)\\b|\\bovercharg\\w*\\b|\\bduplicate\\s+(?:bill\\w*|charg\\w*)\\b",
+        "count": 6
+      }
+    ],
+    "document_mentions": [
+      {
+        "id": "eob",
+        "label": "Explanation of benefits",
+        "description": "Explicit EOB or explanation-of-benefits mention.",
+        "regex": "\\beob\\b|\\bexplanation\\s+of\\s+benefits\\b",
+        "count": 5
+      },
+      {
+        "id": "bill",
+        "label": "Bill / invoice / statement",
+        "description": "Mentions a bill, billing statement, itemized statement, or invoice.",
+        "regex": "\\bbills?\\b|\\binvoices?\\b|\\b(?:billing|itemized)\\s+statements?\\b",
+        "count": 274
+      },
+      {
+        "id": "receipt",
+        "label": "Receipt / payment proof",
+        "description": "Mentions a receipt, payment confirmation, bank statement, canceled check, or proof of payment.",
+        "regex": "\\breceipts?\\b|\\bpayment\\s+confirmation\\b|\\bproof\\s+of\\s+payment\\b|\\bbank\\s+statements?\\b|\\bcancel(?:l)?ed\\s+checks?\\b",
+        "count": 43
+      },
+      {
+        "id": "collection_notice",
+        "label": "Collection / validation notice",
+        "description": "Explicit collection/dunning/validation notice or letter mention.",
+        "regex": "\\b(?:collection|dunning|validation)\\s+(?:notice|letter)\\b",
+        "count": 36
+      }
+    ],
+    "pattern_document_matrix": [
+      {
+        "pattern_id": "paid_language",
+        "document_id": "eob",
+        "count": 1
+      },
+      {
+        "pattern_id": "paid_language",
+        "document_id": "bill",
+        "count": 25
+      },
+      {
+        "pattern_id": "paid_language",
+        "document_id": "receipt",
+        "count": 8
+      },
+      {
+        "pattern_id": "paid_language",
+        "document_id": "collection_notice",
+        "count": 0
+      },
+      {
+        "pattern_id": "insurance_language",
+        "document_id": "eob",
+        "count": 5
+      },
+      {
+        "pattern_id": "insurance_language",
+        "document_id": "bill",
+        "count": 101
+      },
+      {
+        "pattern_id": "insurance_language",
+        "document_id": "receipt",
+        "count": 12
+      },
+      {
+        "pattern_id": "insurance_language",
+        "document_id": "collection_notice",
+        "count": 11
+      },
+      {
+        "pattern_id": "identity_language",
+        "document_id": "eob",
+        "count": 0
+      },
+      {
+        "pattern_id": "identity_language",
+        "document_id": "bill",
+        "count": 9
+      },
+      {
+        "pattern_id": "identity_language",
+        "document_id": "receipt",
+        "count": 3
+      },
+      {
+        "pattern_id": "identity_language",
+        "document_id": "collection_notice",
+        "count": 2
+      },
+      {
+        "pattern_id": "verification_language",
+        "document_id": "eob",
+        "count": 2
+      },
+      {
+        "pattern_id": "verification_language",
+        "document_id": "bill",
+        "count": 75
+      },
+      {
+        "pattern_id": "verification_language",
+        "document_id": "receipt",
+        "count": 30
+      },
+      {
+        "pattern_id": "verification_language",
+        "document_id": "collection_notice",
+        "count": 19
+      },
+      {
+        "pattern_id": "amount_language",
+        "document_id": "eob",
+        "count": 0
+      },
+      {
+        "pattern_id": "amount_language",
+        "document_id": "bill",
+        "count": 2
+      },
+      {
+        "pattern_id": "amount_language",
+        "document_id": "receipt",
+        "count": 1
+      },
+      {
+        "pattern_id": "amount_language",
+        "document_id": "collection_notice",
+        "count": 0
+      }
+    ],
+    "examples": [],
+    "example_policy": "Public artifacts contain aggregates only. Full narrative text remains in ignored local raw storage."
+  },
+  "caveats": [
+    "Complaint counts describe submitted complaints, not population prevalence, distinct people, or verified wrongdoing.",
+    "The annual API and the two-month narrative archive have different time windows and extraction dates; their denominators are not interchangeable.",
+    "Narratives are consumer reports and are missing for many complaints. Narrative availability can introduce selection bias.",
+    "Keyword patterns and document mentions overlap. Their denominator is unique nonempty medical-debt narratives, not all complaints.",
+    "Matching a keyword does not verify payment, an insurance error, identity theft, document availability, or a correct legal outcome. Negation/context are not resolved.",
+    "This research is exploratory; no classifier performance, human review, causal effect, or recovered-money outcome is claimed.",
+    "CFPB narratives do not include paired EOB/bill/receipt/collection-notice bundles. Document reconciliation is evaluated separately on labeled synthetic fixtures."
+  ]
+}

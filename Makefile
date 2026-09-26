@@ -1,51 +1,17 @@
 PYTHON ?= .venv/bin/python
-CSV ?= data/raw/complaints.csv
-DATA_DIR ?= data
-ENFORCEMENT_ARGS ?=
-BACKTEST_ARGS ?=
-PIPELINE_ARGS ?=
-RESOLVE_ARGS ?=
 export PYTHONPATH := src
 
-.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike resolve pipeline backtest
+.PHONY: setup app test lint format research
 setup:
 	uv venv --allow-existing .venv
 	uv pip install --python $(PYTHON) -e '.[dev]'
-ingest:
-	$(PYTHON) -m ews.ingest.complaints ingest --csv "$(CSV)" --data-dir "$(DATA_DIR)"
-delta:
-	$(PYTHON) -m ews.ingest.complaints delta --data-dir "$(DATA_DIR)"
-test:
-	$(PYTHON) -m pytest
-lint:
-	$(PYTHON) -m ruff check src tests
-	$(PYTHON) -m black --check src tests
-format:
-	$(PYTHON) -m ruff check --fix src tests
-	$(PYTHON) -m black src tests
-fdic:
-	$(PYTHON) -m ews.ingest.fdic
-enforcement:
-	$(PYTHON) -m ews.ingest.enforcement --data-dir "$(DATA_DIR)" $(ENFORCEMENT_ARGS)
-hmda-spike:
-	$(PYTHON) -m ews.ingest.hmda
-resolve:
-	$(PYTHON) -m ews.resolve.pipeline --data-dir "$(DATA_DIR)" $(RESOLVE_ARGS)
-
-pipeline:
-	$(PYTHON) -m ews.pipeline --data-dir "$(DATA_DIR)" $(PIPELINE_ARGS)
-
-backtest:
-	$(PYTHON) -m ews.backtest.pipeline --data-dir "$(DATA_DIR)" $(BACKTEST_ARGS)
-
-.PHONY: dashboard dashboard-marts refresh-dashboard dashboard-acceptance
-dashboard:
+app:
 	$(PYTHON) -m streamlit run streamlit_app.py
-dashboard-marts:
-	$(PYTHON) -m ews.app.precompute --data-dir "$(DATA_DIR)"
-refresh-dashboard:
-	$(PYTHON) -m ews.app.refresh --data-dir "$(DATA_DIR)"
-	$(PYTHON) -m pytest tests/test_dashboard.py -q
-	$(PYTHON) -m ews.app.refresh --data-dir "$(DATA_DIR)" --mark-success
-dashboard-acceptance:
-	$(PYTHON) -m ews.app.acceptance
+test:
+	$(PYTHON) -m pytest -q
+lint:
+	$(PYTHON) -m ruff check .
+format:
+	$(PYTHON) -m ruff format .
+research:
+	$(PYTHON) scripts/refresh_research.py

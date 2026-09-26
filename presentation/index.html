@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173c36">
+  <meta name="description" content="Not My Debt: an animated, fictional medical-billing story grounded in CFPB complaint data.">
+  <title>Not My Debt · The story</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --cream: #f5f1e8;
+      --paper: #fffdf8;
+      --ink: #173c36;
+      --muted: #5f6f65;
+      --line: #d6d9ca;
+      --green: #cfe4a6;
+      --coral: #c95b41;
+      --sans: "Avenir Next", "Segoe UI", Arial, sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: #102b27; color: var(--ink); font-family: var(--sans); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    button, a { touch-action: manipulation; }
+    button:focus-visible, a:focus-visible { outline: 3px solid var(--coral); outline-offset: 5px; }
+    .stage { min-height: 100svh; display: grid; place-items: center; padding: 24px 28px 76px; }
+    .deck { position: relative; width: min(100%, calc((100svh - 100px) * 16 / 9)); aspect-ratio: 16 / 9; container-type: inline-size; }
+    .slide { position: absolute; inset: 0; padding: 4.3cqw 5.6cqw 3.3cqw; background: var(--cream); overflow: hidden; visibility: hidden; opacity: 0; pointer-events: none; }
+    .slide.is-active { visibility: visible; opacity: 1; pointer-events: auto; }
+    .slide.dark { background: var(--ink); color: var(--cream); }
+    .slide.lime { background: var(--green); }
+    .running-head { display: flex; justify-content: space-between; align-items: center; gap: 1em; font-size: 1.02cqw; font-weight: 600; letter-spacing: .04em; }
+    .brand { display: flex; align-items: baseline; gap: .55em; }
+    .brand b { width: .5em; height: .5em; border-radius: 100%; background: currentColor; }
+    .disclosure { font-weight: 500; opacity: .68; font-size: .91cqw; }
+    .composition { height: 39.2cqw; display: grid; align-items: center; grid-template-columns: 1.12fr 1fr; gap: 5cqw; }
+    .eyebrow { font-size: 1.03cqw; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 1.6cqw; }
+    h1, h2, p { margin: 0; }
+    h1, h2 { font-family: var(--serif); font-weight: 400; font-size: 5.35cqw; line-height: 1.05; letter-spacing: -.047em; }
+    h2 em, h1 em { font-weight: 400; color: var(--coral); }
+    .dark h2 em { color: #f19378; }
+    .support { font-size: 1.55cqw; line-height: 1.55; margin-top: 2cqw; max-width: 30cqw; color: var(--muted); }
+    .dark .support { color: #bccdc3; }
+    .slide-footer { position: absolute; bottom: 2.7cqw; left: 5.6cqw; right: 5.6cqw; display: flex; align-items: center; justify-content: space-between; gap: 2cqw; font-size: .92cqw; line-height: 1.5; color: var(--muted); }
+    .dark .slide-footer { color: #bccdc3; }
+    .slide-footer a { color: inherit; text-underline-offset: .2em; }
+    .page-label { white-space: nowrap; }
+    .paper { position: relative; background: var(--paper); color: var(--ink); padding: 2.6cqw; box-shadow: 0 1.1cqw 2.8cqw #173c3614; border: 1px solid #173c3618; transform: rotate(2deg); }
+    .paper-head { display: flex; justify-content: space-between; align-items: start; gap: 1cqw; border-bottom: 1px solid var(--line); padding-bottom: 1.3cqw; margin-bottom: 1.4cqw; }
+    .issuer { font-size: 1.25cqw; font-weight: 700; line-height: 1.35; }
+    .paper-kind { font-size: .8cqw; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: .45cqw; }
+    .paper-date { font-size: .87cqw; color: var(--muted); white-space: nowrap; padding-top: .1cqw; }
+    .paper-meta { display: flex; justify-content: space-between; font-size: .94cqw; line-height: 1.8; padding-bottom: 1.2cqw; }
+    .paper-meta span { display: block; color: var(--muted); font-size: .82cqw; }
+    .money-rows { width: 100%; border-collapse: collapse; font-size: 1.04cqw; line-height: 2.55; }
+    .money-rows td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .money-rows tr:last-child { border-top: 1px solid var(--line); font-weight: 700; }
+    .money-rows tr:last-child td { padding-top: .6cqw; font-size: 1.25cqw; }
+    .amount-band { margin: 1.25cqw -2.6cqw -2.6cqw; padding: 1.25cqw 2.6cqw; display: flex; justify-content: space-between; align-items: center; background: var(--green); font-size: 1cqw; }
+    .amount-band strong { font-size: 3.25cqw; letter-spacing: -.06em; font-weight: 500; line-height: 1.2; }
+    .paper-caption { margin-top: 2cqw; font-size: 1cqw; color: var(--muted); text-align: center; }
+    .receipt { transform: rotate(-3deg); border-top: .38cqw solid var(--ink); padding-bottom: 3cqw; }
+    .receipt::after { content: ""; position: absolute; height: .8cqw; left: -1px; right: -1px; bottom: -.5cqw; background: linear-gradient(135deg, var(--paper) 25%, transparent 25%) -.4cqw 0, linear-gradient(225deg, var(--paper) 25%, transparent 25%) -.4cqw 0; background-size: .8cqw .8cqw; }
+    .receipt-amount { font-size: 7.7cqw; letter-spacing: -.075em; line-height: 1.1; text-align: center; margin: 1.2cqw 0 .7cqw; font-weight: 500; }
+    .payment-state { display: flex; align-items: center; justify-content: center; gap: .6cqw; font-size: 1.12cqw; font-weight: 650; margin-bottom: 2cqw; }
+    .check { width: 1.5cqw; height: 1.5cqw; border: 1px solid currentColor; border-radius: 50%; display: inline-grid; place-items: center; font-size: 1cqw; }
+    .receipt-reference { border-top: 1px dashed #b6c2b5; padding-top: 1.1cqw; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .89cqw; line-height: 1.8; color: var(--muted); }
+    .notice { transform: rotate(3deg); box-shadow: 0 1.4cqw 3cqw #07181340; border-top: .45cqw solid var(--coral); }
+    .notice-heading { font-family: var(--serif); font-size: 2.5cqw; letter-spacing: -.04em; margin: 1.6cqw 0 1.2cqw; }
+    .notice .amount-band { background: #f7dfd3; }
+    .notice .amount-band strong { color: #a9462d; }
+    .notice-body { font-size: 1.08cqw; line-height: 1.6; margin-bottom: 1.8cqw; }
+    .time-gap { display: inline-flex; gap: .75cqw; margin-top: 2.5cqw; align-items: center; font-size: 1.1cqw; color: #bccdc3; }
+    .time-gap .rule { width: 3.6cqw; height: 1px; background: #8ca899; }
+    .records-heading { font-size: 4.75cqw; margin-top: 3.7cqw; }
+    .evidence-line { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 3.8cqw; gap: 2cqw; position: relative; }
+    .evidence-item { padding-top: 1.4cqw; border-top: 2px solid var(--ink); }
+    .evidence-item:last-child { border-color: var(--coral); }
+    .evidence-date { font-size: 1cqw; color: var(--muted); }
+    .evidence-item h3 { font-size: 1.38cqw; font-weight: 650; margin: .8cqw 0 1.5cqw; }
+    .evidence-amount { font-size: 3.8cqw; line-height: 1; letter-spacing: -.06em; }
+    .evidence-meaning { font-size: 1.01cqw; margin: .85cqw 0 1.5cqw; color: var(--muted); }
+    .evidence-item:last-child .evidence-amount { color: #b84f35; }
+    .evidence-account { font-size: .89cqw; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .linking-caption { margin-top: 2.4cqw; padding-top: 1.3cqw; border-top: 1px solid var(--line); font-size: 1.17cqw; }
+    .data-layout { padding-top: 2.7cqw; }
+    .data-layout .eyebrow { margin-bottom: .5cqw; }
+    .stat-number { font-size: 14.5cqw; line-height: 1.02; font-weight: 500; letter-spacing: -.08em; font-variant-numeric: tabular-nums; }
+    .stat-context { font-size: 2.48cqw; line-height: 1.33; margin-top: 1cqw; max-width: 68cqw; letter-spacing: -.025em; }
+    .stat-context strong { font-weight: 600; text-decoration: underline; text-decoration-color: var(--coral); text-underline-offset: .22em; text-decoration-thickness: .08em; }
+    .data-bottom { display: flex; align-items: center; gap: 2cqw; margin-top: 2.4cqw; }
+    .data-bar { width: 23cqw; height: .75cqw; background: #bbcba0; overflow: hidden; }
+    .data-bar-fill { display: block; height: 100%; width: 11.3649214%; background: var(--ink); transform-origin: left; }
+    .data-denominator { font-size: 1.08cqw; line-height: 1.45; }
+    .data-slide .slide-footer { max-width: 80cqw; color: #415b38; font-size: .88cqw; display: block; }
+    .product-name { font-family: var(--serif); font-size: 6.3cqw; line-height: 1.08; letter-spacing: -.045em; }
+    .product-name .period { color: var(--coral); }
+    .product-tagline { font-size: 2.05cqw; line-height: 1.35; margin-top: 2cqw; max-width: 33cqw; letter-spacing: -.02em; }
+    .packet { transform: rotate(1.5deg); }
+    .packet-label { text-transform: uppercase; letter-spacing: .1em; font-size: .85cqw; color: var(--muted); }
+    .packet-title { font-family: var(--serif); font-size: 2.8cqw; line-height: 1.1; margin: 1cqw 0 1.4cqw; }
+    .finding { border-left: .24cqw solid var(--coral); padding-left: 1.2cqw; margin: 1.6cqw 0; font-size: 1.15cqw; line-height: 1.6; }
+    .evidence-citation { font-size: .94cqw; border-top: 1px solid var(--line); padding: .85cqw 0; display: flex; justify-content: space-between; gap: 1cqw; }
+    .packet-bottom { margin-top: 1.2cqw; padding-top: 1.2cqw; border-top: 1px solid var(--line); font-size: 1cqw; line-height: 1.55; }
+    .demo-layout { padding-top: 5cqw; }
+    .demo-title { font-size: 7.6cqw; line-height: 1.05; }
+    .demo-title em { color: var(--green); }
+    .demo-layout .support { max-width: 43cqw; font-size: 1.6cqw; }
+    .demo-link { display: inline-flex; align-items: center; gap: 2.5cqw; text-decoration: none; color: var(--ink); background: var(--green); border-radius: .4cqw; padding: 1.05cqw 1.5cqw; font-size: 1.22cqw; font-weight: 650; margin-top: 2.6cqw; transition: background .2s, transform .2s; }
+    .demo-link:hover { background: #e4f4c8; transform: translateY(-2px); }
+    .demo-link svg { width: 1.2cqw; height: 1.2cqw; }
+    .demo-index { position: absolute; right: 5.6cqw; top: 13cqw; writing-mode: vertical-rl; font-size: 1.02cqw; letter-spacing: .15em; color: #8ca899; }
+    .controls { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 7px 9px 7px 17px; border: 1px solid #ffffff24; background: #102b27f5; color: #ebefe5; border-radius: 100px; z-index: 10; box-shadow: 0 8px 25px #0614102b; }
+    .controls button { border: 0; background: transparent; color: inherit; cursor: pointer; min-width: 32px; min-height: 32px; display: grid; place-items: center; border-radius: 50%; padding: 0; font-size: 14px; }
+    .controls button:hover { background: #ffffff1c; }
+    .controls button:disabled { opacity: .25; cursor: default; }
+    .controls svg { width: 16px; height: 16px; }
+    .counter { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 30px; text-align: center; }
+    .nav-dots { display: flex; gap: 2px; }
+    .nav-dots button { min-width: 18px; min-height: 28px; }
+    .nav-dots button::after { content: ""; width: 5px; height: 5px; background: #667e71; border-radius: 50%; transition: width .25s, background .25s; }
+    .nav-dots button[aria-current="step"]::after { width: 16px; border-radius: 8px; background: var(--green); }
+    .control-divider { height: 16px; width: 1px; background: #ffffff2a; }
+    .key-hint { position: fixed; left: 28px; bottom: 29px; color: #a9bcb1; font-size: 11px; letter-spacing: .03em; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0; }
+    .notes-panel { position: fixed; right: 24px; bottom: 80px; z-index: 20; width: min(420px, calc(100vw - 48px)); max-height: 60vh; overflow: auto; background: var(--paper); color: var(--ink); border-radius: 12px; padding: 24px; box-shadow: 0 10px 60px #0006; border: 1px solid var(--line); }
+    .notes-panel[hidden] { display: none; }
+    .notes-panel h2 { font-family: var(--sans); letter-spacing: 0; font-size: 15px; font-weight: 650; margin-bottom: 12px; }
+    .notes-panel p { font-size: 15px; line-height: 1.65; }
+    .notes-panel .timing { font-size: 12px; font-weight: 650; color: var(--muted); margin-top: 14px; }
+    .notes-panel button { float: right; background: transparent; border: 0; color: var(--muted); font-size: 22px; cursor: pointer; }
+    .notes { display: none; }
+    .reveal { opacity: 0; transform: translateY(18px); }
+    .is-active .reveal { animation: rise .75s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--delay, 0s); }
+    .is-active .paper { animation: paper-arrive 1s cubic-bezier(.2,.7,.2,1) both; animation-delay: .16s; }
+    .is-active .receipt { animation-name: receipt-arrive; }
+    .is-active .notice { animation-name: notice-arrive; animation-delay: .45s; }
+    .is-active .payment-state { animation: stamp .5s cubic-bezier(.2,.9,.3,1.25) both; animation-delay: .7s; }
+    .is-active .data-bar-fill { animation: grow 1.15s cubic-bezier(.2,.7,.2,1) both; animation-delay: .35s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes paper-arrive { from { opacity: 0; transform: translateY(36px) rotate(7deg); } to { opacity: 1; transform: translateY(0) rotate(2deg); } }
+    @keyframes receipt-arrive { from { opacity: 0; transform: translateY(-30px) rotate(-7deg); } to { opacity: 1; transform: translateY(0) rotate(-3deg); } }
+    @keyframes notice-arrive { from { opacity: 0; transform: translateY(48px) rotate(-4deg); } to { opacity: 1; transform: translateY(0) rotate(3deg); } }
+    @keyframes stamp { from { opacity: 0; transform: scale(1.16); } to { opacity: 1; transform: scale(1); } }
+    @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @media (max-width: 850px) { .key-hint { display: none; } .stage { padding: 12px 12px 76px; } .deck { width: min(100%, calc((100svh - 88px) * 16 / 9)); } }
+    @media (max-width: 480px) { .controls { gap: 7px; } .stage { padding: 8px 0 76px; } .nav-dots { gap: 0; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
+    @media print {
+      @page { size: 16in 9in; margin: 0; }
+      html, body { background: white; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .stage { display: block; padding: 0; min-height: 0; }
+      .deck { width: 16in; height: auto; aspect-ratio: auto; }
+      .slide, .slide.is-active { position: relative; width: 16in; height: 9in; visibility: visible; opacity: 1; break-after: page; pointer-events: auto; }
+      .slide:last-child { break-after: auto; }
+      .reveal { opacity: 1; transform: none; }
+      *, *::before, *::after { animation: none !important; }
+      .controls, .key-hint, .notes-panel, .sr-only { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Not My Debt story presentation">
+    <div class="deck" id="deck">
+      <section class="slide is-active" id="visit" aria-labelledby="visit-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Fictional story · Synthetic documents</span></header>
+        <div class="composition">
+          <div>
+            <p class="eyebrow reveal">Meet Maya Ellis</p>
+            <h1 class="reveal" style="--delay:.1s" id="visit-title">A doctor’s visit.<br>A <em>$150</em> bill.</h1>
+            <p class="support reveal" style="--delay:.23s">She’s a recent graduate.<br>Insurance covers part of her visit.<br>This is her share.</p>
+          </div>
+          <div>
+            <article class="paper" aria-label="Fictional provider bill">
+              <div class="paper-head"><div><p class="issuer">Maple Grove Medical</p><p class="paper-kind">Patient statement</p></div><p class="paper-date">Jul 15, 2026</p></div>
+              <div class="paper-meta"><div><span>Patient</span>Maya Ellis</div><div><span>Account</span>MG-1042</div></div>
+              <table class="money-rows" aria-label="Bill calculation"><tbody><tr><td>Provider charges</td><td>$1,200.00</td></tr><tr><td>Contractual adjustment</td><td>− $400.00</td></tr><tr><td>Insurance payment</td><td>− $650.00</td></tr><tr><td>Your responsibility</td><td>$150.00</td></tr></tbody></table>
+              <div class="amount-band"><span>Balance due</span><strong>$150</strong></div>
+            </article>
+            <p class="paper-caption reveal" style="--delay:.5s">One visit · July 1, 2026</p>
+          </div>
+        </div>
+        <footer class="slide-footer"><span>All people, organizations, dates, and amounts in this story are invented.</span><span class="page-label">01 / 07</span></footer>
+        <aside class="notes" data-timing="About 15 seconds">Meet Maya, a recent graduate. She goes to the doctor. After the insurer’s payment and the contractual adjustment, her provider bills her $150. This is a fictional case using the same facts as our app demo.</aside>
+      </section>
+
+      <section class="slide" id="paid" aria-labelledby="paid-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Fictional story · Synthetic documents</span></header>
+        <div class="composition">
+          <div>
+            <p class="eyebrow reveal">July 20, 2026</p>
+            <h2 class="reveal" style="--delay:.1s" id="paid-title">She pays.<br>And saves<br>the receipt.</h2>
+            <p class="support reveal" style="--delay:.26s">$150. Payment completed.<br>As far as Maya knows, she’s done.</p>
+          </div>
+          <article class="paper receipt" aria-label="Fictional completed payment receipt">
+            <div class="paper-head"><div><p class="issuer">Maple Grove Medical</p><p class="paper-kind">Payment receipt</p></div><p class="paper-date">Jul 20, 2026</p></div>
+            <p class="receipt-amount">$150<span style="font-size:.5em">.00</span></p>
+            <p class="payment-state"><span class="check" aria-hidden="true">✓</span> Payment completed</p>
+            <div class="paper-meta"><div><span>Patient</span>Maya Ellis</div><div><span>Account</span>MG-1042</div></div>
+            <p class="receipt-reference">Payment: PAY-715028<br>Service date: 2026-07-01</p>
+          </article>
+        </div>
+        <footer class="slide-footer"><span>The receipt documents payment to the provider.</span><span class="page-label">02 / 07</span></footer>
+        <aside class="notes" data-timing="About 12 seconds">Five days later, Maya pays the full $150 balance. Her provider gives her a completed payment receipt for the same account. She saves it and moves on. Pause here before advancing.</aside>
+      </section>
+
+      <section class="slide dark" id="collections" aria-labelledby="collections-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Fictional story · Synthetic documents</span></header>
+        <div class="composition">
+          <div>
+            <p class="eyebrow reveal">August 15, 2026</p>
+            <h2 class="reveal" style="--delay:.1s" id="collections-title">Then a letter<br>asks for the<br><em>same $150.</em></h2>
+            <p class="support reveal" style="--delay:.33s">This time, from a debt collector.</p>
+            <p class="time-gap reveal" style="--delay:.65s"><span>Payment</span><span class="rule" aria-hidden="true"></span><span>26 days later</span></p>
+          </div>
+          <article class="paper notice" aria-label="Excerpt from fictional collection notice">
+            <div class="paper-head"><div><p class="issuer">Pine Valley<br>Account Services</p><p class="paper-kind">Collection notice · Excerpt</p></div><p class="paper-date">Aug 15, 2026</p></div>
+            <p class="notice-heading">Outstanding balance</p>
+            <p class="notice-body">Provider: Maple Grove Medical<br>Patient: Maya Ellis<br>Account: MG-1042<br>Service date: July 1, 2026</p>
+            <div class="amount-band"><span>Amount requested</span><strong>$150</strong></div>
+          </article>
+        </div>
+        <footer class="slide-footer"><span>Her receipt shows a payment. The notice still requests the balance.</span><span class="page-label">03 / 07</span></footer>
+        <aside class="notes" data-timing="About 15 seconds">Twenty-six days later, a collection notice arrives. Same provider. Same account. It asks for the same $150 she already paid. The records disagree. We have not established why: the current account ledger or a later reversal could change the explanation.</aside>
+      </section>
+
+      <section class="slide" id="records" aria-labelledby="records-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Fictional story · Synthetic documents</span></header>
+        <h2 class="records-heading reveal" id="records-title">“I paid this.<br><em>How do I prove it?</em>”</h2>
+        <div class="evidence-line" aria-label="Four documents for the same account, in date order">
+          <article class="evidence-item reveal" style="--delay:.15s"><p class="evidence-date">July 12</p><h3>Insurance explanation</h3><p class="evidence-amount">$150</p><p class="evidence-meaning">Patient responsibility</p><p class="evidence-account">MG-1042</p></article>
+          <article class="evidence-item reveal" style="--delay:.3s"><p class="evidence-date">July 15</p><h3>Provider bill</h3><p class="evidence-amount">$150</p><p class="evidence-meaning">Balance due</p><p class="evidence-account">MG-1042</p></article>
+          <article class="evidence-item reveal" style="--delay:.45s"><p class="evidence-date">July 20</p><h3>Payment receipt</h3><p class="evidence-amount">$150</p><p class="evidence-meaning">Payment completed</p><p class="evidence-account">MG-1042</p></article>
+          <article class="evidence-item reveal" style="--delay:.6s"><p class="evidence-date">August 15</p><h3>Collection notice</h3><p class="evidence-amount">$150</p><p class="evidence-meaning">Amount requested</p><p class="evidence-account">MG-1042</p></article>
+        </div>
+        <p class="linking-caption reveal" style="--delay:.85s">Four records to connect before she can explain the discrepancy.</p>
+        <footer class="slide-footer"><span>An insurance explanation describes responsibility; the receipt supplies payment evidence.</span><span class="page-label">04 / 07</span></footer>
+        <aside class="notes" data-timing="About 15 seconds">Now Maya has to reconstruct what happened across four documents. The insurance explanation tells her share. The bill tells what the provider charged. Only the receipt supports that she paid. Matching the provider, account, visit, and dates is what connects that payment to the notice.</aside>
+      </section>
+
+      <section class="slide lime data-slide" id="scale" aria-labelledby="scale-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Real CFPB complaint data · 2025</span></header>
+        <div class="data-layout">
+          <p class="eyebrow reveal">The story is fictional. The complaint pattern is real.</p>
+          <h2 class="stat-number reveal" style="--delay:.1s" id="scale-title">1,005</h2>
+          <p class="stat-context reveal" style="--delay:.22s">medical-debt collection complaints received by the CFPB in 2025 were categorized <strong>“Debt was paid.”</strong></p>
+          <div class="data-bottom reveal" style="--delay:.4s"><div class="data-bar" role="img" aria-label="1,005 of 8,843 medical-debt collection complaints, approximately 11.4 percent"><span class="data-bar-fill"></span></div><p class="data-denominator">Within 8,843 medical-debt collection complaints.</p></div>
+        </div>
+        <footer class="slide-footer">Consumer-reported categories, not verified billing errors or unique people. Jan–Dec 2025; retrieved Sep 26, 2026.<br><a href="https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&amp;date_received_min=2025-01-01&amp;date_received_max=2025-12-31&amp;product=Debt+collection%E2%80%A2Medical+debt" target="_blank" rel="noopener noreferrer">Source: CFPB Consumer Complaint Database</a> · Snapshot: <a href="../data/research/research.json" target="_blank" rel="noopener">research.json</a></footer>
+        <aside class="notes" data-timing="About 20 seconds">Maya is fictional, but this type of complaint is real. In 2025, 1,005 medical-debt collection complaint records in the CFPB database were categorized “Debt was paid,” out of 8,843 medical-debt collection complaints. Those are consumer-reported complaints, not 1,005 verified errors or unique people. The CFPB supplies complaint records, not the bills and receipts used in our demo.</aside>
+      </section>
+
+      <section class="slide" id="product" aria-labelledby="product-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Prototype · Fictional example output</span></header>
+        <div class="composition">
+          <div>
+            <p class="eyebrow reveal">So we built</p>
+            <h2 class="product-name reveal" style="--delay:.15s" id="product-title">Not My Debt<span class="period">.</span></h2>
+            <p class="product-tagline reveal" style="--delay:.3s">Connect the documents.<br>Prepare a response<br>grounded in your records.</p>
+          </div>
+          <article class="paper packet" aria-label="Illustrative evidence summary from Maya's fictional case">
+            <p class="packet-label">Evidence summary · Maya Ellis</p>
+            <h3 class="packet-title">Possible uncredited<br>payment</h3>
+            <p class="finding">A <strong>$150 payment</strong> may not have been credited to the balance now being collected.</p>
+            <div class="evidence-citation"><span>Receipt · Jul 20</span><strong>$150 paid</strong></div>
+            <div class="evidence-citation"><span>Notice · Aug 15</span><strong>$150 requested</strong></div>
+            <p class="packet-bottom"><strong>Question for the provider</strong><br>Can you supply an updated ledger showing how this payment was applied?</p>
+          </article>
+        </div>
+        <footer class="slide-footer"><span>A finding for review. The supplied documents do not establish legal liability.</span><span class="page-label">06 / 07</span></footer>
+        <aside class="notes" data-timing="About 18 seconds">We built Not My Debt to connect those records and prepare a factual response. It flags a possible uncredited payment, shows the supporting evidence, and asks for an updated ledger. It does not declare the debt canceled or send anything automatically. This slide is an illustrative summary; the live app is next.</aside>
+      </section>
+
+      <section class="slide dark" id="demo" aria-labelledby="demo-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Live demo · Synthetic documents</span></header>
+        <div class="demo-layout">
+          <p class="eyebrow reveal">From story to evidence</p>
+          <h2 class="demo-title reveal" style="--delay:.15s" id="demo-title">Let’s follow<br>Maya’s <em>$150.</em></h2>
+          <p class="support reveal" style="--delay:.3s">The same four documents.<br>A response she can review.</p>
+          <a class="demo-link reveal" style="--delay:.45s" href="http://localhost:8501" target="_blank" rel="noopener noreferrer">Open the live demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 3h7v7M21 3l-11 11"/><path d="M10 3H3v18h18v-7"/></svg></a>
+        </div>
+        <p class="demo-index" aria-hidden="true">MAYA ELLIS / MG-1042</p>
+        <footer class="slide-footer"><span>Story, design, and code created with assistance from OpenAI Codex.</span><span class="page-label">07 / 07</span></footer>
+        <aside class="notes" data-timing="About 8 seconds, then switch to the app">Let’s follow Maya’s $150 through the app. Before presenting, run: uv run streamlit run streamlit_app.py. The demo button opens localhost:8501 in a new tab. Load “Paid, then sent to collections,” inspect the source evidence and finding, then remove the receipt to show that the payment-supported finding is withdrawn. This deck intentionally stops at the demo handoff; technical explanation and results will be added later.</aside>
+      </section>
+    </div>
+  </main>
+
+  <p class="key-hint">← → to navigate · F fullscreen · N notes</p>
+  <nav class="controls" aria-label="Presentation controls">
+    <button id="previous" type="button" title="Previous slide (Left arrow)" aria-label="Previous slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+    <span class="counter" id="counter">1 / 7</span>
+    <button id="next" type="button" title="Next slide (Right arrow or Space)" aria-label="Next slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+    <span class="control-divider" aria-hidden="true"></span>
+    <div class="nav-dots" id="nav-dots" aria-label="Choose a slide"></div>
+    <span class="control-divider" aria-hidden="true"></span>
+    <button id="notes-toggle" type="button" title="Speaker notes (N)" aria-label="Show speaker notes" aria-expanded="false" aria-controls="notes-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></button>
+    <button id="fullscreen" type="button" title="Fullscreen (F)" aria-label="Enter fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m6 0h5v-5"/></svg></button>
+  </nav>
+  <aside class="notes-panel" id="notes-panel" hidden aria-label="Speaker notes">
+    <button id="notes-close" type="button" aria-label="Close speaker notes">×</button>
+    <h2 id="notes-heading">Speaker notes</h2>
+    <p id="notes-copy"></p>
+    <p class="timing" id="notes-timing"></p>
+  </aside>
+  <p class="sr-only" id="announcement" aria-live="polite" aria-atomic="true"></p>
+  <noscript><style>.slide { position: relative; visibility: visible; opacity: 1; pointer-events: auto; height: 56.25cqw; margin-bottom: 20px; } .deck { aspect-ratio: auto; } .stage { display: block; } .reveal { opacity: 1; transform: none; } .controls, .key-hint { display: none; }</style></noscript>
+  <script>
+    // Story checkpoint. No libraries, analytics, remote fonts, or automatic advance.
+    const slides = [...document.querySelectorAll('.slide')];
+    const previous = document.getElementById('previous');
+    const next = document.getElementById('next');
+    const counter = document.getElementById('counter');
+    const dots = document.getElementById('nav-dots');
+    const notesPanel = document.getElementById('notes-panel');
+    const notesToggle = document.getElementById('notes-toggle');
+    let current = 0;
+
+    function slideTitle(slide) {
+      return [...slide.querySelector('h1, h2').childNodes]
+        .map(node => node.nodeName === 'BR' ? ' ' : node.textContent).join('');
+    }
+
+    slides.forEach((slide, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('aria-label', `Slide ${index + 1}: ${slideTitle(slide)}`);
+      button.title = `Slide ${index + 1}`;
+      button.addEventListener('click', () => show(index));
+      dots.append(button);
+    });
+
+    function updateNotes() {
+      const note = slides[current].querySelector('.notes');
+      document.getElementById('notes-heading').textContent = `Slide ${current + 1} · Speaker notes`;
+      document.getElementById('notes-copy').textContent = note.textContent;
+      document.getElementById('notes-timing').textContent = note.dataset.timing;
+    }
+
+    function show(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => {
+        const active = i === current;
+        slide.classList.toggle('is-active', active);
+        slide.setAttribute('aria-hidden', String(!active));
+        slide.inert = !active;
+        if (active) dots.children[i].setAttribute('aria-current', 'step');
+        else dots.children[i].removeAttribute('aria-current');
+      });
+      previous.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      document.getElementById('announcement').textContent = `Slide ${current + 1} of ${slides.length}: ${slideTitle(slides[current])}`;
+      updateNotes();
+      if (updateHash) history.replaceState(null, '', `#${slides[current].id}`);
+    }
+
+    function fromHash() {
+      const index = slides.findIndex(slide => `#${slide.id}` === location.hash);
+      show(index < 0 ? 0 : index, false);
+    }
+
+    function toggleNotes(force) {
+      const open = typeof force === 'boolean' ? force : notesPanel.hidden;
+      notesPanel.hidden = !open;
+      notesToggle.setAttribute('aria-expanded', String(open));
+      notesToggle.setAttribute('aria-label', open ? 'Hide speaker notes' : 'Show speaker notes');
+    }
+
+    async function toggleFullscreen() {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      } catch {
+        document.getElementById('announcement').textContent = 'Fullscreen is unavailable. Use your browser’s fullscreen command.';
+      }
+    }
+
+    previous.addEventListener('click', () => show(current - 1));
+    next.addEventListener('click', () => show(current + 1));
+    notesToggle.addEventListener('click', () => toggleNotes());
+    document.getElementById('notes-close').addEventListener('click', () => { toggleNotes(false); notesToggle.focus(); });
+    document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', () => {
+      document.getElementById('fullscreen').setAttribute('aria-label', document.fullscreenElement ? 'Exit fullscreen' : 'Enter fullscreen');
+    });
+    document.addEventListener('keydown', event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (event.key === 'Escape') { const restoreFocus = notesPanel.contains(document.activeElement); toggleNotes(false); if (restoreFocus) notesToggle.focus(); return; }
+      if (event.key.toLowerCase() === 'n') { event.preventDefault(); toggleNotes(); return; }
+      if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); return; }
+      if (event.target.closest('button, a') && (event.key === ' ' || event.key === 'Enter')) return;
+      if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
+      else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
+      else if (event.key === 'Home') { event.preventDefault(); show(0); }
+      else if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+    });
+    let touchStart = null;
+    const deck = document.getElementById('deck');
+    deck.addEventListener('touchstart', event => { touchStart = event.touches.length === 1 ? {x: event.touches[0].clientX, y: event.touches[0].clientY} : null; }, {passive: true});
+    deck.addEventListener('touchend', event => {
+      if (!touchStart || event.target.closest('a, button')) return;
+      const dx = event.changedTouches[0].clientX - touchStart.x;
+      const dy = event.changedTouches[0].clientY - touchStart.y;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(current + (dx < 0 ? 1 : -1));
+      touchStart = null;
+    }, {passive: true});
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+  </script>
+</body>
+</html>

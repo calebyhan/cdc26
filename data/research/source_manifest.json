@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-26T21:42:02+00:00",
+  "sources": [
+    {
+      "name": "CFPB medical-debt annual aggregation",
+      "source_url": "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&date_received_min=2025-01-01&date_received_max=2025-12-31&product=Debt+collection%E2%80%A2Medical+debt",
+      "retrieved_at": "2026-09-26T21:38:23+00:00",
+      "sha256": "0eb9c6820c7f83e52e2b7eace86ae17b217e26c7368e1d25ac5bccdef31c3113",
+      "bytes": 53361,
+      "local_path": "data/raw/medical_2025_api.json"
+    },
+    {
+      "name": "CFPB historical narratives, Jan–Feb 2025",
+      "source_url": "https://files.consumerfinance.gov/f/documents/CCDB_Export_9_January_2025_through_February_2025.zip",
+      "retrieved_at": "2026-09-26T21:38:41+00:00",
+      "sha256": "11c18bb0973eed8f5e4f66e2979346af0671a3aefcb5a6b9eec73009d53cff64",
+      "bytes": 75475199,
+      "local_path": "data/raw/CCDB_Export_9_January_2025_through_February_2025.zip"
+    }
+  ],
+  "output": {
+    "path": "data/research/research.json",
+    "sha256": "fe593d8b89b1044040b4bdf145bddf06234a125d90fb21ea685bb82bf58ab600"
+  }
+}
