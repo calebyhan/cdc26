@@ -1,4 +1,4 @@
-"""Synthetic accounting/matching checks. Created with assistance from OpenAI Codex."""
+"""Synthetic accounting/matching checks."""
 
 from copy import deepcopy
 

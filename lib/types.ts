@@ -37,6 +37,12 @@ export type Analysis = {
   drafts: Record<"provider" | "collector", string>;
 };
 export type Count = { label: string; count: number };
+export type Rule = Count & { id: string; description: string };
+export type ResponseGroup = {
+  label: string;
+  total: number;
+  responses: Count[];
+};
 export type Bootstrap = {
   scenarios: Record<string, string>;
   examples: Record<string, Document[]>;
@@ -51,13 +57,23 @@ export type Bootstrap = {
       not_owed_subissues: Count[];
       issue_counts: Count[];
       source_url: string;
+      response_outcomes?: {
+        groups: ResponseGroup[];
+        source_urls: string[];
+        caveat: string;
+      };
     };
     archive: {
       unique_narratives: number;
       period: string;
       source_url: string;
-      patterns: Count[];
-      document_mentions: Count[];
+      patterns: Rule[];
+      document_mentions: Rule[];
+      pattern_document_matrix: {
+        pattern_id: string;
+        document_id: string;
+        count: number;
+      }[];
     };
     caveats: string[];
   };

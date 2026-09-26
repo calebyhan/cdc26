@@ -1,6 +1,6 @@
 """Exercise the committed PDF bytes through the real upload path.
 
-Created with assistance from OpenAI Codex. All records are synthetic.
+All records are synthetic.
 """
 
 import json

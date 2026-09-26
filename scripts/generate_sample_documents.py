@@ -1,4 +1,4 @@
-"""Generate searchable, fictional upload PDFs. Created with OpenAI Codex.
+"""Generate searchable, fictional upload PDFs.
 
 Run from the repository: uv run --with reportlab==5.0.1 python scripts/generate_sample_documents.py
 """
@@ -133,7 +133,7 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     pdf = canvas.Canvas(str(path), pagesize=letter, pageCompression=1, invariant=1)
     pdf.setTitle(f"FICTIONAL DEMO - Maya Ellis - {spec['title']}")
-    pdf.setAuthor("Not My Debt team; created with assistance from OpenAI Codex")
+    pdf.setAuthor("Not My Debt team")
     pdf.setSubject("Synthetic hackathon upload fixture. No real patient information.")
 
     pdf.setFillColor(MUTED)
@@ -199,7 +199,7 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     pdf.line(48, 70, 564, 70)
     pdf.setFillColor(MUTED)
     pdf.setFont("Helvetica", 8)
-    pdf.drawString(48, 55, "Not My Debt | Synthetic demo documents | Created with assistance from OpenAI Codex")
+    pdf.drawString(48, 55, "Not My Debt | Synthetic demo documents")
     pdf.drawString(48, 42, "For demonstration only. No payment, filing, or contact action is requested.")
     pdf.drawRightString(564, 42, "1 / 1")
     pdf.showPage()

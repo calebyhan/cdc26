@@ -1,4 +1,4 @@
-"""Shared contracts. Created with assistance from OpenAI Codex."""
+"""Shared contracts."""
 
 import re
 from dataclasses import dataclass, field

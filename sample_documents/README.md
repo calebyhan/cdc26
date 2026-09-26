@@ -75,6 +75,3 @@ uv run pytest -q tests/test_sample_documents.py
 compatible with the local parser, and each label/value is kept on one extractable
 text line. The PDFs exercise document upload and reconciliation; they are not
 a benchmark of general document understanding or OCR.
-
-Created with assistance from OpenAI Codex for fictional document design,
-generation code, and verification.

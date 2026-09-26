@@ -110,8 +110,34 @@ are not verified events, unique people, or supervised-model accuracy. Raw archiv
 and extracted narratives are excluded from Git; aggregates and source checksums
 are committed. See [sources and methods](docs/data_sources.md).
 
+Company responses for the same 2025 query come from the CFPB API aggregations:
+823 of 1,005 “Debt was paid” complaints (81.9%) and 7,227 of all 8,843 (81.7%)
+were closed with explanation; 3 and 22, respectively, ended with monetary relief.
+These are company-reported response categories, not verified outcomes.
+
 ```sh
 uv run python scripts/refresh_research.py --help
+uv run python scripts/refresh_response_outcomes.py   # response aggregates only
+```
+
+## Synthetic benchmark
+
+`scripts/run_benchmark.py` generates 70 seeded case bundles across 14 perturbation
+families (paid, partial, duplicate, already credited, missing receipt, notice fees,
+wrong/masked account, pending/reversed payment, payment after notice, overpayment,
+bill arithmetic error, unrecognized label). Each bundle passes through the local
+parser and reconciler. Expected outcomes follow the documented product rules.
+
+Measured on the committed seed ([results](data/benchmark/results.json)): 70/70
+bundles meet every check; 0 false possible-uncredited-payment findings in 55
+bundles where none was expected; 40/40 correct abstentions. A mutation test
+confirms that treating “Pending” as paid fails the benchmark. The parser reads
+known labels only; an unfamiliar label such as “Billed by” causes a withheld balance.
+This is a synthetic regression check in the parser's own text format, not an
+accuracy estimate for real paperwork.
+
+```sh
+uv run python scripts/run_benchmark.py
 ```
 
 ## Verify
@@ -136,6 +162,8 @@ outcome has been measured.
 - `lib/`: TypeScript case contracts and API client.
 - `src/not_my_debt/`: Python evidence engine, stateless web bridge, and legacy UI.
 - `data/research/`: reproducible public aggregate data and source manifest.
+- `data/benchmark/`: seeded synthetic benchmark summary.
+- `presentation/`: self-contained twelve-slide deck; see its README.
 - `tests/`: synthetic regression cases and parser/aggregation checks.
 - [Scope and presentation storyboard](docs/scope.md).
 
@@ -144,7 +172,6 @@ This pivot uses branch `pivot/not-my-debt`. The mortgage project is preserved on
 
 ## Attribution
 
-Created with assistance from OpenAI Codex for design, code, tests, and documentation.
 Official guidance: [CFPB response resources](https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/),
 [CMS EOB explanation](https://www.cms.gov/initiatives/your-patient-rights/medical-bill-rights/get-help/medical-bill-guides-resources/how-read-health-insurance-explanation-benefits),
 and [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).

@@ -20,6 +20,7 @@ import {
   Plus,
   RotateCcw,
   ShieldCheck,
+  TriangleAlert,
   Upload,
   X,
 } from "lucide-react";
@@ -27,7 +28,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -44,6 +44,11 @@ import {
 } from "@/lib/types";
 
 import { ChartTooltip } from "@/app/components/chart-tooltip";
+import { MoneyWaterfall } from "@/app/components/money-waterfall";
+import {
+  PatternMatrix,
+  ResponseOutcomes,
+} from "@/app/components/research-evidence";
 
 const demoPdfUrl = (file: string) =>
   `/api/demo-document?file=${encodeURIComponent(file)}`;
@@ -178,6 +183,9 @@ export default function Home() {
   );
   const missing = result?.findings.some(
     (item) => item.code === "missing_payment_evidence",
+  );
+  const reconciled = result?.findings.some(
+    (item) => item.code === "no_discrepancy_detected_in_supplied_records",
   );
   const draft = letter ?? analysis?.drafts[recipient] ?? "";
   const source = (refs: string[]) => setDrawer({ refs });
@@ -516,11 +524,13 @@ export default function Home() {
                       </div>
                     ) : (
                       <div
-                        className={`finding-banner ${finding ? "supported" : "uncertain"}`}
+                        className={`finding-banner ${finding ? "discrepancy" : reconciled ? "reconciled" : "pending"}`}
                         role="status"
                       >
                         <div className="finding-symbol">
                           {finding ? (
+                            <TriangleAlert size={22} />
+                          ) : reconciled ? (
                             <CheckCheck size={22} />
                           ) : (
                             <CircleHelp size={22} />
@@ -580,7 +590,7 @@ export default function Home() {
                         </div>
                       </div>
                     )}
-                    <div className="analysis-grid">
+                    <div className="analysis-grid money-grid">
                       <div className="panel">
                         <div className="panel-heading">
                           <h2>The money trail</h2>
@@ -610,7 +620,9 @@ export default function Home() {
                           <div className="ledger-total">
                             <span>Balance supported by these records</span>
                             <strong>
-                              {money(result?.supported_balance_cents)}
+                              {result?.supported_balance_cents == null
+                                ? "Withheld"
+                                : money(result.supported_balance_cents)}
                             </strong>
                           </div>
                         </div>
@@ -621,103 +633,42 @@ export default function Home() {
                       </div>
                       <div className="panel chart-panel">
                         <div className="panel-heading">
-                          <h2>The balance comparison</h2>
+                          <h2>Where the money goes</h2>
                           <BarChart3 size={17} />
                         </div>
                         <p className="muted small">
-                          Collection notice vs. supplied-record arithmetic
+                          Provider arithmetic, then matched payments, beside
+                          what the notice requests. Click a bar for its source.
                         </p>
                         {result && (
                           <div className="balance-chart">
-                            <ResponsiveContainer
-                              width="100%"
-                              height="100%"
-                              minWidth={0}
-                            >
-                              <BarChart
-                                accessibilityLayer
-                                data={[
-                                  {
-                                    label: "Collection notice",
-                                    cents: result.collection_cents,
-                                    color: "#ce8d6e",
-                                  },
-                                  {
-                                    label: "Supported balance",
-                                    cents: result.supported_balance_cents,
-                                    color: "#2e7d70",
-                                  },
-                                ]}
-                                layout="vertical"
-                                margin={{
-                                  left: 4,
-                                  right: 30,
-                                  top: 15,
-                                  bottom: 15,
-                                }}
-                              >
-                                <CartesianGrid
-                                  strokeDasharray="3 3"
-                                  horizontal={false}
-                                  stroke="#e9eeed"
-                                />
-                                <XAxis
-                                  type="number"
-                                  tickFormatter={(value) => money(value)}
-                                  tick={{ fontSize: 11, fill: "#7b8584" }}
-                                  axisLine={false}
-                                  tickLine={false}
-                                />
-                                <YAxis
-                                  dataKey="label"
-                                  type="category"
-                                  width={126}
-                                  tick={{ fontSize: 12, fill: "#45534f" }}
-                                  axisLine={false}
-                                  tickLine={false}
-                                />
-                                <Tooltip
-                                  content={(props) => (
-                                    <ChartTooltip
-                                      {...props}
-                                      mode="currency"
-                                      note="Based on the supplied records"
-                                    />
-                                  )}
-                                  cursor={{ fill: "#f3f6f1" }}
-                                  offset={14}
-                                  isAnimationActive={false}
-                                  wrapperStyle={{ outline: "none", zIndex: 10 }}
-                                />
-                                <Bar
-                                  dataKey="cents"
-                                  barSize={34}
-                                  radius={[0, 5, 5, 0]}
-                                  isAnimationActive={false}
-                                >
-                                  {["#ce8d6e", "#2e7d70"].map((color) => (
-                                    <Cell fill={color} key={color} />
-                                  ))}
-                                </Bar>
-                              </BarChart>
-                            </ResponsiveContainer>
+                            <MoneyWaterfall
+                              result={result}
+                              noticeRefs={
+                                notice ? [`${notice.id}.balance`] : []
+                              }
+                              onSelect={source}
+                            />
                           </div>
                         )}
                         <div className="comparison-values">
                           <div>
-                            <small>Notice requests</small>
-                            <strong>{money(result?.collection_cents)}</strong>
-                          </div>
-                          <div>
                             <small>Records support</small>
                             <strong>
-                              {money(result?.supported_balance_cents)}
+                              {result?.supported_balance_cents == null
+                                ? "Withheld"
+                                : money(result.supported_balance_cents)}
+                            </strong>
+                          </div>
+                          <div>
+                            <small>Notice requests</small>
+                            <strong className="notice-value">
+                              {money(result?.collection_cents)}
                             </strong>
                           </div>
                         </div>
                         <p className="footnote">
-                          Unknown balances are omitted from the chart, not
-                          plotted as zero.
+                          A withheld balance is labeled, never plotted as zero.
                         </p>
                       </div>
                     </div>
@@ -1025,7 +976,6 @@ export default function Home() {
         )}
         <footer>
           <span>Not My Debt · Carolina Data Challenge 2026</span>
-          <span>Built with assistance from OpenAI Codex</span>
         </footer>
       </main>
       {drawer && documents && boot && (
@@ -1566,6 +1516,8 @@ function Research({ boot }: { boot: Bootstrap }) {
           <p>{archive.period} · normalized-text deduplication</p>
         </div>
       </div>
+      <ResponseOutcomes research={boot.research} />
+      <PatternMatrix research={boot.research} />
       <div className="analysis-grid">
         {[
           {
@@ -1603,7 +1555,7 @@ function Research({ boot }: { boot: Bootstrap }) {
                   <YAxis
                     type="category"
                     dataKey="label"
-                    width={164}
+                    width={196}
                     tick={{ fontSize: 11, fill: "#52615c" }}
                     axisLine={false}
                     tickLine={false}
@@ -1626,6 +1578,7 @@ function Research({ boot }: { boot: Bootstrap }) {
                     fill={chart.color}
                     barSize={22}
                     radius={[0, 4, 4, 0]}
+                    isAnimationActive={false}
                   />
                 </BarChart>
               </ResponsiveContainer>

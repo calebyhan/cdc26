@@ -41,3 +41,25 @@ def test_collector_and_provider_actions_are_distinct():
     assert "dispute" in draft_letter([], CaseResult(), "collector")
     assert "billing ledger" in draft_letter([], CaseResult(), "provider")
     assert "must respond within 30" not in draft_letter([], CaseResult(), "collector")
+
+
+def test_letter_cites_records_by_title_not_internal_ref():
+    docs = [
+        Document(
+            "receipt",
+            "receipt",
+            "Provider payment receipt",
+            "",
+            fields={"statement_date": Fact("2026-07-20", "", confirmed=True)},
+        ),
+        Document("bill", "bill", "Provider bill", ""),
+    ]
+    finding = Finding(
+        "possible_uncredited_payment",
+        "t",
+        "Payment may not be credited.",
+        refs=["receipt.payment_amount", "receipt.payment_date", "bill.balance"],
+    )
+    letter = draft_letter(docs, CaseResult(findings=[finding]))
+    assert "receipt.payment_amount" not in letter
+    assert "(Supporting records: Provider payment receipt, 2026-07-20; Provider bill)" in letter

@@ -1,4 +1,4 @@
-"""Conservative local/optional AI extraction. Developed with OpenAI Codex.
+"""Conservative local/optional AI extraction.
 
 AI adapter follows https://developers.openai.com/api/docs/guides/structured-outputs.
 Document content is untrusted input, never executable instructions.

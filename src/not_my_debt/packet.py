@@ -1,4 +1,4 @@
-"""Reviewable response packets; no external sending. Developed with OpenAI Codex."""
+"""Reviewable response packets; no external sending."""
 
 from datetime import date
 from html import escape
@@ -19,6 +19,23 @@ def _confirmed_value(documents: list[Document], kind: str, key: str) -> str | No
         if doc.included and doc.kind == kind and key in doc.fields and doc.fields[key].confirmed
     ]
     return matches[0] if len(matches) == 1 else None
+
+
+def _supporting_records(documents: list[Document], refs: list[str]) -> str:
+    """Name cited records the way a billing office would, not by internal reference."""
+    cited = []
+    for doc in documents:
+        if any(ref == doc.id or ref.startswith(f"{doc.id}.") for ref in refs):
+            dated = next(
+                (
+                    doc.fields[key].value
+                    for key in ("statement_date", "payment_date")
+                    if key in doc.fields and doc.fields[key].confirmed
+                ),
+                None,
+            )
+            cited.append(f"{doc.title}, {dated}" if dated else doc.title)
+    return "; ".join(cited)
 
 
 def draft_letter(documents: list[Document], result: CaseResult, recipient: str = "provider") -> str:
@@ -56,8 +73,10 @@ def draft_letter(documents: list[Document], result: CaseResult, recipient: str =
     if useful:
         lines.extend(["", "The following points need clarification based on the attached records:"])
         for finding in useful:
-            refs = ", ".join(finding.refs)
-            lines.append(f"- {finding.detail}" + (f" [Evidence: {refs}]" if refs else ""))
+            records = _supporting_records(documents, finding.refs)
+            lines.append(
+                f"- {finding.detail}" + (f" (Supporting records: {records})" if records else "")
+            )
     lines.extend(
         [
             "",

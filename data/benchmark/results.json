@@ -1,0 +1,133 @@
+{
+  "seed": 20260926,
+  "bundles": 70,
+  "families": [
+    {
+      "key": "paid_after_bill",
+      "label": "Paid in full after the bill",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "possible_uncredited_payment",
+      "withholds_balance": false
+    },
+    {
+      "key": "partial_payment",
+      "label": "Partial payment",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "possible_uncredited_payment",
+      "withholds_balance": false
+    },
+    {
+      "key": "duplicate_receipt",
+      "label": "Same receipt supplied twice",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "duplicate_payment_evidence",
+      "withholds_balance": false
+    },
+    {
+      "key": "already_credited",
+      "label": "Payment already credited",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "no_discrepancy_detected_in_supplied_records",
+      "withholds_balance": false
+    },
+    {
+      "key": "missing_receipt",
+      "label": "No payment evidence",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "missing_payment_evidence",
+      "withholds_balance": false
+    },
+    {
+      "key": "notice_adds_fees",
+      "label": "Notice exceeds bill, no payment",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "amount_mismatch",
+      "withholds_balance": false
+    },
+    {
+      "key": "wrong_account",
+      "label": "Receipt for another account",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "ambiguous_document_match",
+      "withholds_balance": true
+    },
+    {
+      "key": "masked_account",
+      "label": "Masked account on receipt",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "ambiguous_document_match",
+      "withholds_balance": true
+    },
+    {
+      "key": "pending_payment",
+      "label": "Pending payment status",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "payment_not_settled",
+      "withholds_balance": true
+    },
+    {
+      "key": "reversed_payment",
+      "label": "Reversed payment",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "payment_not_settled",
+      "withholds_balance": true
+    },
+    {
+      "key": "paid_after_notice",
+      "label": "Payment after the notice",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "ambiguous_payment_timing",
+      "withholds_balance": true
+    },
+    {
+      "key": "overpayment",
+      "label": "Receipt exceeds the balance",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "payment_exceeds_statement_balance",
+      "withholds_balance": true
+    },
+    {
+      "key": "bill_does_not_add_up",
+      "label": "Provider bill arithmetic error",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "amount_mismatch",
+      "withholds_balance": true
+    },
+    {
+      "key": "unrecognized_label",
+      "label": "Bill labels provider as \"Billed by\"",
+      "bundles": 5,
+      "passed": 5,
+      "expected_outcome": "ambiguous_document_match",
+      "withholds_balance": true
+    }
+  ],
+  "totals": {
+    "expected_code_found": 70,
+    "balance_correct": 70,
+    "payment_finding_correct": 70,
+    "counted_once": 70
+  },
+  "all_checks_passed": 70,
+  "abstention": {
+    "should_abstain": 40,
+    "correctly_abstained": 40,
+    "abstained_when_answer_expected": 0
+  },
+  "false_payment_findings": 0,
+  "no_payment_bundles": 55,
+  "scope": "Synthetic, generated bundles in the local parser's labeled-text format. Expected outcomes follow the documented product rules. Not a real-world accuracy estimate."
+}
