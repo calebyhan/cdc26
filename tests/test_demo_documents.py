@@ -1,4 +1,4 @@
-"""PDF-backed presentation regressions on synthetic records. Built with Codex."""
+"""PDF-backed presentation regressions on synthetic records."""
 
 import pytest
 

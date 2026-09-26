@@ -1,4 +1,4 @@
-"""Link public fictional PDF sources to exact demo fixtures. Built with OpenAI Codex."""
+"""Link public fictional PDF sources to exact demo fixtures."""
 
 import json
 from dataclasses import asdict

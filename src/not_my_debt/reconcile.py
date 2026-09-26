@@ -1,4 +1,4 @@
-"""Conservative single-encounter arithmetic. Created with assistance from OpenAI Codex.
+"""Conservative single-encounter arithmetic.
 
 These are discrepancies in supplied records, never decisions about legal liability.
 Only confirmed fields participate; missing or contradictory evidence cannot turn

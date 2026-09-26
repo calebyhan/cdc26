@@ -1,4 +1,4 @@
-"""Presentation workflow checks on fictional records. Created with OpenAI Codex."""
+"""Presentation workflow checks on fictional records."""
 
 from pathlib import Path
 
@@ -33,14 +33,14 @@ def test_demo_receipt_changes_finding_and_export_requires_review():
     assert any("Payment evidence is missing." in m.value for m in app.markdown)
     click(app, "Prepare a response →")
     assert not app.get("download_button")
-    assert "receipt.payment_amount" not in app.text_area[0].value
+    assert "Provider payment receipt, 2026-07-20" not in app.text_area[0].value
     app.checkbox[0].check().run()
     assert len(app.get("download_button")) == 1
     app.radio(key="nmd_step").set_value("2 · Connect the records").run()
     app.toggle[0].set_value(True).run()
     click(app, "Prepare a response →")
     assert not app.checkbox[0].value
-    assert "receipt.payment_amount" in app.text_area[0].value
+    assert "Provider payment receipt, 2026-07-20" in app.text_area[0].value
 
 
 def test_reset_restores_case_recipient_and_requires_fresh_review():

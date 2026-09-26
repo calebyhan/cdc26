@@ -1,4 +1,4 @@
-"""Source-linked medical billing workspace. Created with assistance from OpenAI Codex."""
+"""Source-linked medical billing workspace."""
 
 from __future__ import annotations
 
@@ -804,6 +804,6 @@ def main() -> None:
     else:
         _research()
     st.markdown(
-        '<div class="footer-note">A Carolina Data Challenge 2026 prototype · Evidence reconciliation for one provider, account, and visit · Built with assistance from OpenAI Codex</div>',
+        '<div class="footer-note">A Carolina Data Challenge 2026 prototype · Evidence reconciliation for one provider, account, and visit</div>',
         unsafe_allow_html=True,
     )

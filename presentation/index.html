@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173c36">
-  <meta name="description" content="Not My Debt: an animated, fictional medical-billing story grounded in CFPB complaint data.">
+  <meta name="description" content="Not My Debt: a fictional medical-billing story grounded in CFPB complaint data, with method and synthetic benchmark results.">
   <title>Not My Debt · The story</title>
   <style>
     :root {
@@ -95,7 +95,7 @@
     .data-bar { width: 23cqw; height: .75cqw; background: #bbcba0; overflow: hidden; }
     .data-bar-fill { display: block; height: 100%; width: 11.3649214%; background: var(--ink); transform-origin: left; }
     .data-denominator { font-size: 1.08cqw; line-height: 1.45; }
-    .data-slide .slide-footer { max-width: 80cqw; color: #415b38; font-size: .88cqw; display: block; }
+    .data-slide .slide-footer { color: #415b38; font-size: .88cqw; align-items: end; }
     .product-name { font-family: var(--serif); font-size: 6.3cqw; line-height: 1.08; letter-spacing: -.045em; }
     .product-name .period { color: var(--coral); }
     .product-tagline { font-size: 2.05cqw; line-height: 1.35; margin-top: 2cqw; max-width: 33cqw; letter-spacing: -.02em; }
@@ -105,6 +105,29 @@
     .finding { border-left: .24cqw solid var(--coral); padding-left: 1.2cqw; margin: 1.6cqw 0; font-size: 1.15cqw; line-height: 1.6; }
     .evidence-citation { font-size: .94cqw; border-top: 1px solid var(--line); padding: .85cqw 0; display: flex; justify-content: space-between; gap: 1cqw; }
     .packet-bottom { margin-top: 1.2cqw; padding-top: 1.2cqw; border-top: 1px solid var(--line); font-size: 1cqw; line-height: 1.55; }
+    .response-strip { display: flex; width: 70cqw; height: 2.2cqw; margin-top: 2.6cqw; overflow: hidden; border-radius: .3cqw; }
+    .response-strip span { display: block; height: 100%; min-width: .25cqw; }
+    .strip-legend { display: flex; gap: 2.2cqw; margin-top: 1.1cqw; font-size: 1cqw; color: var(--muted); }
+    .strip-legend span { display: inline-flex; align-items: center; gap: .5cqw; }
+    .strip-legend i { width: .9cqw; height: .9cqw; border-radius: .15cqw; }
+    #responses .data-denominator { margin-top: 2.2cqw; }
+    .method-line { list-style: none; padding: 0; margin: 4.6cqw 0 1.4cqw; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2cqw; }
+    .method-line li { border-top: 2px solid var(--ink); padding-top: 1.4cqw; }
+    .method-line span { font-size: 1cqw; color: var(--coral); font-weight: 650; letter-spacing: .08em; }
+    .method-line h3 { font-family: var(--serif); font-weight: 400; font-size: 3.2cqw; margin: .8cqw 0 1.2cqw; letter-spacing: -.03em; }
+    .method-line p { font-size: 1.45cqw; line-height: 1.55; color: var(--muted); margin: 0; }
+    .shaped-rows { margin-top: 2.8cqw; }
+    .shaped-rows p { display: grid; grid-template-columns: 9cqw 30cqw 1fr; align-items: baseline; gap: 2cqw; padding: 1.15cqw 0; border-top: 1px solid #ffffff22; font-size: 1.3cqw; }
+    .shaped-rows strong { font-size: 3.4cqw; font-weight: 500; letter-spacing: -.05em; text-align: right; }
+    .shaped-rows span { color: #bccdc3; }
+    .shaped-rows b { font-weight: 600; color: var(--green); }
+    .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; margin-top: 3cqw; }
+    .results-grid div { border-top: 2px solid var(--ink); padding-top: 1.3cqw; }
+    .results-grid strong { display: block; font-size: 5.6cqw; font-weight: 500; letter-spacing: -.06em; line-height: 1.05; }
+    .results-grid p { font-size: 1.2cqw; line-height: 1.5; color: var(--muted); margin-top: .8cqw; }
+    .error-example { margin-top: 2.6cqw; padding: 1.3cqw 1.6cqw; background: var(--paper); border-left: .3cqw solid var(--coral); font-size: 1.17cqw; line-height: 1.6; max-width: 80cqw; }
+    .method-caption { font-size: 1.5cqw; }
+    #close .packet-title { margin-bottom: 1.8cqw; }
     .demo-layout { padding-top: 5cqw; }
     .demo-title { font-size: 7.6cqw; line-height: 1.05; }
     .demo-title em { color: var(--green); }
@@ -184,7 +207,7 @@
             <p class="paper-caption reveal" style="--delay:.5s">One visit · July 1, 2026</p>
           </div>
         </div>
-        <footer class="slide-footer"><span>All people, organizations, dates, and amounts in this story are invented.</span><span class="page-label">01 / 07</span></footer>
+        <footer class="slide-footer"><span>All people, organizations, dates, and amounts in this story are invented.</span><span class="page-label">01 / 12</span></footer>
         <aside class="notes" data-timing="About 15 seconds">Meet Maya, a recent graduate. She goes to the doctor. After the insurer’s payment and the contractual adjustment, her provider bills her $150. This is a fictional case using the same facts as our app demo.</aside>
       </section>
 
@@ -204,7 +227,7 @@
             <p class="receipt-reference">Payment: PAY-715028<br>Service date: 2026-07-01</p>
           </article>
         </div>
-        <footer class="slide-footer"><span>The receipt documents payment to the provider.</span><span class="page-label">02 / 07</span></footer>
+        <footer class="slide-footer"><span>The receipt documents payment to the provider.</span><span class="page-label">02 / 12</span></footer>
         <aside class="notes" data-timing="About 12 seconds">Five days later, Maya pays the full $150 balance. Her provider gives her a completed payment receipt for the same account. She saves it and moves on. Pause here before advancing.</aside>
       </section>
 
@@ -224,7 +247,7 @@
             <div class="amount-band"><span>Amount requested</span><strong>$150</strong></div>
           </article>
         </div>
-        <footer class="slide-footer"><span>Her receipt shows a payment. The notice still requests the balance.</span><span class="page-label">03 / 07</span></footer>
+        <footer class="slide-footer"><span>Her receipt shows a payment. The notice still requests the balance.</span><span class="page-label">03 / 12</span></footer>
         <aside class="notes" data-timing="About 15 seconds">Twenty-six days later, a collection notice arrives. Same provider. Same account. It asks for the same $150 she already paid. The records disagree. We have not established why: the current account ledger or a later reversal could change the explanation.</aside>
       </section>
 
@@ -238,7 +261,7 @@
           <article class="evidence-item reveal" style="--delay:.6s"><p class="evidence-date">August 15</p><h3>Collection notice</h3><p class="evidence-amount">$150</p><p class="evidence-meaning">Amount requested</p><p class="evidence-account">MG-1042</p></article>
         </div>
         <p class="linking-caption reveal" style="--delay:.85s">Four records to connect before she can explain the discrepancy.</p>
-        <footer class="slide-footer"><span>An insurance explanation describes responsibility; the receipt supplies payment evidence.</span><span class="page-label">04 / 07</span></footer>
+        <footer class="slide-footer"><span>An insurance explanation describes responsibility; the receipt supplies payment evidence.</span><span class="page-label">04 / 12</span></footer>
         <aside class="notes" data-timing="About 15 seconds">Now Maya has to reconstruct what happened across four documents. The insurance explanation tells her share. The bill tells what the provider charged. Only the receipt supports that she paid. Matching the provider, account, visit, and dates is what connects that payment to the notice.</aside>
       </section>
 
@@ -250,8 +273,25 @@
           <p class="stat-context reveal" style="--delay:.22s">medical-debt collection complaints received by the CFPB in 2025 were categorized <strong>“Debt was paid.”</strong></p>
           <div class="data-bottom reveal" style="--delay:.4s"><div class="data-bar" role="img" aria-label="1,005 of 8,843 medical-debt collection complaints, approximately 11.4 percent"><span class="data-bar-fill"></span></div><p class="data-denominator">Within 8,843 medical-debt collection complaints.</p></div>
         </div>
-        <footer class="slide-footer">Consumer-reported categories, not verified billing errors or unique people. Jan–Dec 2025; retrieved Sep 26, 2026.<br><a href="https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&amp;date_received_min=2025-01-01&amp;date_received_max=2025-12-31&amp;product=Debt+collection%E2%80%A2Medical+debt" target="_blank" rel="noopener noreferrer">Source: CFPB Consumer Complaint Database</a> · Snapshot: <a href="../data/research/research.json" target="_blank" rel="noopener">research.json</a></footer>
+        <footer class="slide-footer"><span>Consumer-reported categories, not verified billing errors or unique people. Jan–Dec 2025; retrieved Sep 26, 2026.<br><a href="https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&amp;date_received_min=2025-01-01&amp;date_received_max=2025-12-31&amp;product=Debt+collection%E2%80%A2Medical+debt" target="_blank" rel="noopener noreferrer">Source: CFPB Consumer Complaint Database</a> · Snapshot: <a href="../data/research/research.json" target="_blank" rel="noopener">research.json</a></span><span class="page-label">05 / 12</span></footer>
         <aside class="notes" data-timing="About 20 seconds">Maya is fictional, but this type of complaint is real. In 2025, 1,005 medical-debt collection complaint records in the CFPB database were categorized “Debt was paid,” out of 8,843 medical-debt collection complaints. Those are consumer-reported complaints, not 1,005 verified errors or unique people. The CFPB supplies complaint records, not the bills and receipts used in our demo.</aside>
+      </section>
+
+
+      <section class="slide" id="responses" aria-labelledby="responses-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Real CFPB complaint data · 2025</span></header>
+        <div class="data-layout">
+          <p class="eyebrow reveal">What happened to those 1,005 complaints</p>
+          <h2 class="stat-number reveal" style="--delay:.1s" id="responses-title">82%</h2>
+          <p class="stat-context reveal" style="--delay:.22s">were closed with a company <strong>explanation</strong>. Only <strong>3</strong> ended with monetary relief.</p>
+          <div class="response-strip reveal" style="--delay:.4s" role="img" aria-label="Company responses to 1,005 Debt was paid complaints: 823 closed with explanation, 149 closed with non-monetary relief, 30 untimely, 3 closed with monetary relief">
+            <span style="width:81.89%;background:#b7c4bd"></span><span style="width:14.83%;background:#2e7d70"></span><span style="width:2.99%;background:#c95b41"></span><span style="width:.3%;background:#173c36"></span>
+          </div>
+          <p class="strip-legend reveal" style="--delay:.5s"><span><i style="background:#b7c4bd"></i>Explanation · 823</span><span><i style="background:#2e7d70"></i>Non-monetary relief · 149</span><span><i style="background:#c95b41"></i>Untimely · 30</span><span><i style="background:#173c36"></i>Monetary relief · 3</span></p>
+          <p class="data-denominator reveal" style="--delay:.6s">Across all 8,843 medical-debt collection complaints, the share is the same: 82% closed with explanation.</p>
+        </div>
+        <footer class="slide-footer"><span>Company-reported responses. “Closed with explanation” does not mean the complaint was unfounded.<br><a href="https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&amp;date_received_min=2025-01-01&amp;date_received_max=2025-12-31&amp;product=Debt+collection%E2%80%A2Medical+debt&amp;issue=Attempts+to+collect+debt+not+owed%E2%80%A2Debt+was+paid" target="_blank" rel="noopener noreferrer">Source: CFPB Consumer Complaint Database</a> · retrieved Sep 26, 2026</span><span class="page-label">06 / 12</span></footer>
+        <aside class="notes" data-timing="About 20 seconds">What happened to those complaints? 82 percent were closed with an explanation from the company. Three out of 1,005 ended with monetary relief. That’s the same rate as every other medical-debt complaint, so these aren’t being singled out. It means the person who paid still has to make the case with their own records. That’s the gap we built for.</aside>
       </section>
 
       <section class="slide" id="product" aria-labelledby="product-title" aria-roledescription="slide">
@@ -271,7 +311,7 @@
             <p class="packet-bottom"><strong>Question for the provider</strong><br>Can you supply an updated ledger showing how this payment was applied?</p>
           </article>
         </div>
-        <footer class="slide-footer"><span>A finding for review. The supplied documents do not establish legal liability.</span><span class="page-label">06 / 07</span></footer>
+        <footer class="slide-footer"><span>A finding for review. The supplied documents do not establish legal liability.</span><span class="page-label">07 / 12</span></footer>
         <aside class="notes" data-timing="About 18 seconds">We built Not My Debt to connect those records and prepare a factual response. It flags a possible uncredited payment, shows the supporting evidence, and asks for an updated ledger. It does not declare the debt canceled or send anything automatically. This slide is an illustrative summary; the live app is next.</aside>
       </section>
 
@@ -281,11 +321,72 @@
           <p class="eyebrow reveal">From story to evidence</p>
           <h2 class="demo-title reveal" style="--delay:.15s" id="demo-title">Let’s follow<br>Maya’s <em>$150.</em></h2>
           <p class="support reveal" style="--delay:.3s">The same four documents.<br>A response she can review.</p>
-          <a class="demo-link reveal" style="--delay:.45s" href="http://localhost:8501" target="_blank" rel="noopener noreferrer">Open the live demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 3h7v7M21 3l-11 11"/><path d="M10 3H3v18h18v-7"/></svg></a>
+          <a class="demo-link reveal" style="--delay:.45s" href="http://127.0.0.1:3000" target="_blank" rel="noopener noreferrer">Open the live demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 3h7v7M21 3l-11 11"/><path d="M10 3H3v18h18v-7"/></svg></a>
         </div>
         <p class="demo-index" aria-hidden="true">MAYA ELLIS / MG-1042</p>
-        <footer class="slide-footer"><span>Story, design, and code created with assistance from OpenAI Codex.</span><span class="page-label">07 / 07</span></footer>
-        <aside class="notes" data-timing="About 8 seconds, then switch to the app">Let’s follow Maya’s $150 through the app. Before presenting, run: uv run streamlit run streamlit_app.py. The demo button opens localhost:8501 in a new tab. Load “Paid, then sent to collections,” inspect the source evidence and finding, then remove the receipt to show that the payment-supported finding is withdrawn. This deck intentionally stops at the demo handoff; technical explanation and results will be added later.</aside>
+        <footer class="slide-footer"><span>All documents in this demo are fictional.</span><span class="page-label">08 / 12</span></footer>
+        <aside class="notes" data-timing="About 8 seconds, then about 2 minutes 15 seconds in the app">Let’s follow Maya’s $150 through the app. Before presenting: npm run build, then npm start, open 127.0.0.1:3000 and press Reset demo. In the app: open one document card; Connect the records; click the Receipt bar; switch Include payment receipt off and on; Prepare a response; tick review; download the packet. Then return to this tab and press → for How it works.</aside>
+      </section>
+
+      <section class="slide" id="method" aria-labelledby="method-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">How it works</span></header>
+        <h2 class="records-heading reveal" id="method-title">Four steps. <em>No guessing.</em></h2>
+        <ol class="method-line">
+          <li class="reveal" style="--delay:.15s"><span>01</span><h3>Extract</h3><p>Typed facts, each with its exact source passage. Nothing counts until a person confirms it.</p></li>
+          <li class="reveal" style="--delay:.3s"><span>02</span><h3>Match</h3><p>Provider, patient, account, and visit date must agree. A matching amount alone is not a match.</p></li>
+          <li class="reveal" style="--delay:.45s"><span>03</span><h3>Reconcile</h3><p>Integer-cent arithmetic. An EOB is never proof of payment. A payment is counted once.</p></li>
+          <li class="reveal" style="--delay:.6s"><span>04</span><h3>Draft</h3><p>A letter built only from confirmed facts, citing the records it relies on.</p></li>
+        </ol>
+        <p class="linking-caption method-caption reveal" style="--delay:.8s">When the evidence is ambiguous, it <strong>withholds the balance</strong> and says what to confirm.</p>
+        <footer class="slide-footer"><span>Next.js + Recharts interface over a Python evidence engine. Local extraction by default; optional AI extraction discloses what it sends.</span><span class="page-label">09 / 12</span></footer>
+        <aside class="notes" data-timing="About 30 seconds">Under the hood, four steps. Extract typed facts with the exact passage they came from, and nothing is used until a person confirms it. Match records on provider, patient, account and visit date. The same dollar amount is never enough. Reconcile with integer-cent arithmetic: an EOB is never treated as proof of payment, and a payment is only counted once. Draft only from confirmed facts. The key design choice is that when evidence is ambiguous, it withholds a balance instead of guessing.</aside>
+      </section>
+
+      <section class="slide dark" id="shaped" aria-labelledby="shaped-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Real CFPB complaint narratives · Jan–Feb 2025</span></header>
+        <h2 class="records-heading reveal" id="shaped-title">The complaints decided<br><em>what we check.</em></h2>
+        <div class="shaped-rows">
+          <p class="reveal" style="--delay:.15s"><strong>274</strong><span>narratives mention a bill or statement</span><b>The provider statement is rebuilt line by line</b></p>
+          <p class="reveal" style="--delay:.28s"><strong>244</strong><span>ask for verification or proof</span><b>Every amount opens its source passage</b></p>
+          <p class="reveal" style="--delay:.41s"><strong>57</strong><span>question whose debt it is</span><b>Identity must match exactly across records</b></p>
+          <p class="reveal" style="--delay:.54s"><strong>43</strong><span>mention a receipt or payment proof</span><b>Only a completed receipt counts as payment</b></p>
+        </div>
+        <footer class="slide-footer"><span>Keyword-rule matches among 812 unique medical-debt narratives. Rules overlap and are not validated classifiers.</span><span class="page-label">10 / 12</span></footer>
+        <aside class="notes" data-timing="About 25 seconds">We read the complaint narratives to decide what the engine checks. Of 812 unique medical-debt narratives from early 2025, 274 mention a bill, 244 ask for verification or proof, 57 question whose debt it is, and 43 mention a receipt. Each became a check you just saw. These are transparent keyword rules, not a trained classifier, and they overlap.</aside>
+      </section>
+
+      <section class="slide" id="results" aria-labelledby="results-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Synthetic regression benchmark</span></header>
+        <h2 class="records-heading reveal" id="results-title">Tested on the ways<br>it could <em>go wrong.</em></h2>
+        <div class="results-grid">
+          <div class="reveal" style="--delay:.15s"><strong>70 / 70</strong><p>generated case bundles reach the expected outcome, across 14 scenario families</p></div>
+          <div class="reveal" style="--delay:.3s"><strong>0</strong><p>false “uncredited payment” flags in the 55 bundles where none was expected</p></div>
+          <div class="reveal" style="--delay:.45s"><strong>40 / 40</strong><p>ambiguous bundles where it correctly withheld a balance</p></div>
+        </div>
+        <p class="error-example reveal" style="--delay:.65s"><b>Where it breaks:</b> a bill that labels the provider “Billed by” isn’t read by the local parser. The engine can’t match the account, so it withholds the balance rather than guess. A deliberately broken rule, treating “Pending” as paid, fails the benchmark.</p>
+        <footer class="slide-footer"><span>Seeded synthetic documents in the parser’s labeled-text format; expected outcomes follow the product rules. Not an accuracy estimate for real paperwork; no real-user validation yet.</span><span class="page-label">11 / 12</span></footer>
+        <aside class="notes" data-timing="About 35 seconds">We tested it against the ways it could go wrong. We generated 70 case bundles across 14 scenario families: partial payments, duplicate receipts, wrong accounts, masked accounts, pending and reversed payments, payments after the notice, bills that don’t add up. All 70 reach the expected outcome. It never flagged an uncredited payment where one wasn’t expected, including when the payment was already credited, and in all 40 ambiguous cases it withheld a balance. One limitation: the local parser only reads labels it knows, so a bill that says “Billed by” instead of “Provider” fails to match, and the engine abstains rather than guesses. This is a synthetic regression check, not real-world accuracy. Real paperwork is the next test.</aside>
+      </section>
+
+      <section class="slide lime" id="close" aria-labelledby="close-title" aria-roledescription="slide">
+        <header class="running-head"><span class="brand"><b aria-hidden="true"></b> Not My Debt</span><span class="disclosure">Fictional story · Synthetic documents</span></header>
+        <div class="composition">
+          <div>
+            <p class="eyebrow reveal">Back to Maya</p>
+            <h2 class="reveal" style="--delay:.1s" id="close-title">Four documents.<br>One clear <em>question.</em></h2>
+            <p class="support reveal" style="--delay:.26s">Next: pilot with patient advocates and financial counselors, add OCR, and measure preparation time with real users.</p>
+          </div>
+          <article class="paper packet" aria-label="Maya's finished evidence packet">
+            <p class="packet-label">Evidence packet · Maya Ellis</p>
+            <h3 class="packet-title">Ready for her review</h3>
+            <div class="evidence-citation"><span>Finding</span><strong>Possible uncredited $150 payment</strong></div>
+            <div class="evidence-citation"><span>Records</span><strong>4 attached, with source passages</strong></div>
+            <div class="evidence-citation"><span>Request</span><strong>Updated ledger and payment allocation</strong></div>
+            <p class="packet-bottom">Nothing is sent or filed automatically. Maya decides.</p>
+          </article>
+        </div>
+        <footer class="slide-footer"><span>A factual packet for review. The supplied documents do not establish legal liability.</span><span class="page-label">12 / 12</span></footer>
+        <aside class="notes" data-timing="About 25 seconds">Back to Maya. She started with four documents from three organizations. She now has one clear question for her provider, backed by the records that support it. Next, we want to pilot with patient advocates and financial counselors, add OCR for scanned bills, and measure how much preparation time this saves real people. Thank you.</aside>
       </section>
     </div>
   </main>

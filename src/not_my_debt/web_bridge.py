@@ -1,4 +1,4 @@
-"""Stateless JSON bridge for the Next.js UI. Created with OpenAI Codex.
+"""Stateless JSON bridge for the Next.js UI.
 
 Case input lives on stdin, never command arguments, caches, or application logs.
 """

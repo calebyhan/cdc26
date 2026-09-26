@@ -1,4 +1,4 @@
-"""Next.js boundary regressions on synthetic records. Created with OpenAI Codex."""
+"""Next.js boundary regressions on synthetic records."""
 
 from copy import deepcopy
 from dataclasses import asdict
@@ -18,11 +18,11 @@ def test_live_receipt_removal_changes_result_and_draft():
     documents = case()
     response = handle_request({"operation": "reconcile", "documents": documents})
     assert response["result"]["supported_balance_cents"] == 0
-    assert "receipt.payment_amount" in response["drafts"]["provider"]
+    assert "Provider payment receipt, 2026-07-20" in response["drafts"]["provider"]
     documents[2]["included"] = False
     missing = handle_request({"operation": "reconcile", "documents": documents})
     assert "possible_uncredited_payment" not in {f["code"] for f in missing["result"]["findings"]}
-    assert "receipt.payment_amount" not in missing["drafts"]["provider"]
+    assert "Provider payment receipt, 2026-07-20" not in missing["drafts"]["provider"]
 
 
 @pytest.mark.parametrize("scenario", ["wrong_account", "duplicate_receipt", "partial_payment"])

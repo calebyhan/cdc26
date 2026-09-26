@@ -38,6 +38,8 @@ API_URL = (
         }
     )
 )
+PAID_SUBISSUE = "Debt was paid"
+PAID_API_URL = API_URL + "&" + urllib.parse.urlencode({"issue": f"{NOT_OWED}\u2022{PAID_SUBISSUE}"})
 
 # These patterns are intentionally inspectable string matching, not diagnoses or
 # validated classifiers. Negation and context are not resolved.
@@ -142,6 +144,53 @@ def fetch_api(path: Path) -> dict:
         {"source_url": API_URL, "retrieved_at": utc_now(), "sha256": sha256_file(path)},
     )
     return data
+
+
+def fetch_paid_api(path: Path) -> dict:
+    """Fetch the "Debt was paid" subset; verify the hierarchical issue filter on rows."""
+    with urllib.request.urlopen(PAID_API_URL, timeout=90) as response:
+        if "application/json" not in response.headers.get("Content-Type", ""):
+            raise ValueError("CFPB returned non-JSON; do not treat it as a valid API response")
+        data = json.load(response)
+    write_json(path, data)
+    write_json(
+        path.with_suffix(".metadata.json"),
+        {"source_url": PAID_API_URL, "retrieved_at": utc_now(), "sha256": sha256_file(path)},
+    )
+    return data
+
+
+def _response_group(label: str, data: dict) -> dict:
+    total = data["hits"]["total"]["value"]
+    buckets = data["aggregations"]["company_response"]["company_response"]["buckets"]
+    responses = [{"label": b["key"], "count": b["doc_count"]} for b in buckets]
+    if sum(item["count"] for item in responses) != total:
+        raise ValueError(f"{label}: company responses do not sum to the complaint total")
+    return {"label": label, "total": total, "responses": responses}
+
+
+def summarize_response_outcomes(everything: dict, paid: dict) -> dict:
+    """Company responses are what companies reported, not verified complaint outcomes."""
+    for data in (everything, paid):
+        hits = data["hits"]["hits"]
+        if not hits or any(
+            h["_source"].get("product") != "Debt collection"
+            or h["_source"].get("sub_product") != "Medical debt"
+            for h in hits
+        ):
+            raise ValueError("Response data does not verify the medical-debt filter")
+    if any(h["_source"].get("sub_issue") != PAID_SUBISSUE for h in paid["hits"]["hits"]):
+        raise ValueError(f"Response data does not verify the {PAID_SUBISSUE!r} filter")
+    return {
+        "groups": [
+            _response_group("All medical-debt collection complaints", everything),
+            _response_group(f"Categorized \u201c{PAID_SUBISSUE}\u201d", paid),
+        ],
+        "source_urls": [API_URL, PAID_API_URL],
+        "caveat": "Company responses are reported by companies. \u201cClosed with explanation\u201d "
+        "does not establish that a complaint was unfounded, and relief categories are not "
+        "verified corrections.",
+    }
 
 
 def download_archive(path: Path) -> None:
@@ -348,3 +397,54 @@ def build_research(api: dict, archive: dict, *, api_retrieved_at: str | None = N
             "CFPB narratives do not include paired EOB/bill/receipt/collection-notice bundles. Document reconciliation is evaluated separately on labeled synthetic fixtures.",
         ],
     }
+
+
+def refresh_response_outcomes(
+    research_path: Path, raw: Path, *, reuse: bool = False, root: Path | None = None
+) -> dict:
+    """Add company-response aggregates to research JSON and its source manifest."""
+    everything_path, paid_path = raw / "medical_2025_api.json", raw / "medical_2025_paid_api.json"
+    everything = (
+        json.loads(everything_path.read_text(encoding="utf-8"))
+        if reuse and everything_path.exists()
+        else fetch_api(everything_path)
+    )
+    paid = (
+        json.loads(paid_path.read_text(encoding="utf-8"))
+        if reuse and paid_path.exists()
+        else fetch_paid_api(paid_path)
+    )
+    research = json.loads(research_path.read_text(encoding="utf-8"))
+    research["api"]["response_outcomes"] = summarize_response_outcomes(everything, paid)
+    write_json(research_path, research)
+    manifest_path = research_path.parent / "source_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    base = root or research_path.parents[2]
+
+    def source(name: str, url: str, path: Path) -> dict:
+        metadata = path.with_suffix(".metadata.json")
+        return {
+            "name": name,
+            "source_url": url,
+            "retrieved_at": json.loads(metadata.read_text()).get("retrieved_at")
+            if metadata.exists()
+            else utc_now(),
+            "sha256": sha256_file(path),
+            "bytes": path.stat().st_size,
+            "local_path": str(path.relative_to(base)) if path.is_relative_to(base) else path.name,
+        }
+
+    entries = [
+        source("CFPB medical-debt company responses, all 2025", API_URL, everything_path),
+        source(
+            f"CFPB medical-debt \u201c{PAID_SUBISSUE}\u201d company responses",
+            PAID_API_URL,
+            paid_path,
+        ),
+    ]
+    names = {entry["name"] for entry in entries}
+    manifest["sources"] = [s for s in manifest["sources"] if s["name"] not in names] + entries
+    manifest["output"]["sha256"] = sha256_file(research_path)
+    manifest["generated_at"] = utc_now()
+    write_json(manifest_path, manifest)
+    return research["api"]["response_outcomes"]

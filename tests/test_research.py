@@ -115,3 +115,66 @@ def test_committed_research_denominators_are_consistent():
         for x in archive["patterns"] + archive["document_mentions"]
     )
     assert api["narratives_present_in_sample"] == 0
+
+
+def _response_payload(total, sub_issue, responses):
+    return {
+        "hits": {
+            "total": {"value": total},
+            "hits": [
+                {
+                    "_source": {
+                        "product": "Debt collection",
+                        "sub_product": "Medical debt",
+                        "sub_issue": sub_issue,
+                    }
+                }
+            ],
+        },
+        "aggregations": {
+            "company_response": {
+                "company_response": {
+                    "buckets": [{"key": k, "doc_count": v} for k, v in responses.items()]
+                }
+            }
+        },
+    }
+
+
+def test_response_outcomes_verify_paid_filter_and_totals():
+    from not_my_debt.research import summarize_response_outcomes
+
+    everything = _response_payload(10, "Debt is not yours", {"Closed with explanation": 10})
+    paid = _response_payload(
+        4, "Debt was paid", {"Closed with explanation": 3, "Closed with monetary relief": 1}
+    )
+    outcome = summarize_response_outcomes(everything, paid)
+    assert [g["total"] for g in outcome["groups"]] == [10, 4]
+    assert outcome["groups"][1]["responses"][1] == {
+        "label": "Closed with monetary relief",
+        "count": 1,
+    }
+    wrong = _response_payload(4, "Debt is not yours", {"Closed with explanation": 4})
+    with pytest.raises(ValueError, match="Debt was paid"):
+        summarize_response_outcomes(everything, wrong)
+    partial = _response_payload(4, "Debt was paid", {"Closed with explanation": 3})
+    with pytest.raises(ValueError, match="sum"):
+        summarize_response_outcomes(everything, partial)
+
+
+def test_committed_response_outcomes_match_annual_counts():
+    import json
+    from pathlib import Path
+
+    data = json.loads(
+        (Path(__file__).resolve().parents[1] / "data/research/research.json").read_text()
+    )
+    api = data["api"]
+    everything, paid = api["response_outcomes"]["groups"]
+    paid_count = next(
+        x["count"] for x in api["not_owed_subissues"] if x["label"] == "Debt was paid"
+    )
+    assert everything["total"] == api["total_complaints"]
+    assert paid["total"] == paid_count
+    for group in (everything, paid):
+        assert sum(x["count"] for x in group["responses"]) == group["total"]

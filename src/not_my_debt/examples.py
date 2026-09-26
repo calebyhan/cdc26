@@ -1,4 +1,4 @@
-"""Fictional, labeled document bundles. Created with assistance from OpenAI Codex."""
+"""Fictional, labeled document bundles."""
 
 from copy import deepcopy
 
