@@ -1,6 +1,6 @@
 {
-  "built_at": "2026-09-26T19:40:15.341316+00:00",
-  "last_successful_refresh": "2026-09-26T19:42:29.593272+00:00",
+  "built_at": "2026-09-26T19:45:35.027032+00:00",
+  "last_successful_refresh": "2026-09-26T19:45:43.863162+00:00",
   "ccdb_meta": {
     "license": "CC0",
     "last_updated": "2026-09-26T12:00:00-05:00",
@@ -97,24 +97,24 @@
     "interpretation": "Descriptive self-normalized complaints, not exposure-normalized rates. +12m data are never model inputs; no post-Aug-2025 accuracy claim."
   },
   "files": {
-    "leads.parquet": "37f38dbdddaceedca5c2042bc88913fc9c3ae718594c1665193b3f5a6160d5d2",
-    "leaderboard.parquet": "dc8eb6fffccca8d1ccbaa5897e44d2164a43249ce44865e96ed8c617300b7cb7",
-    "metrics.parquet": "901e479cc4cb0170b60c783b85a6767d69109d2ff6bbffd3206518a9be1f6946",
-    "event_series.parquet": "d9f5bde4288daf47b8765d8d8aba3341b41465ecfbdc8f7d574b4c28c7d248ea",
-    "aliases.parquet": "9893e73d5d3b654b51464f9ea0ab5f701dc56ed29f3e4d289c245bc47e749b4e",
-    "drivers.parquet": "db514bb5b0cec7f83881f32a49112ad5dbaad02ddf9e18a10dbfb12b7727044f",
-    "errors.parquet": "65b1f81942bc63a0a7bcfa4901f9bf1e3a9d1ccd425d1d53058b49f6f0e6bd62",
-    "flags.parquet": "cad3a351b10bd3dcaff5e81aa99090bbdff5edd94237a9d549386046a25fe9d5",
     "events.parquet": "1b2f7596c46007ab7c5ce53c999a7d93c074d18d68eedf8304c48ee2dc8d8123",
-    "relationships.parquet": "c352b5dea64bab5a1219ad759919fcebd5825649d5aba5066704b270fb898357",
     "bank_history.parquet": "69e2f1e8fcabe55896ebf4768e1931e39691e5b981fa16c401c9a6a81501cfeb",
+    "company_trend.parquet": "40e3ef72a93cc646d1e7e08a334f98252cf73189dec383ff39a39b93b99d0764",
+    "leaderboard.parquet": "6f1dc775eace33a43bb9a208e859783e9514d9195bb9a3ec308ea7d5f05d3802",
+    "drivers.parquet": "392d576c3c52579445f9aaa764e5632a0a71a6007d917e9991f9213db26bd37c",
+    "errors.parquet": "4529349f6a9fe6d284a4043634589cc11c473e6dc02228f50628e14d0c2b286c",
+    "aliases.parquet": "9893e73d5d3b654b51464f9ea0ab5f701dc56ed29f3e4d289c245bc47e749b4e",
     "event_company.parquet": "ca70e8d37c5df646aa4a40eb650038c6ca4a192177cf8b754c45255fb30dfe7a",
-    "entities.parquet": "6c7f6d7a5de54eabb001bb3ee44671b958902bf6e84bfc39ece66f9dfc74b700",
+    "event_series.parquet": "d9f5bde4288daf47b8765d8d8aba3341b41465ecfbdc8f7d574b4c28c7d248ea",
+    "relationships.parquet": "c352b5dea64bab5a1219ad759919fcebd5825649d5aba5066704b270fb898357",
+    "event_pairs.parquet": "f67b3e04df3010fbb898a75b5b122415ab19caa3df769bff34fbdab04bfafac6",
     "hits.parquet": "ae8d5d6faefb4637bae59bf2e17cdd6fc1b89a929a96fb8842c171a4923eb036",
+    "metrics.parquet": "901e479cc4cb0170b60c783b85a6767d69109d2ff6bbffd3206518a9be1f6946",
+    "issue_mix.parquet": "63db0795aa6d89b4e9e4d28eabb5629911ddb3bc025c019e89a3ca6e52fa5ba4",
+    "flags.parquet": "8b13070e801e82aa86d04856fb1a528d502e15ec4ef8718e9e68687170a14175",
     "event_aggregate.parquet": "f3ef20355a986249ce3a18d13c22ae20760b591367c6af32bd5129ffd9dd703a",
-    "event_pairs.parquet": "3406945996384e407bba874c7e310e81b98a44149604724f96eb14c8033aebb7",
-    "issue_mix.parquet": "82b95c94aa558918fd2274c12229b462156c76f40e7f020778b9e0f709f94632",
-    "company_trend.parquet": "df43d90ae2a130e891d4265474363d00159962e9c325dc03ecb7aa5f8c103874",
-    "states.parquet": "a4e1d1be4d9553e9a62d04fb63e4b6fbd9b5d738d13eca6aeb0f77cee659f6e0"
+    "leads.parquet": "37f38dbdddaceedca5c2042bc88913fc9c3ae718594c1665193b3f5a6160d5d2",
+    "entities.parquet": "6c7f6d7a5de54eabb001bb3ee44671b958902bf6e84bfc39ece66f9dfc74b700",
+    "states.parquet": "0a1b4cd86f9acd5e8b2e47586617b1d2bc1e67135b82995c65e26f4237a8d89c"
   }
 }
