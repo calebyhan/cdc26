@@ -1,6 +1,12 @@
 # Not My Debt — proposed hackathon scope
 
-Status: first implementation checkpoint. The app has six synthetic scenarios,
+Status: Next.js presentation UI checkpoint. The primary interface now uses
+Next.js/TypeScript and Recharts over the existing Python engine. A stateless
+route handler processes case requests without persistence or shared caching.
+The legacy Streamlit implementation remains runnable. This replaces the original
+Streamlit UI preference below; the product and evidence boundaries still apply.
+
+First implementation checkpoint: The app has six synthetic scenarios,
 local extraction, an optional untested-live AI adapter, deterministic reconciliation,
 source review, packet export, and public complaint aggregates. The fuller evaluation
 and presentation work below remain planned; they are not completed-result claims.
