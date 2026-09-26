@@ -40,6 +40,7 @@ import {
   type Analysis,
   type Bootstrap,
   type Document,
+  type ExtractionMethod,
   type Fact,
 } from "@/lib/types";
 
@@ -195,7 +196,7 @@ export default function Home() {
   const caseTitle =
     fictional && scenario === "paid"
       ? "She paid her bill.\nThen this arrived."
-      : "Every record tells\npart of the story.";
+      : "Let’s check\nyour medical bill.";
 
   async function download() {
     if (!documents || !reviewed || loading || pending) return;
@@ -264,9 +265,9 @@ export default function Home() {
           <div>
             <strong>{fictional ? "Maya’s case" : "Your case"}</strong>
             <small>
-              {fictional
-                ? "Fictional presentation demo"
-                : "This browser session"}
+              {confirmedValue(notice, "account")
+                ? `Account ${confirmedValue(notice, "account")}`
+                : "Medical bills & payments"}
             </small>
           </div>
         </div>
@@ -275,7 +276,7 @@ export default function Home() {
             <summary>
               Explore another case <ChevronDown size={14} />
             </summary>
-            <label htmlFor="scenario">Fictional scenario</label>
+            <label htmlFor="scenario">Choose a case</label>
             <select
               id="scenario"
               value={scenario}
@@ -306,25 +307,13 @@ export default function Home() {
             disabled={!boot}
           >
             <RotateCcw size={15} />
-            Reset demo
+            Reset case
           </button>
-          <div className="privacy-note">
-            <ShieldCheck size={16} />
-            <span>
-              Case records stay in memory.
-              <br />
-              Nothing is sent or filed.
-            </span>
-          </div>
         </div>
       </aside>
       <main className="main">
         <header className="topbar">
-          <span>Medical billing evidence workspace</span>
-          <span className="demo-badge">
-            <span />
-            {fictional ? "Fictional demo" : "Active session"}
-          </span>
+          <span>Medical bills & payments</span>
         </header>
         {error && (
           <div className="error" role="alert">
@@ -340,12 +329,7 @@ export default function Home() {
         {!boot ? (
           <div className="loading-screen">
             <Loader2 className="spin" />
-            <h2>
-              {error
-                ? "The workspace couldn’t load"
-                : "Opening the evidence workspace…"}
-            </h2>
-            <p>Make sure Python dependencies are installed with uv sync.</p>
+            <h2>{error ? "Your case couldn’t load" : "Opening your case…"}</h2>
           </div>
         ) : (
           <>
@@ -380,7 +364,7 @@ export default function Home() {
                         <p>
                           {fictional && scenario === "paid"
                             ? "A $150 provider bill. A matching payment receipt. And a collection notice asking for the same amount."
-                            : "Connect your bill, insurance explanation, payment evidence, and collection notice to understand what needs clarification."}
+                            : "Compare your bill, insurance explanation, receipt, and collection notice."}
                         </p>
                         <button
                           className="button primary"
@@ -407,15 +391,12 @@ export default function Home() {
                           <br />
                           {shortDate(confirmedValue(notice, "statement_date"))}
                         </div>
-                        <div className="paper-stamp">
-                          {fictional ? "FICTIONAL DOCUMENT" : "SUPPLIED RECORD"}
-                        </div>
                       </div>
                     </div>
                     <div className="section-heading">
                       <div>
-                        <h2>Four records. One clearer picture.</h2>
-                        <p>Open any document to see its original text.</p>
+                        <h2>Your documents</h2>
+                        <p>Open a document to check the details.</p>
                       </div>
                       <span className="count-label">
                         {documents?.length || 0} documents
@@ -453,7 +434,9 @@ export default function Home() {
                       <div className="empty-state">
                         <FolderOpen />
                         <h3>No documents yet</h3>
-                        <p>Add documents or reset to Maya’s demo case.</p>
+                        <p>
+                          Add a bill, receipt, or collection notice to begin.
+                        </p>
                         <button
                           className="button secondary"
                           onClick={() => setWorkspace("evidence")}
@@ -465,9 +448,8 @@ export default function Home() {
                     <div className="context-note">
                       <CircleHelp size={17} />
                       <p>
-                        The EOB describes patient responsibility. The receipt is
-                        the evidence of payment. The app connects them; it does
-                        not determine legal liability.
+                        An insurance explanation shows your share of the bill. A
+                        receipt shows what you paid.
                       </p>
                     </div>
                   </section>
@@ -477,11 +459,8 @@ export default function Home() {
                     <div className="page-heading">
                       <div>
                         <div className="eyebrow">FOLLOW THE MONEY</div>
-                        <h1>What do the records support?</h1>
-                        <p>
-                          Trace each amount back to its source. Change the
-                          evidence to see the finding change.
-                        </p>
+                        <h1>Check the balance</h1>
+                        <p>Click an amount to see where it came from.</p>
                       </div>
                     </div>
                     <div className="receipt-controls">
@@ -513,14 +492,14 @@ export default function Home() {
                         ))}
                       <span className="muted small">
                         {loading
-                          ? "Updating evidence…"
-                          : "Findings update with your records"}
+                          ? "Updating…"
+                          : "Based on the included documents"}
                       </span>
                     </div>
                     {loading ? (
                       <div className="finding-banner loading">
                         <Loader2 className="spin" />
-                        Checking the supplied records…
+                        Checking your documents…
                       </div>
                     ) : (
                       <div
@@ -546,17 +525,17 @@ export default function Home() {
                             {finding
                               ? `A ${money(result?.applied_payments_cents)} payment may not have been credited.`
                               : missing
-                                ? "Payment evidence is missing."
+                                ? "We need a payment receipt."
                                 : result?.supported_balance_cents == null
-                                  ? "More evidence needs review."
-                                  : "Here’s what your records support."}
+                                  ? "Some details still need review."
+                                  : "Here’s the balance from your records."}
                           </h2>
                           <p>
                             {finding
-                              ? "A completed receipt matches the account and encounter, after the bill and before the notice. Confirm its allocation with the provider."
+                              ? "The receipt matches this account and visit. It was paid after the bill and before the collection notice. Ask the provider to check how the payment was applied."
                               : missing
-                                ? "We can’t confirm that this balance was paid. An insurance explanation is not proof of patient payment."
-                                : "Review the findings below before drawing conclusions about the balance."}
+                                ? "The insurance explanation alone doesn’t show whether you paid this balance."
+                                : "Check the details below before contacting the billing office."}
                           </p>
                           {finding && (
                             <button
@@ -618,7 +597,7 @@ export default function Home() {
                               </button>
                             ))}
                           <div className="ledger-total">
-                            <span>Balance supported by these records</span>
+                            <span>Balance from these records</span>
                             <strong>
                               {result?.supported_balance_cents == null
                                 ? "Withheld"
@@ -627,8 +606,8 @@ export default function Home() {
                           </div>
                         </div>
                         <p className="footnote">
-                          This is a reconstruction, not a live account balance.
-                          Later activity or reversals remain unconfirmed.
+                          Later charges or payment reversals may change this
+                          amount. Ask the provider for the current balance.
                         </p>
                       </div>
                       <div className="panel chart-panel">
@@ -637,8 +616,8 @@ export default function Home() {
                           <BarChart3 size={17} />
                         </div>
                         <p className="muted small">
-                          Provider arithmetic, then matched payments, beside
-                          what the notice requests. Click a bar for its source.
+                          How the bill reaches its balance, next to what the
+                          notice requests. Click a bar to see its source.
                         </p>
                         {result && (
                           <div className="balance-chart">
@@ -653,7 +632,7 @@ export default function Home() {
                         )}
                         <div className="comparison-values">
                           <div>
-                            <small>Records support</small>
+                            <small>Your records show</small>
                             <strong>
                               {result?.supported_balance_cents == null
                                 ? "Withheld"
@@ -668,13 +647,14 @@ export default function Home() {
                           </div>
                         </div>
                         <p className="footnote">
-                          A withheld balance is labeled, never plotted as zero.
+                          A missing balance is marked “Withheld,” not shown as
+                          $0.
                         </p>
                       </div>
                     </div>
                     <details className="findings-details">
                       <summary>
-                        All findings & unresolved questions{" "}
+                        Details & questions to resolve{" "}
                         <span>
                           {result?.findings.length || 0}
                           <ChevronDown size={15} />
@@ -689,8 +669,7 @@ export default function Home() {
                               className="text-button"
                               onClick={() => source(item.refs)}
                             >
-                              Inspect supporting passages{" "}
-                              <ArrowRight size={14} />
+                              View source <ArrowRight size={14} />
                             </button>
                           )}
                         </div>
@@ -714,10 +693,10 @@ export default function Home() {
                 {step === 2 && (
                   <section className="fade-in">
                     <div className="page-heading">
-                      <div className="eyebrow">FROM EVIDENCE TO ACTION</div>
-                      <h1>A clear request. Backed by records.</h1>
+                      <div className="eyebrow">YOUR RESPONSE</div>
+                      <h1>Prepare your response</h1>
                       <p>
-                        Ask for an updated ledger and confirmation of how your
+                        Ask the billing office to check the balance and how your
                         payment was applied.
                       </p>
                     </div>
@@ -748,9 +727,9 @@ export default function Home() {
                         </div>
                         {recipient === "collector" && (
                           <p className="footnote">
-                            A collector dispute and a CFPB complaint are
-                            separate actions. Confirm the date printed on your
-                            notice; the app does not calculate legal deadlines.
+                            Check the dispute date printed on your notice. This
+                            letter goes to the collector; a CFPB complaint is a
+                            separate step.
                           </p>
                         )}
                         <label htmlFor="draft" className="sr-only">
@@ -779,11 +758,11 @@ export default function Home() {
                             <FileCheck2 size={18} />
                           </div>
                           {[
-                            "Factual evidence summary",
-                            "Reconstructed ledger",
-                            "Indexed source passages",
-                            "Editable inquiry draft",
-                            "Communication log",
+                            "Case summary",
+                            "Balance breakdown",
+                            "Quotes from your documents",
+                            "Your letter",
+                            "Contact history",
                           ].map((item) => (
                             <div className="packet-inclusion" key={item}>
                               <Check size={15} />
@@ -806,8 +785,8 @@ export default function Home() {
                               ))}
                           </div>
                           <p className="footnote">
-                            Attach copies of the original records separately.
-                            The packet includes their references and passages.
+                            Attach copies of your original documents when you
+                            send the letter.
                           </p>
                         </div>
                         <div className="export-panel">
@@ -857,11 +836,11 @@ export default function Home() {
                           {exported && (
                             <p className="download-success" role="status">
                               <Check size={14} />
-                              Packet downloaded. Nothing was sent.
+                              Packet downloaded.
                             </p>
                           )}
                           <p className="footnote">
-                            Printable HTML. Open it in a browser to save as PDF.
+                            Open the download, then print or save it as a PDF.
                           </p>
                         </div>
                       </div>
@@ -869,8 +848,7 @@ export default function Home() {
                     <div className="context-note">
                       <ShieldCheck size={17} />
                       <p>
-                        This packet asks specific questions. It does not confirm
-                        the current ledger, later reversals, or legal liability.{" "}
+                        Keep a copy of your letter and proof of delivery.{" "}
                         <a
                           href="https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/"
                           target="_blank"
@@ -888,10 +866,10 @@ export default function Home() {
               <section className="fade-in">
                 <div className="page-heading">
                   <div className="eyebrow">DOCUMENTS & REVIEW</div>
-                  <h1>Every fact has a source.</h1>
+                  <h1>Review your documents</h1>
                   <p>
-                    Review extracted values, keep the original passages, and
-                    decide what to include.
+                    Check each value against the original and correct any
+                    mistakes.
                   </p>
                 </div>
                 <div className="evidence-layout">
@@ -910,7 +888,6 @@ export default function Home() {
                         <div>
                           <strong>{doc.title}</strong>
                           <small>
-                            {doc.extraction_method} ·{" "}
                             {
                               Object.values(doc.fields).filter(
                                 (f) => f.confirmed,
@@ -944,8 +921,7 @@ export default function Home() {
                         <Upload />
                         <h3>Add your first document</h3>
                         <p>
-                          Paste labeled text or upload a text PDF. Scanned
-                          documents need transcription.
+                          Paste the text or upload a PDF with selectable text.
                         </p>
                       </div>
                     )}
@@ -956,7 +932,7 @@ export default function Home() {
                         go(1);
                       }}
                     >
-                      Return to reconciliation <ArrowRight size={15} />
+                      Check the balance <ArrowRight size={15} />
                     </button>
                   </div>
                   <AddDocument
@@ -1081,8 +1057,8 @@ function EvidenceDrawer({
       <div className="drawer-inner">
         <div className="drawer-header">
           <div>
-            <div className="eyebrow">EVIDENCE / ORIGINAL RECORD</div>
-            <h2 id="drawer-title">{doc?.title || "Supporting passages"}</h2>
+            <div className="eyebrow">ORIGINAL DOCUMENT</div>
+            <h2 id="drawer-title">{doc?.title || "Source details"}</h2>
           </div>
           <button
             className="icon-button"
@@ -1094,10 +1070,6 @@ function EvidenceDrawer({
         </div>
         {doc && !drawer.edit && (
           <>
-            <div className="source-status">
-              <FileText size={16} />
-              {doc.extraction_method}
-            </div>
             {pdf && (
               <>
                 <div className="source-toolbar">
@@ -1127,8 +1099,7 @@ function EvidenceDrawer({
                   </a>
                 </div>
                 <p className="footnote source-disclosure">
-                  Fictional original document. Corrected fields do not change
-                  this PDF.
+                  Edits to extracted values do not change this PDF.
                 </p>
               </>
             )}
@@ -1137,7 +1108,7 @@ function EvidenceDrawer({
                 <iframe
                   className="pdf-preview"
                   src={`${pdf}#toolbar=0&navpanes=0&view=FitH`}
-                  title={`Original fictional PDF: ${doc.title}`}
+                  title={`Original PDF: ${doc.title}`}
                 />
                 <a
                   href={pdf}
@@ -1160,8 +1131,8 @@ function EvidenceDrawer({
         {doc && drawer.edit && (
           <>
             <p className="muted">
-              Correct values and confirm the facts you reviewed. Original quotes
-              are preserved; corrections are labeled as your statements.
+              Check each value against the quote below it. Your corrections keep
+              the original text for reference.
             </p>
             {doc.warnings.map((warning, i) => (
               <p className="review-alert" key={i}>
@@ -1187,7 +1158,7 @@ function EvidenceDrawer({
                 />
                 <blockquote>
                   {fact.quote ||
-                    "No source passage. This is a user-supplied statement."}
+                    "You added this value. No document quote is attached."}
                 </blockquote>
                 <label className="fact-reviewed">
                   <input
@@ -1262,7 +1233,7 @@ function EvidenceDrawer({
                   )
                 }
               />
-              I reviewed all displayed facts.
+              I checked every value above.
             </label>
             {error && (
               <p role="alert" className="error">
@@ -1286,7 +1257,7 @@ function EvidenceDrawer({
         {!doc &&
           referenced.some((item) => item.doc && sources[item.doc.id]) && (
             <div className="source-pdf-links">
-              <span className="eyebrow">ORIGINAL FICTIONAL PDFS</span>
+              <span className="eyebrow">ORIGINAL DOCUMENTS</span>
               {[
                 ...new Map(
                   referenced
@@ -1341,11 +1312,23 @@ function AddDocument({
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [method, setMethod] = useState("local");
+  const [method, setMethod] = useState<ExtractionMethod>("local");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const methodAvailable =
+    method === "local"
+      ? true
+      : method === "codex"
+        ? boot.codex_available
+        : boot.ai_available;
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!methodAvailable) {
+      setError(
+        "This extractor is unavailable. Check its setup or choose another method.",
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -1370,7 +1353,15 @@ function AddDocument({
         body.filename = file.name;
       }
       const result = await api<{ document: Document }>(body);
-      onAdded(result.document);
+      onAdded({
+        ...result.document,
+        fields: Object.fromEntries(
+          Object.entries(result.document.fields).map(([key, fact]) => [
+            key,
+            { ...fact, confirmed: false },
+          ]),
+        ),
+      });
       setText("");
       setTitle("");
       setFile(null);
@@ -1443,26 +1434,60 @@ function AddDocument({
         </button>
       )}
       <p className="footnote">
-        8 MB maximum. Local extraction reads explicit labels. Scans need
-        transcription; OCR is not included.
+        Up to 8 MB. For scans or photos, paste a transcription instead.
       </p>
-      <label className="review-checkbox">
-        <input
-          type="checkbox"
-          checked={method === "openai"}
-          disabled={!boot.ai_available}
-          onChange={(e) => setMethod(e.target.checked ? "openai" : "local")}
-        />
-        <span>
-          Use OpenAI extraction{!boot.ai_available && " (not configured)"}
-        </span>
-      </label>
-      {method === "openai" && (
-        <p className="review-alert">
-          This sends the document text to the configured OpenAI provider.
-          Requests use store=False; provider retention policies apply.
-        </p>
-      )}
+      <label htmlFor="doc-extractor">Extraction method</label>
+      <select
+        id="doc-extractor"
+        value={method}
+        disabled={busy}
+        aria-describedby="extraction-help"
+        onChange={(e) => {
+          setMethod(e.target.value as ExtractionMethod);
+          setError("");
+        }}
+      >
+        <option value="local">Local parser</option>
+        <option value="codex" disabled={!boot.codex_available}>
+          Codex (ChatGPT sign-in)
+        </option>
+        <option value="openai" disabled={!boot.ai_available}>
+          OpenAI API
+        </option>
+      </select>
+      <div id="extraction-help">
+        {method === "local" && (
+          <p className="footnote">
+            Reads fields in “Label: value” format, such as “Balance: 150.00.”
+          </p>
+        )}
+        {method === "codex" && (
+          <p className="review-alert">
+            Sends the document text to OpenAI using your ChatGPT sign-in and
+            usage allowance. No API key needed.
+          </p>
+        )}
+        {method === "openai" && (
+          <p className="review-alert">
+            Sends the document text to OpenAI. API usage is billed separately
+            from your ChatGPT plan.
+          </p>
+        )}
+        {!boot.codex_available && (
+          <p className="footnote">Install Codex to use your ChatGPT sign-in.</p>
+        )}
+        {!boot.ai_available && (
+          <p className="footnote">
+            Add an API key to use OpenAI API extraction.
+          </p>
+        )}
+        {!methodAvailable && (
+          <p className="error" role="alert">
+            This extractor is unavailable. Check its setup or choose another
+            method.
+          </p>
+        )}
+      </div>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -1470,7 +1495,7 @@ function AddDocument({
       )}
       <button
         className="button primary full"
-        disabled={busy || (!text.trim() && !file)}
+        disabled={busy || !methodAvailable || (!text.trim() && !file)}
       >
         {busy ? (
           <Loader2 className="spin" size={16} />
@@ -1488,12 +1513,9 @@ function Research({ boot }: { boot: Bootstrap }) {
   return (
     <section className="fade-in">
       <div className="page-heading">
-        <div className="eyebrow">THE BROADER PICTURE / CFPB PUBLIC DATA</div>
-        <h1>A recurring reported problem.</h1>
-        <p>
-          Complaint records inform the questions we ask. They are separate from
-          our fictional document cases.
-        </p>
+        <div className="eyebrow">CFPB PUBLIC DATA</div>
+        <h1>Medical debt complaints</h1>
+        <p>What consumers report about bills sent to collections.</p>
       </div>
       <div className="research-stats">
         <div className="panel">
@@ -1508,12 +1530,12 @@ function Research({ boot }: { boot: Bootstrap }) {
               .find((item) => item.label === "Debt was paid")
               ?.count.toLocaleString() || "Not measured"}
           </strong>
-          <p>Consumer-selected category, not verified error</p>
+          <p>Reported by the consumer; not a verified billing error</p>
         </div>
         <div className="panel">
           <small>Unique narrative texts analyzed</small>
           <strong>{archive.unique_narratives.toLocaleString()}</strong>
-          <p>{archive.period} · normalized-text deduplication</p>
+          <p>{archive.period} · repeated text removed</p>
         </div>
       </div>
       <ResponseOutcomes research={boot.research} />
@@ -1521,7 +1543,7 @@ function Research({ boot }: { boot: Bootstrap }) {
       <div className="analysis-grid">
         {[
           {
-            title: "Reported documentation patterns",
+            title: "Common phrases in complaints",
             data: archive.patterns,
             color: "#2e7d70",
           },
@@ -1610,9 +1632,9 @@ function Research({ boot }: { boot: Bootstrap }) {
       <div className="context-note">
         <CircleHelp size={18} />
         <p>
-          Patterns overlap. A document mention does not mean the document was
-          supplied. These rules are descriptive and have not been validated as
-          classifiers. CFPB supplies complaints, not paired patient paperwork.
+          A complaint can match several phrases. Mentioning a document doesn’t
+          mean it was provided. These counts describe complaint text, not
+          confirmed billing errors.
         </p>
       </div>
       <div className="research-sources">
@@ -1628,7 +1650,15 @@ function Research({ boot }: { boot: Bootstrap }) {
         <summary>
           Methods & limitations <ChevronDown size={15} />
         </summary>
-        {boot.research.caveats.map((caveat, index) => (
+        {[
+          "These are complaint records, not counts of people or confirmed billing errors.",
+          "The annual totals and narrative charts cover different periods, so their counts aren’t directly comparable.",
+          "Only some consumers publish a narrative. Those stories may not represent all complaints.",
+          "One narrative can match several keywords. The charts count unique, nonempty narratives.",
+          "A keyword match does not verify a payment, error, or missing document. These searches do not interpret context or negation.",
+          "This analysis does not measure model accuracy, debt recovery, or the effect of a response letter.",
+          "CFPB provides complaint text, not the underlying medical bills or receipts. These data do not validate the app’s document checks.",
+        ].map((caveat, index) => (
           <p className="finding-item" key={index}>
             {caveat}
           </p>

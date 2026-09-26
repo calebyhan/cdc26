@@ -12,7 +12,10 @@ npm run dev
 
 The demo starts with fictional documents for Maya. Turn off the receipt in Overview
 and inspect the changed finding and Recharts balance comparison. Open
-http://127.0.0.1:3000; the Node route requires the Python environment at runtime. Documents & review supports field review/correction. Prepare a response exports reviewed printable HTML. Complaint research uses real CFPB aggregate data.
+http://127.0.0.1:3000; the Node route requires the Python environment at runtime.
+Documents & review supports field review/correction. Select Prepare a response to
+open the Prepare your response view and export reviewed printable HTML. Complaint
+research uses real CFPB aggregate data.
 
 ## What is implemented
 
@@ -46,7 +49,10 @@ before handing work back. See README for runtime/deployment requirements.
 
 ## Claims to preserve
 
-The user selected the document app with **clearly labeled synthetic demo documents**.
+The case documents are fictional. The user now prefers clean app, PDF, and slide
+surfaces without repeated demo, synthetic, or AI-attribution labels. Keep the
+fictional-data disclosure and AI attribution in repository documentation and
+presenter notes; this copy preference does not change the evidence or its limits.
 CFPB supplies complaints, not EOB/bill/receipt bundles. Keyword research is descriptive.
 Do not claim real patient-document accuracy, verified debt invalidity, savings,
 or successful dispute outcomes. The original project remains on `main` / `mortgage-v1`.

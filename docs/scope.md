@@ -7,9 +7,11 @@ The legacy Streamlit implementation remains runnable. This replaces the original
 Streamlit UI preference below; the product and evidence boundaries still apply.
 
 First implementation checkpoint: The app has six synthetic scenarios,
-local extraction, an optional untested-live AI adapter, deterministic reconciliation,
-source review, packet export, and public complaint aggregates. The fuller evaluation
-and presentation work below remain planned; they are not completed-result claims.
+local extraction, optional Codex and OpenAI API extraction, deterministic reconciliation,
+source review, packet export, and public complaint aggregates. Codex extraction was
+live-checked on the four fictional demo PDFs; see the [recorded synthetic run](demo.md#recorded-live-check).
+The separate OpenAI API path has not been live-checked. The fuller evaluation and
+presentation work below remain planned; they are not completed-result claims.
 Prepared September 26, 2026 for 3–4 teammates with more than 12 hours remaining.
 
 ## Product decision

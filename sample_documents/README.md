@@ -2,7 +2,8 @@
 
 All six PDFs are **fictional, one-page, searchable text documents**. They contain
 no real patient information and were not supplied by CFPB. The four main PDFs
-match Maya's case in the presentation and app fixtures.
+match Maya's case in the presentation and app fixtures. The PDFs omit demo badges
+and AI footers; their fictional origin is documented here.
 
 Upload **only the four PDFs at the top level** for the main story:
 
@@ -32,19 +33,28 @@ To demonstrate the upload and review path:
 
 1. Open **Explore another case**, then **Start an empty case**. This opens
    **Documents & review**.
-2. In **Add a document**, select **Document role**, choose a PDF, and click
-   **Extract for review**. Leave **Use OpenAI extraction** unchecked; these files
-   work with the local parser.
+2. In **Add a document**, select **Document role** and choose a PDF. Under
+   **Extraction method**, choose **Local parser** to extract without a network
+   request, then click **Extract for review**. For live AI extraction, first run
+   `codex login` in a terminal on the same machine running the app, then choose
+   **Codex (ChatGPT sign-in)** instead. That option sends the document text to
+   OpenAI and uses your ChatGPT/Codex allowance. **OpenAI API** is a separate option
+   when the server has `OPENAI_API_KEY` configured.
 3. Click **Review** on the added document. Compare its values to the source,
-   check **I reviewed all displayed facts**, then **Save reviewed facts**.
+   check **I checked every value above.**, then **Save reviewed facts**.
 4. Repeat for the four main PDFs with the roles in the table above.
-5. Select **Return to reconciliation**. The supplied records should support a
+5. Select **Check the balance**. The supplied records should support a
    possible uncredited $150 payment and a $0 reconstructed balance. The notice
    still requests $150.
-6. Select **Prepare a response** to review and export the packet. Original PDFs
-   must be attached separately when using that packet; the app sends nothing.
+6. Select **Prepare a response**. Under **Prepare your response**, review and
+   export the packet. Attach original PDFs separately when using that packet;
+   the app sends nothing.
 
-Do not select **Reset demo** or change the selected case after uploading: those
+If extraction fails, the app shows an error and does not automatically use another
+method. Select **Local parser** and retry explicitly to use the local
+parser. These fictional PDFs are designed to work with it.
+
+Do not select **Reset case** or change the selected case after uploading: those
 replace the uploaded records. Never upload both a main receipt and its replacement.
 User uploads require review and remain in memory; only the committed fictional
 PDFs are served by the original-document endpoint.

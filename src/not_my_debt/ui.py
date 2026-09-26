@@ -1,4 +1,4 @@
-"""Source-linked medical billing workspace."""
+"""Medical billing workspace with source review."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from .codex_adapter import codex_available
 from .domain import FIELD_LABELS, KINDS, MONEY_FIELDS, Document, Fact, dollars, money_cents
 from .examples import example_documents
 from .extract import extract_document, read_upload
@@ -22,17 +23,22 @@ from .reconcile import reconcile
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = {
     "paid": "Paid, then sent to collections",
-    "missing_receipt": "What if the receipt is missing?",
+    "missing_receipt": "Missing receipt",
     "wrong_account": "A receipt for another account",
     "partial_payment": "Only part of the balance was paid",
     "duplicate_receipt": "Two copies of the same payment",
     "no_discrepancy": "Records that agree",
 }
 STEPS = ["1 · The case", "2 · Connect the records", "3 · Prepare a response"]
-WORKSPACES = ["Presentation demo", "Evidence & uploads", "Research"]
+WORKSPACES = ["Case overview", "Evidence & uploads", "Research"]
 DOC_ICONS = {"eob": "01", "bill": "02", "receipt": "03", "collection": "04"}
 CMS_URL = "https://www.cms.gov/initiatives/your-patient-rights/medical-bill-rights/get-help/medical-bill-guides-resources/how-read-health-insurance-explanation-benefits"
 CFPB_URL = "https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/"
+EXTRACTION_LABELS = {
+    "local": "Local parser (no network)",
+    "codex": "Codex (ChatGPT sign-in)",
+    "openai": "OpenAI API",
+}
 
 STYLE = """
 <style>
@@ -66,7 +72,6 @@ h2 {font-size:1.8rem!important;} h3 {font-size:1.25rem!important;}
 .ledger {border:1px solid #DAE0D4;border-radius:12px;overflow:hidden;margin:.6rem 0 1rem;}
 .ledger-row {display:flex;justify-content:space-between;gap:1rem;padding:.8rem 1rem;border-bottom:1px solid #E2E6DC;background:#FFFFFF80;font-size:.9rem;}
 .ledger-row:last-child {border-bottom:0;}.ledger-total {background:#E3EBDD;font-weight:700;}
-.footer-note {font-size:.75rem;color:#708176;border-top:1px solid #D9DFD3;padding-top:1rem;margin-top:2.5rem;}
 div[data-testid="stMetric"] {background:#FFFFFF80;border:1px solid #DAE0D4;border-radius:12px;padding:.8rem;}
 .stButton>button,.stDownloadButton>button {border-radius:8px;font-weight:600;}
 [data-testid="stExpander"] {border-color:#D9DFD3;background:#FFFFFF45;border-radius:10px;}
@@ -146,8 +151,8 @@ def _sidebar() -> None:
         )
         st.divider()
         st.selectbox("Workspace", WORKSPACES, key="nmd_workspace")
-        st.button("Reset demo", width="stretch", on_click=_reset_demo)
-        st.caption("Returns to Maya’s original fictional case and clears draft edits and review.")
+        st.button("Reset case", width="stretch", on_click=_reset_demo)
+        st.caption("Restores Maya’s case and clears edits and review.")
         with st.expander("More cases & tools"):
             scenario = st.selectbox(
                 "Explore another scenario",
@@ -155,13 +160,12 @@ def _sidebar() -> None:
                 format_func=SCENARIOS.get,
                 key="nmd_scenario_picker",
             )
-            st.button("Load fictional case", width="stretch", on_click=_load_case, args=(scenario,))
+            st.button("Load case", width="stretch", on_click=_load_case, args=(scenario,))
             st.button("Start an empty case", width="stretch", on_click=_clear_case)
         st.divider()
         st.caption("One provider · one account · one visit")
-        st.caption("All example people, documents, dates, and amounts are fictional.")
         st.caption(
-            "Findings describe supplied records. The provider’s current ledger and legal liability remain unconfirmed."
+            "Confirm the current balance with the billing office."
         )
 
 
@@ -180,9 +184,9 @@ def _case(documents: list[Document]) -> None:
     title = "Maya paid. Then a collection notice arrived." if demo else "Start with the records."
     description = (
         "Her provider bill said her share was $150. She paid it and kept the receipt. "
-        "A month later, a collector asked for the same $150. What do her records support?"
+        "A month later, a collector asked for the same $150."
         if demo
-        else "Connect the insurance explanation, provider bill, payment evidence, and collection notice to see what needs clarification."
+        else "Add the bill, insurance explanation, receipt, and collection notice."
     )
     st.markdown(
         f'<div class="hero"><div class="eyebrow">ONE ACCOUNT. FOUR RECORDS.</div>'
@@ -190,7 +194,7 @@ def _case(documents: list[Document]) -> None:
         unsafe_allow_html=True,
     )
     if not documents:
-        st.info("Add documents in Evidence & uploads, or use Reset demo to load Maya’s case.")
+        st.info("Add documents in Evidence & uploads, or select Reset case to load Maya’s records.")
         return
     st.subheader("The paperwork, in one place")
     captions = {
@@ -225,7 +229,7 @@ def _case(documents: list[Document]) -> None:
                     st.caption("Excluded from analysis")
                 with st.expander("Read source"):
                     st.text(doc.text)
-    st.caption("Fictional examples are preconfirmed. New documents require your review before use.")
+    st.caption("Review new documents before using them.")
     st.button("Review the evidence →", type="primary", on_click=_go_step, args=(STEPS[1],))
 
 
@@ -246,8 +250,8 @@ def _finding_summary(documents: list[Document], result) -> None:
             "patient responsibility; it does not prove a patient payment."
         )
     else:
-        title = "Here’s what the supplied records support."
-        description = "Review the findings and their sources below. Missing or conflicting evidence needs clarification."
+        title = "What the records show."
+        description = "Check the findings against their sources below."
     st.markdown(
         f'<div class="hero"><div class="eyebrow">THE EVIDENCE CHECK</div>'
         f"<h2>{_safe(title)}</h2><p>{_safe(description)}</p></div>",
@@ -400,11 +404,59 @@ def _fact_editor(doc: Document) -> None:
             st.text(doc.text)
 
 
+def _extraction_method() -> tuple[str, bool]:
+    """Select a provider before form submission; detection never checks authentication."""
+    available = {
+        "local": True,
+        "codex": codex_available(),
+        "openai": bool(os.environ.get("OPENAI_API_KEY")),
+    }
+    previous = st.session_state.get("nmd_extraction_method", "local")
+    # Keep a now-unavailable selection visible and block submission. Never replace it
+    # with another provider merely because configuration changed between reruns.
+    choices = [method for method in EXTRACTION_LABELS if available[method] or method == previous]
+    method = st.selectbox(
+        "Extraction method",
+        choices,
+        format_func=EXTRACTION_LABELS.get,
+        key="nmd_extraction_method",
+        help="Selecting a method does not send text. Extraction starts only when you submit the document.",
+    )
+    if method == "codex":
+        st.caption(
+            "Sends this document’s text to OpenAI using your ChatGPT sign-in and plan usage. "
+            "Internet required. Review the extracted facts before use."
+        )
+    elif method == "openai":
+        st.caption(
+            "Sends this document’s text to OpenAI. API charges apply separately from your "
+            "ChatGPT plan. Review the extracted facts before use."
+        )
+    else:
+        st.caption(
+            "The local parser recognizes labeled fields without sending document text externally. "
+            "It does not understand arbitrary document layouts."
+        )
+    if not available["codex"]:
+        st.caption("Codex is unavailable: the local Codex CLI was not found.")
+    if not available["openai"]:
+        st.caption("OpenAI API is unavailable: OPENAI_API_KEY is not configured.")
+    if not available[method]:
+        st.warning(
+            "The selected extraction method is no longer available. Restore its configuration "
+            "or explicitly select another method before extracting."
+        )
+    return method, available[method]
+
+
 def _add_documents() -> None:
     with st.expander("Add a document", expanded=not _docs()):
         st.caption(
             "Paste text or upload a text-based PDF/TXT. Scanned images and handwriting need transcription; OCR is not included."
         )
+        # Outside the form so provider-specific data handling is visible immediately,
+        # before the user submits any document to that provider.
+        method, configured = _extraction_method()
         with st.form("nmd_add_document"):
             left, right = st.columns(2)
             with left:
@@ -422,21 +474,13 @@ def _add_documents() -> None:
                 type=["pdf", "txt"],
                 help="Maximum 8 MB. Uploaded text is held in this session.",
             )
-            key_available = bool(os.environ.get("OPENAI_API_KEY"))
-            use_model = st.checkbox(
-                "Use OpenAI to propose fields from this document", disabled=not key_available
+            submitted = st.form_submit_button(
+                "Extract for review", type="primary", disabled=not configured
             )
-            if key_available:
-                st.caption(
-                    "Opting in sends this document’s text to OpenAI. Local extraction runs without sending document text externally."
-                )
-            else:
-                st.caption(
-                    "Local labeled-field extraction is available. Model extraction is not configured for this session."
-                )
-            submitted = st.form_submit_button("Extract for review", type="primary")
         if submitted:
             try:
+                if not configured:
+                    raise ValueError("The selected extraction method is unavailable.")
                 if source == "Upload a text PDF or TXT":
                     if uploaded is None:
                         raise ValueError("Choose a text-based PDF or TXT file first.")
@@ -452,7 +496,7 @@ def _add_documents() -> None:
                         document_text,
                         kind,
                         title.strip() or KINDS[kind],
-                        method="openai" if use_model else "local",
+                        method=method,
                     )
                 # New input must pass human review even when a parser supplies optimistic flags.
                 for fact in doc.fields.values():
@@ -463,11 +507,12 @@ def _add_documents() -> None:
                 st.session_state["nmd_fictional"] = False
                 st.rerun()
             except Exception as exc:
-                st.error(f"Could not read this document: {exc}")
+                st.error(f"{EXTRACTION_LABELS[method]} could not extract this document: {exc}")
+                st.caption("No alternate extraction method was used.")
 
 
 def _evidence(documents: list[Document]) -> None:
-    st.subheader("Every fact has a starting point.")
+    st.subheader("Review your documents")
     st.write(
         "Check the extraction, correct the values, and keep the original passage beside your changes."
     )
@@ -562,7 +607,7 @@ def _findings(documents: list[Document], result) -> None:
                     _show_refs(finding.refs, documents, f"finding_{index}")
         if not result.findings:
             st.info("No findings are available yet. Confirm the document facts in Evidence.")
-    with st.expander("Which documents did the engine connect?"):
+    with st.expander("Connected documents"):
         matched = set(result.matched_document_ids)
         excluded = set(result.excluded_document_ids)
         rows = [
@@ -583,7 +628,7 @@ def _findings(documents: list[Document], result) -> None:
 
 
 def _response(documents: list[Document], result) -> None:
-    st.subheader("Your evidence, ready for a billing inquiry.")
+    st.subheader("Prepare your response")
     st.write(
         "Ask for an updated itemized ledger and confirmation of how the payment was applied. Review the facts and draft before downloading."
     )
@@ -600,7 +645,7 @@ def _response(documents: list[Document], result) -> None:
         for finding in result.findings:
             st.write(f"**{finding.title}**")
             st.write(finding.detail.replace("$", r"\$"))
-        st.caption("The current ledger, later activity, and any later reversal remain unconfirmed.")
+        st.caption("Later payments or adjustments may change this balance.")
         st.markdown("**Supporting records to attach**")
         for doc in documents:
             if doc.included:
@@ -618,7 +663,7 @@ def _response(documents: list[Document], result) -> None:
     recipient = "provider" if recipient_name == "Provider billing office" else "collector"
     if recipient == "collector":
         st.info(
-            "This draft is addressed to the debt collector. Filing a CFPB complaint is a separate action. The notice’s stated dispute date is preserved for your review; this app does not calculate a legal deadline."
+            "Check the dispute date printed on the notice. This draft is for the collector; a CFPB complaint is a separate step."
         )
     fingerprint = _fingerprint(documents)
     draft = draft_letter(documents, result, recipient=recipient)
@@ -632,7 +677,7 @@ def _response(documents: list[Document], result) -> None:
     )
     review_hash = sha256(reviewed_text.encode()).hexdigest()[:12]
     reviewed = st.checkbox(
-        "I reviewed this draft and the supporting facts, and want to export this version",
+        "I reviewed this draft and its supporting facts",
         key=f"review_{fingerprint}_{recipient}_{review_hash}",
     )
     if reviewed:
@@ -647,7 +692,7 @@ def _response(documents: list[Document], result) -> None:
             type="primary",
         )
         st.caption(
-            "Open the downloaded HTML in a browser, then Print → Save as PDF. Nothing is sent to a provider, collector, or regulator by this app."
+            "Open the download in a browser, then Print → Save as PDF. You choose when and where to send it."
         )
     else:
         st.button("Download reviewed evidence packet", disabled=True)
@@ -663,14 +708,14 @@ def _response(documents: list[Document], result) -> None:
 
 
 def _research() -> None:
-    st.subheader("A recurring problem, grounded in complaint data.")
+    st.subheader("Medical-debt complaints")
     st.write(
-        "Public CFPB complaints inform which documentation problems this prototype checks. They are reported experiences, not verified billing errors."
+        "CFPB complaints describe reported problems, not verified billing errors."
     )
     research_path = ROOT / "data" / "research" / "research.json"
     if not research_path.exists():
         st.info(
-            "The reproducible complaint-data analysis is being prepared. The document cases in this app are explicitly synthetic."
+            "Complaint data is not available yet."
         )
         st.markdown(
             "[Explore the CFPB Consumer Complaint Database](https://www.consumerfinance.gov/data-research/consumer-complaints/)"
@@ -679,7 +724,7 @@ def _research() -> None:
     try:
         research = json.loads(research_path.read_text())
     except (OSError, json.JSONDecodeError):
-        st.info("The research artifact is not readable yet.")
+        st.info("The complaint data could not be loaded.")
         return
     api, archive = research.get("api", {}), research.get("archive", {})
     cols = st.columns(3)
@@ -715,7 +760,7 @@ def _research() -> None:
         )
     left, right = st.columns(2)
     for column, field, title in [
-        (left, "patterns", "Reported documentation patterns"),
+        (left, "patterns", "Keyword mentions"),
         (right, "document_mentions", "Documents mentioned"),
     ]:
         with column:
@@ -730,15 +775,20 @@ def _research() -> None:
     st.caption(
         "Keyword-derived pattern counts overlap. Mentioning a document does not establish that it was supplied or verified."
     )
-    for caveat in research.get("caveats", []):
-        st.caption(caveat)
-    with st.expander("Read example public complaint excerpts"):
-        for example in archive.get("examples", [])[:6]:
-            st.markdown(
-                f"**Complaint {_safe(example.get('complaint_id', ''))} · {example.get('sub_issue', example.get('issue', ''))}**"
-            )
-            st.write(example.get("narrative_excerpt", ""))
-    with st.expander("Data provenance and evaluation boundary"):
+    examples = archive.get("examples", [])[:6]
+    if examples:
+        with st.expander("Read public complaint excerpts"):
+            for example in examples:
+                st.markdown(
+                    f"**Complaint {_safe(example.get('complaint_id', ''))} · {example.get('sub_issue', example.get('issue', ''))}**"
+                )
+                st.write(example.get("narrative_excerpt", ""))
+    with st.expander("Methods and sources"):
+        st.write(
+            "Counts represent complaint records, not unique people or population estimates. "
+            "Many complaints have no narrative. Keyword matches can include ambiguous or "
+            "negated mentions. The annual counts and narrative analysis cover different periods."
+        )
         st.write(f"Retrieved: {research.get('retrieved_at', 'Not recorded')}")
         if api.get("source_url"):
             st.markdown(f"[Reproduce the structured complaint query]({api['source_url']})")
@@ -747,7 +797,7 @@ def _research() -> None:
         if archive.get("sha256"):
             st.code(archive["sha256"], language=None)
         st.write(
-            "CFPB does not provide paired patient bills, EOBs, and receipts. Reconciliation is demonstrated on synthetic document bundles; this research does not validate legal outcomes or savings."
+            "CFPB complaints do not include patient bills or receipts. This analysis does not measure extraction accuracy, debt outcomes, or savings."
         )
 
 
@@ -761,27 +811,17 @@ def main() -> None:
     _sidebar()
     documents = _docs()
     result = reconcile(documents)
-    top_left, top_right = st.columns([4, 1])
-    with top_left:
-        st.markdown(
-            '<div class="eyebrow">NOT MY DEBT / EVIDENCE WORKSPACE</div>', unsafe_allow_html=True
-        )
-        st.title("Make the paperwork make sense.")
-        st.markdown(
-            '<div class="subtle">Connect the records. Understand the mismatch. Prepare a response you can stand behind.</div>',
-            unsafe_allow_html=True,
-        )
-    with top_right:
-        label = "FICTIONAL DEMO" if st.session_state["nmd_fictional"] else "ACTIVE SESSION"
-        st.markdown(
-            f'<div style="text-align:right;padding-top:.5rem"><span class="tag tag-coral">{label}</span></div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown('<div class="eyebrow">NOT MY DEBT</div>', unsafe_allow_html=True)
+    st.title("Make the paperwork make sense.")
+    st.markdown(
+        '<div class="subtle">Review your bills, check payments, and prepare a response.</div>',
+        unsafe_allow_html=True,
+    )
     st.write("")
     workspace = st.session_state["nmd_workspace"]
     if workspace == WORKSPACES[0]:
         step = st.radio(
-            "Demo steps", STEPS, horizontal=True, key="nmd_step", label_visibility="collapsed"
+            "Case steps", STEPS, horizontal=True, key="nmd_step", label_visibility="collapsed"
         )
         if step == STEPS[0]:
             _case(documents)
@@ -803,7 +843,3 @@ def main() -> None:
                 )
     else:
         _research()
-    st.markdown(
-        '<div class="footer-note">A Carolina Data Challenge 2026 prototype · Evidence reconciliation for one provider, account, and visit</div>',
-        unsafe_allow_html=True,
-    )

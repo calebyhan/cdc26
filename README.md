@@ -27,10 +27,9 @@ preconfirmed fictional case: **Your case → Connect the records → Prepare a r
 Open a document to view its original fictional PDF, switch to extracted text, or
 download the file. Ledger sources link to the same PDFs. Demo facts are extracted
 locally from those files and preconfirmed only because these are known fixtures.
-Switch off **Include payment
-receipt** to see the finding and balance chart change; restore it, review the
+Switch off **Include payment receipt** to see the finding and balance chart change; restore it, review the
 provider inquiry, and download the printable HTML evidence packet. Nothing is sent
-or filed. **Reset demo** restores the documents and clears edits and review approval.
+or filed. **Reset case** restores the documents and clears edits and review approval.
 
 **Documents & review** supports pasted text, text-based PDF/TXT upload, fact
 corrections with retained original quotes, review, and document exclusion.
@@ -51,15 +50,67 @@ set `NMD_PYTHON` to a different interpreter if needed. This is a Node + Python
 application, not a static export or a deploy-ready Node-only serverless app.
 
 The legacy Streamlit UI is still available with
-`uv run streamlit run streamlit_app.py` on port 8501.
+`uv run streamlit run streamlit_app.py` on port 8501. Its opening workspace is
+**Case overview**; choose a scenario and select **Load case** to replace the records.
 
 ## Extraction and data handling
 
-The local parser recognizes explicit `Label: value` fields. It does not perform
-general OCR or understand arbitrary document layouts. Scanned PDFs need transcription.
-Confirmed user corrections remain labeled and the original source is preserved.
+In **Documents & review**, use **Extraction method** to choose an extractor for
+each document:
 
-Optional AI extraction uses the OpenAI Responses API and a structured schema:
+| Choice | Setup | Where the document text goes |
+| --- | --- | --- |
+| **Local parser** | None | No network request; recognizes explicit `Label: value` fields in the local app |
+| **Codex (ChatGPT sign-in)** | Installed Codex CLI and saved ChatGPT sign-in | Sent to OpenAI through the CLI; no API key required |
+| **OpenAI API** | `OPENAI_API_KEY` | Sent to the OpenAI Responses API |
+
+The local parser remains available without a model connection and makes no network
+requests. None of these paths adds OCR: scanned PDFs need transcription. AI proposals must pass schema and source
+quotation checks and then user review. Original source passages are preserved.
+An extraction error is shown; the app does not silently switch to another extractor.
+Choose **Local parser** and retry explicitly if you want the local path.
+
+### Codex with your ChatGPT sign-in
+
+For the local fictional demo, install the Codex CLI on the machine running the
+Next.js/Python server if needed. Sign in and launch the app from a terminal where
+`codex` is on `PATH`, after completing the setup above:
+
+```sh
+codex login
+codex login status
+npm run dev
+```
+
+In **Documents & review**, select **Codex (ChatGPT sign-in)** for the document and
+run extraction. The adapter reuses the CLI's saved ChatGPT authentication; do not
+copy login files into the project or enter an API key for this option. By default
+it lets the installed CLI select its model (no `--model` argument) and uses a
+120-second timeout. Optional server-side configuration:
+
+```sh
+export NMD_CODEX_MODEL='' # Leave empty to use the installed CLI's default model
+export NMD_CODEX_TIMEOUT_SECONDS='120'
+```
+
+The timeout must be between 10 and 300 seconds. Set `NMD_CODEX_MODEL` only if you
+have confirmed that the model identifier works with your ChatGPT CLI account.
+Model access and available usage depend on your account. CLI requests consume
+your ChatGPT/Codex usage allowance; this is an online service, not offline extraction.
+See [OpenAI usage and pricing](https://learn.chatgpt.com/docs/pricing).
+This saved-login setup is intended for a demo on your own machine with fictional
+records; it is not a public multiuser deployment recipe.
+
+The adapter starts a separate invocation in a temporary working directory, passes
+the document text through standard input, and uses `--ephemeral` to avoid saving
+Codex session rollout files. It ignores user configuration and captures the result
+for validation. The app does not deliberately keep an input log or a persistent
+Codex session. Ephemeral mode does not override provider data policies or promise
+zero provider retention. See [OpenAI non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode).
+
+### OpenAI API
+
+The separate API option remains available:
 
 ```sh
 export OPENAI_API_KEY='your-key'
@@ -67,21 +118,24 @@ export OPENAI_MODEL='gpt-6-astra'
 npm run dev
 ```
 
-Then explicitly select **Use OpenAI extraction** for a document. The app sends
-that document's text to the configured API. Requests use `store=False`; provider retention policies
-still apply. Values and exact source quotations are checked before human review.
-The app works without a key. Live AI extraction was not exercised during this
-implementation because no API key was configured; local extraction and model-output
-validation are covered by tests.
+Choose **OpenAI API** for the document. Requests use a structured schema and
+`store=False`; provider retention policies still apply. This path requires an
+API key and uses API billing separately from the saved ChatGPT CLI login. The
+separate API path has not been live-checked; the [demo guide](docs/demo.md#recorded-live-check)
+records the bounded synthetic Codex check.
 
-Case data stays in React memory and is processed transiently by the local Node/Python
-server. It is not written to a shared database, cache, application log, browser
-storage, or committed file. Reloading the page clears the case. Downloaded
-packets contain case information.
-The public hackathon demo uses fictional documents. API keys belong in environment
-variables, never in Git. `.env.example` documents configuration. Next.js loads
-local `.env` files on the server; the legacy Streamlit app does not.
-Neither the key nor provider settings are sent to the client.
+Case data lives in React memory and is processed transiently by the local
+Node/Python server. The app does not persist it in a shared database, cache,
+application case log, browser storage, or committed file. Reloading the page clears
+the case. Processing may use temporary files, and downloaded packets contain case
+information. The legacy Streamlit app uses session memory.
+
+The public hackathon demo uses fictional documents. Credentials belong in the
+server process environment, a local ignored `.env`, or the CLI's own login storage,
+never in Git. `.env.example` documents configuration. Next.js loads local `.env`
+files on the server; the legacy Streamlit app requires exported process variables
+and does not load `.env` automatically. Keep these settings server-side: never add
+`NEXT_PUBLIC_` prefixes or copy authentication files into the project.
 
 ## How the evidence engine works
 

@@ -16,7 +16,7 @@ SCENARIO_NAMES = tuple(SCENARIOS)
 
 
 def _document(identifier, kind, title, values):
-    lines = [f"FICTIONAL DEMO — {title}"]
+    lines = [title]
     fields = {}
     for key, value in values.items():
         line = f"{FIELD_LABELS.get(key, key)}: {value}"
@@ -28,7 +28,7 @@ def _document(identifier, kind, title, values):
         title,
         "\n".join(lines),
         fields,
-        extraction_method="Preconfirmed fictional example",
+        extraction_method="Preloaded record",
     )
 
 

@@ -1,5 +1,7 @@
 """Next.js boundary regressions on synthetic records."""
 
+import io
+import json
 from copy import deepcopy
 from dataclasses import asdict
 
@@ -85,3 +87,74 @@ def test_bridge_rejects_duplicate_ids_and_string_confirmation_flags():
     documents[0]["fields"]["account"]["confirmed"] = "false"
     with pytest.raises(ValidationError):
         handle_request({"operation": "reconcile", "documents": documents})
+
+
+@pytest.mark.parametrize("installed", [False, True])
+def test_bootstrap_reports_codex_presence_without_launching_it(monkeypatch, installed):
+    monkeypatch.setattr("not_my_debt.web_bridge.codex_available", lambda: installed)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    response = handle_request({"operation": "bootstrap"})
+    assert response["codex_available"] is installed
+    assert response["ai_available"] is False
+
+
+def test_codex_extraction_through_bridge_requires_review(monkeypatch):
+    from not_my_debt import codex_adapter
+
+    calls = []
+
+    def run(prompt, schema):
+        calls.append(json.loads(prompt.split("\n")[-1]))
+        return json.dumps(
+            {
+                "fields": [
+                    {"key": "balance", "value": "150.00", "quote": "Balance: $150.00", "page": 1}
+                ],
+                "warnings": [],
+            }
+        )
+
+    monkeypatch.setattr(codex_adapter, "run_codex", run)
+    response = handle_request(
+        {
+            "operation": "extract",
+            "kind": "bill",
+            "title": "Fictional bill",
+            "text": "Balance: $150.00",
+            "method": "codex",
+        }
+    )
+    assert calls == [{"document_type": "bill", "document_text": "Balance: $150.00"}]
+    document = response["document"]
+    assert document["extraction_method"] == "Codex structured extraction (ChatGPT sign-in)"
+    assert document["fields"]["balance"]["value"] == "150.00"
+    assert document["fields"]["balance"]["confirmed"] is False
+
+
+def test_bridge_extraction_error_is_useful_without_echoing_case_data(monkeypatch, capsys):
+    from not_my_debt import web_bridge
+
+    def fail(*args, **kwargs):
+        raise ValueError("PRIVATE CASE CONTENT")
+
+    monkeypatch.setattr(web_bridge, "extract_document", fail)
+    monkeypatch.setattr(
+        web_bridge.sys,
+        "stdin",
+        io.StringIO(
+            json.dumps(
+                {
+                    "operation": "extract",
+                    "kind": "bill",
+                    "text": "PRIVATE CASE CONTENT",
+                    "method": "codex",
+                }
+            )
+        ),
+    )
+    web_bridge.main()
+    output = json.loads(capsys.readouterr().out)
+    assert "PRIVATE CASE CONTENT" not in output["error"]
+    assert "sign-in" in output["error"]
+    assert "No alternate extractor was used" in output["error"]
+    assert "document" not in output

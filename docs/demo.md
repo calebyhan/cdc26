@@ -1,4 +1,4 @@
-# Presentation demo
+# Presentation rehearsal
 
 All case records are fictional; the default facts are preconfirmed. No live model connection is needed.
 The document cards open the original fictional PDFs; **Extracted text** shows the
@@ -8,7 +8,7 @@ their explicit text fixture. Uploads still require user review.
 
 Run `uv sync --extra dev` and `npm ci`. For rehearsal, `npm run dev` is fine. For the
 live presentation, use `npm run build && npm start` to avoid first-request compile
-delays. Open http://127.0.0.1:3000 and press **Reset demo** right before presenting.
+delays. Open http://127.0.0.1:3000 and press **Reset case** right before presenting.
 The deck's slide 8 button opens this address. Record a backup video of this script.
 
 | Time | Action | Spoken point |
@@ -37,3 +37,56 @@ supported balance is withheld (dashed bar) rather than guessed.
 
 Reset restores the receipt, original draft, provider recipient, opening step,
 and unreviewed export state. Re-review the packet after changing the evidence.
+
+## Optional live Codex extraction
+
+The opening demo above uses preconfirmed fictional facts and needs no model call.
+To demonstrate live extraction separately, use the installed Codex CLI with your
+saved ChatGPT sign-in on the machine running the Next.js/Python server. Complete
+the local setup above, then run:
+
+```sh
+codex login
+codex login status
+npm run dev
+```
+
+Open **Documents & review**, paste or upload one fictional document, choose
+**Codex (ChatGPT sign-in)** under **Extraction method**, and run extraction. Review the proposed fields and
+source passages before confirming them. This sends that document's text to OpenAI
+and consumes your ChatGPT/Codex usage allowance; it needs an internet connection
+but no API key. The adapter uses the installed CLI's default model without passing
+`--model`; leave `NMD_CODEX_MODEL` empty unless you have confirmed an account-supported
+model identifier. The default timeout is 120 seconds.
+
+If login, model access, usage limits, or extraction fail, the app shows an error.
+Select **Local parser** and retry to use the explicit-label parser without a network
+request; there is no automatic fallback. **OpenAI API** is a separate option for an environment with
+`OPENAI_API_KEY`. Next.js loads local `.env` values on the server; the legacy
+Streamlit app requires exported variables. Keep credentials and model settings
+server-side without `NEXT_PUBLIC_` prefixes. Rehearse the chosen path before presenting and distinguish a
+live model result from the preconfirmed case. A successful fictional example is
+not a measured accuracy result on real patient paperwork.
+
+The Codex invocation uses a temporary working directory and `--ephemeral`, so it
+does not intentionally keep a persistent rollout for this extraction. Provider
+policies still apply. Use this setup for a local fictional demo, not as instructions
+for a public service sharing your ChatGPT login. See the [README setup and data handling](../README.md#extraction-and-data-handling),
+[OpenAI non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode),
+and [OpenAI usage limits](https://learn.chatgpt.com/docs/pricing).
+
+## Recorded live check
+
+One live run used Codex CLI 0.152.1, ChatGPT sign-in, and the installed CLI's default
+model with no override to extract the four main fictional PDFs in
+`sample_documents/`. All 41 normalized fields matched the fixture manifest;
+source-quotation and page checks passed. Each document took 9.8–10.5 seconds.
+Extracted facts initially required review and were blocked from reconciliation
+until confirmed.
+
+After confirmation, the supplied-record ledger applied the $150 payment against
+the $150 collection amount, reconstructed a $0 balance, and flagged a possible
+uncredited payment. Removing the receipt withdrew that finding and restored the
+$150 reconstructed balance. This records one synthetic integration run, not an
+accuracy estimate for real patient documents, a performance guarantee, or a legal
+conclusion about a debt.

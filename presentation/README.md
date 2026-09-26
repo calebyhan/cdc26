@@ -22,8 +22,8 @@ Then open <http://localhost:8765/presentation/>.
 - Print from the browser for a static 16:9 copy of all twelve slides.
 
 Notes are visible to anyone looking at this browser window; keep them closed on the
-projector. The slide 8 button opens the Next.js app at `http://127.0.0.1:3000` in a
-new tab. Start a production build beforehand and press **Reset demo**:
+projector. The slide 8 **Open Maya’s case** button opens the Next.js app at `http://127.0.0.1:3000` in a
+new tab. Start a production build beforehand and press **Reset case**:
 
 ```sh
 uv sync --extra dev && npm ci
@@ -50,7 +50,9 @@ The times are rehearsal targets, not measured results.
 Maya's names, amounts, account, and dates match the `paid` fixture in
 [`src/not_my_debt/examples.py`](../src/not_my_debt/examples.py). All are fictional.
 The collection notice is explicitly an excerpt, not a complete legal notice.
-The evidence-summary visuals are illustrative, not app captures.
+The evidence-summary visuals are illustrative, not app captures. The slides omit
+repeated demo badges; the fictional-case disclosure remains in these docs and the
+speaker notes.
 
 - **Slide 5:** 1,005 complaints categorized “Debt was paid” within 8,843 medical-debt
   collection complaints received in 2025, from

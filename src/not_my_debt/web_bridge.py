@@ -13,6 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
+from not_my_debt.codex_adapter import codex_available
 from not_my_debt.demo_documents import demo_cases
 from not_my_debt.domain import FIELD_LABELS, KINDS, Document, Fact
 from not_my_debt.examples import SCENARIOS
@@ -80,6 +81,7 @@ def handle_request(request: dict) -> dict:
             "field_labels": FIELD_LABELS,
             "kinds": KINDS,
             "ai_available": bool(os.environ.get("OPENAI_API_KEY")),
+            "codex_available": codex_available(),
             "research": json.loads(research_path.read_text()),
         }
     if operation == "extract":
@@ -124,14 +126,19 @@ def handle_request(request: dict) -> dict:
 
 
 def main() -> None:
+    request = None
     try:
         request = json.loads(sys.stdin.read(14 * 1024 * 1024))
         response = handle_request(request)
     except Exception:
         # Validation and provider errors may contain case text; never echo them.
-        response = {
-            "error": "The request could not be completed. Check your fields, file, and review status."
-        }
+        message = "The request could not be completed. Check your fields, file, and review status."
+        if isinstance(request, dict) and request.get("operation") == "extract":
+            message = (
+                "Document extraction failed. Check the selected method's setup, sign-in, "
+                "usage, file, and connection; then retry. No alternate extractor was used."
+            )
+        response = {"error": message}
     sys.stdout.write(json.dumps(response))
 
 
