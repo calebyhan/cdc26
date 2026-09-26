@@ -23,10 +23,11 @@ Then open <http://localhost:8765/presentation/>.
 
 The script is approximately 1 minute 45 seconds before the app demo. Notes are
 visible to anyone looking at this browser window; keep them closed on the projector.
-The demo button opens `http://localhost:8501` in a new tab. Start the app beforehand:
+The **Open Maya’s case** button opens `http://127.0.0.1:3000` in a new tab.
+After the setup in the [project README](../README.md#run-locally), start the app:
 
 ```sh
-uv run streamlit run streamlit_app.py
+npm run dev
 ```
 
 ## Scope and editing
@@ -43,6 +44,8 @@ real patient records. The evidence-summary visual is illustrative, not an app ca
 Maya's names, amounts, account, and dates match the `paid` fixture in
 [`src/not_my_debt/examples.py`](../src/not_my_debt/examples.py). All are fictional.
 The collection notice is explicitly an excerpt, not a complete legal notice.
+The slides omit repeated demo badges and AI footers; the fictional-case disclosure
+and attribution remain in these docs and speaker notes.
 
 The real CFPB number comes from the committed
 [`research.json`](../data/research/research.json) snapshot and

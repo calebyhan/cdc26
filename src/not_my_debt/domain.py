@@ -22,7 +22,7 @@ FIELD_LABELS = {
     "allowed": "Allowed amount",
     "insurer_paid": "Insurer payment",
     "patient_responsibility": "Patient responsibility",
-    "patient_paid": "Patient payments already in statement",
+    "patient_paid": "Patient payments credited",
     "balance": "Statement / collection balance",
     "payment_amount": "Receipt payment",
     "payment_date": "Payment date",

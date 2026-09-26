@@ -51,7 +51,7 @@ def test_reset_restores_case_recipient_and_requires_fresh_review():
     app.radio(key="nmd_recipient").set_value("Debt collector").run()
     app.text_area[0].set_value("An edited rehearsal draft").run()
     app.checkbox[0].check().run()
-    click(app, "Reset demo")
+    click(app, "Reset case")
     assert app.session_state["nmd_step"] == "1 · The case"
     assert all(d.included for d in app.session_state["nmd_documents"])
     app.radio(key="nmd_step").set_value("3 · Prepare a response").run()
@@ -115,11 +115,11 @@ def test_explicit_ai_selection_dispatches_once_and_requires_fact_review(monkeypa
     assert calls == []
     captions = " ".join(caption.value for caption in app.caption)
     if method == "codex":
-        assert "sends this document's text to OpenAI through the local Codex CLI" in captions
+        assert "Sends this document’s text to OpenAI" in captions
         assert "ChatGPT sign-in and plan usage" in captions
-        assert "does not run offline" in captions
+        assert "Internet required" in captions
     else:
-        assert "OpenAI API sends this document's text to OpenAI" in captions
+        assert "Sends this document’s text to OpenAI" in captions
     app.text_area[0].set_value("Account reference: MG-1042")
     click(app, "Extract for review")
     assert len(calls) == 1

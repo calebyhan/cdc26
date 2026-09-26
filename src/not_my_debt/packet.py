@@ -39,7 +39,7 @@ def draft_letter(documents: list[Document], result: CaseResult, recipient: str =
     if account:
         lines.extend(["", f"Account reference shown on the notice: {account}."])
     if result.collection_cents is not None:
-        lines.append(f"The supplied collection notice requests {dollars(result.collection_cents)}.")
+        lines.append(f"The collection notice requests {dollars(result.collection_cents)}.")
     useful = [
         f
         for f in result.findings
@@ -54,7 +54,7 @@ def draft_letter(documents: list[Document], result: CaseResult, recipient: str =
         }
     ]
     if useful:
-        lines.extend(["", "The following points need clarification based on the attached records:"])
+        lines.extend(["", "Please review these points from the attached records:"])
         for finding in useful:
             refs = ", ".join(finding.refs)
             lines.append(f"- {finding.detail}" + (f" [Evidence: {refs}]" if refs else ""))
@@ -65,8 +65,7 @@ def draft_letter(documents: list[Document], result: CaseResult, recipient: str =
             "the balance reflects contractual adjustments, insurance payments, patient payments, "
             "and any reversals. Please confirm how the attached payment records were allocated.",
             "",
-            "This request is based on the records currently available to me; please provide any "
-            "missing or updated account information so the discrepancy can be reconciled.",
+            "Please send an updated statement showing any missing payments or adjustments.",
             "",
             "Sincerely,",
             "[Your name]",
@@ -122,9 +121,9 @@ def render_packet(
         for title, url in SOURCES.items()
     )
     note = (
-        "Edited draft supplied by the user; review every change against the evidence."
+        "Check your edits against the attached records before sending."
         if letter_override is not None
-        else "Draft assembled from the confirmed fields and the findings below."
+        else "Based on the reviewed records below."
     )
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -142,14 +141,14 @@ small{{color:#566961}}article{{padding:10px 0;border-bottom:1px solid #eee}}a{{c
 </style></head><body><main>
 <div class="eyebrow">Not My Debt · prepared {date.today().isoformat()}</div>
 <h1>Your evidence, in one place.</h1>
-<p>A review packet for a medical billing inquiry. It describes the supplied records and questions requiring clarification.</p>
-<p class="note">This packet does not determine legal liability or confirm the provider's current ledger. Review the recipient, identifiers, dates, and every factual statement before sharing. This file contains your case information; save and share it carefully.</p>
+<p>Your records, account summary, and billing inquiry.</p>
+<p class="note">Based on the attached records. Ask the provider for a current balance, and check the details before sending.</p>
 <h2>What needs clarification</h2>{findings or "<p>No findings could be supported from the confirmed records.</p>"}
-<h2>Reconstruction from supplied records</h2>
+<h2>Account summary</h2>
 <table><thead><tr><th>Entry</th><th>Amount</th><th>Evidence</th></tr></thead><tbody>{ledger}</tbody></table>
 <h2>Attachment index</h2><ol>{"".join(attachments)}</ol>
-<p>Attach copies of the relevant records yourself. This packet lists them; it does not embed the original files.</p>
-<h2>Reviewed facts and source passages</h2>
+<p>Attach the original documents when sending this packet.</p>
+<h2>Reviewed facts and sources</h2>
 <table><thead><tr><th>Evidence reference</th><th>Fact</th><th>Original source</th></tr></thead><tbody>{"".join(facts)}</tbody></table>
 <section class="draft"><h2>{"Provider inquiry" if recipient == "provider" else "Collector dispute / information request"} — draft</h2>
 <p><small>{escape(note)}</small></p><pre>{escape(letter)}</pre></section>

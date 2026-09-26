@@ -111,7 +111,7 @@ def run_codex(prompt: str, schema: dict) -> str:
             or "logged in using chatgpt" not in (status.stdout + status.stderr).casefold()
         ):
             raise ValueError(
-                "This demo needs Codex signed in with ChatGPT. Run codex login and choose ChatGPT."
+                "Codex must be signed in with ChatGPT. Run codex login and choose ChatGPT."
             )
 
         schema_path = work / "extraction.schema.json"

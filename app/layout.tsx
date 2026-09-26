@@ -3,7 +3,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Not My Debt — make the paperwork make sense",
   description:
-    "A source-linked medical billing evidence workspace. Fictional presentation demo.",
+    "Check your medical bills, match your payments, and prepare a response.",
 };
 export default function RootLayout({
   children,

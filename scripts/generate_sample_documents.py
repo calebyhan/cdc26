@@ -41,7 +41,7 @@ LABELS = {
     "allowed": "Allowed amount",
     "insurer_paid": "Insurer payment",
     "patient_responsibility": "Patient responsibility",
-    "patient_paid": "Patient payments already in statement",
+    "patient_paid": "Patient payments credited",
     "balance": "Balance due",
     "payment_date": "Payment date",
     "payment_amount": "Payment amount",
@@ -56,59 +56,53 @@ SPECS = {
     "eob": {
         "issuer": "Piedmont Care Health Plan",
         "title": "Explanation of benefits",
-        "intro": "This is not a bill. This statement explains the insurance processing of one visit.",
+        "intro": "This is not a bill. Review your claim details below.",
         "section": "Claim calculation",
         "color": "#315978",
-        "fields": (
-            "charges", "adjustments", "allowed", "insurer_paid", "patient_responsibility"
-        ),
+        "fields": ("charges", "adjustments", "allowed", "insurer_paid", "patient_responsibility"),
         "total_key": "patient_responsibility",
         "total_label": "Your share of the allowed amount",
-        "total_note": "Patient responsibility reported by the plan",
-        "note": "The $800 allowed amount is the $1,200 charge less the $400 contractual adjustment. "
-        "The plan reports a $650 payment, leaving $150 patient responsibility. "
-        "An explanation of benefits does not establish whether the patient paid.",
+        "total_note": "For the visit listed above",
+        "note": "Your plan paid $650.00. Your share is $150.00. Payments you make directly "
+        "to the provider are not shown here.",
     },
     "bill": {
         "issuer": "Maple Grove Medical",
         "title": "Patient billing statement",
-        "intro": "An itemized account summary for the visit identified below.",
+        "intro": "Your account activity and balance for the visit below.",
         "section": "Posted account activity",
         "color": "#246459",
         "fields": ("charges", "adjustments", "insurer_paid", "patient_paid", "balance"),
         "total_key": "balance",
         "total_label": "Balance on this statement",
-        "total_note": "As of the document date above",
-        "note": "The statement shows a $400 contractual adjustment and a $650 insurance payment "
-        "against the $1,200 charge. No patient payment is included in this statement. "
-        "Activity posted after the statement date is not reflected here.",
+        "total_note": "As of the statement date",
+        "note": "Payments received after the statement date will appear on your next statement.",
     },
     "receipt": {
         "issuer": "Maple Grove Medical",
         "title": "Payment receipt",
-        "intro": "Confirmation of a completed payment to the provider.",
+        "intro": "Thank you for your payment.",
         "section": "Transaction details",
         "color": "#246459",
         "fields": ("payment_date", "payment_amount", "payment_reference", "payment_status"),
         "total_key": "payment_amount",
         "total_label": "Payment received",
         "total_note": "Status: Completed",
-        "note": "Keep this receipt with your billing statement. It documents the payment "
-        "and account shown above. It is not a complete account ledger or a record of later activity.",
+        "note": "Keep this receipt for your records. Use the payment reference above if you "
+        "contact us about this transaction.",
     },
     "collection": {
         "issuer": "Pine Valley Account Services",
         "title": "Collection notice",
-        "intro": "Simplified fictional notice excerpt. This example is not a complete legal notice.",
+        "intro": "Balance summary for your Maple Grove Medical account.",
         "section": "Collection account details",
         "color": "#AD5037",
         "fields": ("collector", "balance", "validation_end"),
         "total_key": "balance",
         "total_label": "Amount requested",
         "total_note": "For the provider account shown above",
-        "note": "The notice requests the balance shown for this provider account. The supplied "
-        "documents do not establish the current ledger or legal liability. "
-        "The stated dispute date belongs to the fictional scenario; it is not a live deadline.",
+        "note": "Please include your account reference when writing about this balance. "
+        "If you have already paid, include a copy of your payment receipt.",
     },
 }
 
@@ -132,13 +126,9 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     values = {key: fact.value for key, fact in document.fields.items()}
     path.parent.mkdir(parents=True, exist_ok=True)
     pdf = canvas.Canvas(str(path), pagesize=letter, pageCompression=1, invariant=1)
-    pdf.setTitle(f"FICTIONAL DEMO - Maya Ellis - {spec['title']}")
-    pdf.setAuthor("Not My Debt team; created with assistance from OpenAI Codex")
+    pdf.setTitle(f"Maya Ellis - {spec['title']}")
+    pdf.setAuthor("Not My Debt team")
     pdf.setSubject("Synthetic hackathon upload fixture. No real patient information.")
-
-    pdf.setFillColor(MUTED)
-    pdf.setFont("Helvetica", 8)
-    pdf.drawRightString(564, 748, "Fictional demo")
 
     pdf.setFillColor(accent)
     pdf.setFont("Helvetica-Bold", 12)
@@ -161,12 +151,13 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     pdf.setFont("Helvetica-Bold", 9)
     pdf.setFillColor(accent)
     pdf.drawString(48, 467, spec["section"].upper())
-    if variant:
-        pdf.setFont("Helvetica-Bold", 8)
-        pdf.drawRightString(564, 467, variant.replace("_", " ").upper())
     y = 441
     for key in spec["fields"]:
-        label = "Collection balance" if document.kind == "collection" and key == "balance" else LABELS[key]
+        label = (
+            "Collection balance"
+            if document.kind == "collection" and key == "balance"
+            else LABELS[key]
+        )
         value = money(values[key]) if key in MONEY_FIELDS else values[key]
         line = f"{label}: {value}"
         assert pdf.stringWidth(line, "Helvetica", 11) <= 516, line
@@ -191,7 +182,7 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
 
     pdf.setFillColor(accent)
     pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(48, 195, "ABOUT THIS DOCUMENT")
+    pdf.drawString(48, 195, "PLEASE NOTE")
     bottom = paragraph(pdf, spec["note"], 48, 177, 516)
     assert bottom > 82, "Note overlaps footer"
 
@@ -199,9 +190,8 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     pdf.line(48, 70, 564, 70)
     pdf.setFillColor(MUTED)
     pdf.setFont("Helvetica", 8)
-    pdf.drawString(48, 55, "Not My Debt | Synthetic demo documents | Created with assistance from OpenAI Codex")
-    pdf.drawString(48, 42, "For demonstration only. No payment, filing, or contact action is requested.")
-    pdf.drawRightString(564, 42, "1 / 1")
+    pdf.drawString(48, 55, spec["issuer"])
+    pdf.drawRightString(564, 55, "Page 1 of 1")
     pdf.showPage()
     pdf.save()
     return {"kind": document.kind, "scenario": variant or "paid", "expected_fields": values}

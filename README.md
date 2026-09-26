@@ -29,7 +29,7 @@ download the file. Ledger sources link to the same PDFs. Demo facts are extracte
 locally from those files and preconfirmed only because these are known fixtures.
 Switch off **Include payment receipt** to see the finding and balance chart change; restore it, review the
 provider inquiry, and download the printable HTML evidence packet. Nothing is sent
-or filed. **Reset demo** restores the documents and clears edits and review approval.
+or filed. **Reset case** restores the documents and clears edits and review approval.
 
 **Documents & review** supports pasted text, text-based PDF/TXT upload, fact
 corrections with retained original quotes, review, and document exclusion.
@@ -50,7 +50,8 @@ set `NMD_PYTHON` to a different interpreter if needed. This is a Node + Python
 application, not a static export or a deploy-ready Node-only serverless app.
 
 The legacy Streamlit UI is still available with
-`uv run streamlit run streamlit_app.py` on port 8501.
+`uv run streamlit run streamlit_app.py` on port 8501. Its opening workspace is
+**Case overview**; choose a scenario and select **Load case** to replace the records.
 
 ## Extraction and data handling
 
@@ -59,15 +60,15 @@ each document:
 
 | Choice | Setup | Where the document text goes |
 | --- | --- | --- |
-| **Local parser (no network)** | None | Stays in the local app; recognizes explicit `Label: value` fields |
+| **Local parser** | None | No network request; recognizes explicit `Label: value` fields in the local app |
 | **Codex (ChatGPT sign-in)** | Installed Codex CLI and saved ChatGPT sign-in | Sent to OpenAI through the CLI; no API key required |
 | **OpenAI API** | `OPENAI_API_KEY` | Sent to the OpenAI Responses API |
 
-The local parser remains available without a model connection. None of these paths
-adds OCR: scanned PDFs need transcription. AI proposals must pass schema and source
+The local parser remains available without a model connection and makes no network
+requests. None of these paths adds OCR: scanned PDFs need transcription. AI proposals must pass schema and source
 quotation checks and then user review. Original source passages are preserved.
 An extraction error is shown; the app does not silently switch to another extractor.
-Choose **Local parser (no network)** and retry explicitly if you want the local path.
+Choose **Local parser** and retry explicitly if you want the local path.
 
 ### Codex with your ChatGPT sign-in
 

@@ -1,4 +1,4 @@
-# Presentation demo
+# Presentation rehearsal
 
 Implemented with assistance from OpenAI Codex. All case records are fictional;
 the default facts are preconfirmed. No live model connection is needed.
@@ -8,7 +8,7 @@ cases use the matching receipt PDF. Documents without a matching PDF retain
 their explicit text fixture. Uploads still require user review.
 
 Run `uv sync --extra dev`, `npm ci`, and `npm run dev`. Open
-http://127.0.0.1:3000 and use **Reset demo** before rehearsal. The Next.js UI
+http://127.0.0.1:3000 and use **Reset case** before rehearsal. The Next.js UI
 uses the existing Python engine and Recharts; the legacy Streamlit UI remains available.
 
 | Time | Action | Spoken point |
@@ -16,7 +16,7 @@ uses the existing Python engine and Recharts; the legacy Streamlit UI remains av
 | 0:00–0:20 | Introduce Maya and the four document cards | Her provider bill says $150. She pays. A later collection notice requests $150. |
 | 0:20–0:50 | Select Connect the records; click a ledger row or Why this payment matches | Each amount and the possible uncredited-payment finding are linked to records. |
 | 0:50–1:15 | Turn Include payment receipt off, then on | Without payment evidence, the app withdraws the payment-supported finding. An EOB is not proof of payment. |
-| 1:15–2:00 | Select Prepare a response; inspect the summary and inquiry, confirm review, and download | Maya can ask billing for an updated itemized ledger and confirmation of payment allocation. |
+| 1:15–2:00 | Select Prepare a response; under Prepare your response, inspect the summary and inquiry, confirm review, and download | Maya can ask billing for an updated itemized ledger and confirmation of payment allocation. |
 
 The times above are a rehearsal target, not a measured usability result.
 
@@ -55,8 +55,8 @@ but no API key. The adapter uses the installed CLI's default model without passi
 model identifier. The default timeout is 120 seconds.
 
 If login, model access, usage limits, or extraction fail, the app shows an error.
-Select **Local parser (no network)** and retry to use the explicit-label parser; there is no
-automatic fallback. **OpenAI API** is a separate option for an environment with
+Select **Local parser** and retry to use the explicit-label parser without a network
+request; there is no automatic fallback. **OpenAI API** is a separate option for an environment with
 `OPENAI_API_KEY`. Next.js loads local `.env` values on the server; the legacy
 Streamlit app requires exported variables. Keep credentials and model settings
 server-side without `NEXT_PUBLIC_` prefixes. Rehearse the chosen path before presenting and distinguish a

@@ -282,10 +282,9 @@ def test_subcent_receipt_and_masked_accounts_abstain():
     assert_abstains(reconcile(docs))
 
 
-def test_examples_are_independent_and_marked_fictional():
+def test_examples_are_independent():
     for scenario in SCENARIOS:
         first, second = example_documents(scenario), example_documents(scenario)
-        assert all("FICTIONAL DEMO" in doc.text for doc in first)
         first[0].fields["patient"].value = "Changed"
         assert second[0].fields["patient"].value == "Maya Ellis"
 

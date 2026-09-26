@@ -43,7 +43,7 @@ def demo_cases() -> tuple[dict, dict]:
             if {key: fact.value for key, fact in extracted.fields.items()} != values:
                 raise ValueError("A fictional PDF no longer matches its fixture.")
             doc.text, doc.fields = extracted.text, extracted.fields
-            doc.extraction_method = "Preconfirmed fictional PDF · local extraction"
+            doc.extraction_method = "PDF · Local parser"
             for fact in doc.fields.values():
                 fact.confirmed = True
             sources[scenario][doc.id] = filename
