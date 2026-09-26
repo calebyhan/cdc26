@@ -37,6 +37,7 @@ export type Analysis = {
   drafts: Record<"provider" | "collector", string>;
 };
 export type Count = { label: string; count: number };
+export type ExtractionMethod = "local" | "codex" | "openai";
 export type Bootstrap = {
   scenarios: Record<string, string>;
   examples: Record<string, Document[]>;
@@ -44,6 +45,7 @@ export type Bootstrap = {
   field_labels: Record<string, string>;
   kinds: Record<string, string>;
   ai_available: boolean;
+  codex_available: boolean;
   research: {
     retrieved_at: string;
     api: {

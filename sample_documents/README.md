@@ -32,9 +32,13 @@ To demonstrate the upload and review path:
 
 1. Open **Explore another case**, then **Start an empty case**. This opens
    **Documents & review**.
-2. In **Add a document**, select **Document role**, choose a PDF, and click
-   **Extract for review**. Leave **Use OpenAI extraction** unchecked; these files
-   work with the local parser.
+2. In **Add a document**, select **Document role** and choose a PDF. Under
+   **Extraction method**, choose **Local parser (no network)** for the no-model
+   demo, then click **Extract for review**. For live AI extraction, first run
+   `codex login` in a terminal on the same machine running the app, then choose
+   **Codex (ChatGPT sign-in)** instead. That option sends the document text to
+   OpenAI and uses your ChatGPT/Codex allowance. **OpenAI API** is a separate option
+   when the server has `OPENAI_API_KEY` configured.
 3. Click **Review** on the added document. Compare its values to the source,
    check **I reviewed all displayed facts**, then **Save reviewed facts**.
 4. Repeat for the four main PDFs with the roles in the table above.
@@ -43,6 +47,10 @@ To demonstrate the upload and review path:
    still requests $150.
 6. Select **Prepare a response** to review and export the packet. Original PDFs
    must be attached separately when using that packet; the app sends nothing.
+
+If extraction fails, the app shows an error and does not automatically use another
+method. Select **Local parser (no network)** and retry explicitly to use the local
+parser. These fictional PDFs are designed to work with it.
 
 Do not select **Reset demo** or change the selected case after uploading: those
 replace the uploaded records. Never upload both a main receipt and its replacement.

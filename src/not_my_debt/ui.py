@@ -13,6 +13,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from .codex_adapter import codex_available
 from .domain import FIELD_LABELS, KINDS, MONEY_FIELDS, Document, Fact, dollars, money_cents
 from .examples import example_documents
 from .extract import extract_document, read_upload
@@ -33,6 +34,11 @@ WORKSPACES = ["Presentation demo", "Evidence & uploads", "Research"]
 DOC_ICONS = {"eob": "01", "bill": "02", "receipt": "03", "collection": "04"}
 CMS_URL = "https://www.cms.gov/initiatives/your-patient-rights/medical-bill-rights/get-help/medical-bill-guides-resources/how-read-health-insurance-explanation-benefits"
 CFPB_URL = "https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/"
+EXTRACTION_LABELS = {
+    "local": "Local parser (no network)",
+    "codex": "Codex (ChatGPT sign-in)",
+    "openai": "OpenAI API",
+}
 
 STYLE = """
 <style>
@@ -400,11 +406,61 @@ def _fact_editor(doc: Document) -> None:
             st.text(doc.text)
 
 
+def _extraction_method() -> tuple[str, bool]:
+    """Select a provider before form submission; detection never checks authentication."""
+    available = {
+        "local": True,
+        "codex": codex_available(),
+        "openai": bool(os.environ.get("OPENAI_API_KEY")),
+    }
+    previous = st.session_state.get("nmd_extraction_method", "local")
+    # Keep a now-unavailable selection visible and block submission. Never replace it
+    # with another provider merely because configuration changed between reruns.
+    choices = [method for method in EXTRACTION_LABELS if available[method] or method == previous]
+    method = st.selectbox(
+        "Extraction method",
+        choices,
+        format_func=EXTRACTION_LABELS.get,
+        key="nmd_extraction_method",
+        help="Selecting a method does not send text. Extraction starts only when you submit the document.",
+    )
+    if method == "codex":
+        st.caption(
+            "Codex sends this document's text to OpenAI through the local Codex CLI, "
+            "using your ChatGPT sign-in and plan usage. This option is intended for the "
+            "local fictional-document demo; it does not run offline. Sign-in is checked "
+            "when you extract."
+        )
+    elif method == "openai":
+        st.caption(
+            "OpenAI API sends this document's text to OpenAI using the configured API key. "
+            "API usage is separate from your ChatGPT plan. Extracted facts still need your review."
+        )
+    else:
+        st.caption(
+            "The local parser recognizes labeled fields without sending document text externally. "
+            "It does not understand arbitrary document layouts."
+        )
+    if not available["codex"]:
+        st.caption("Codex is unavailable: the local Codex CLI was not found.")
+    if not available["openai"]:
+        st.caption("OpenAI API is unavailable: OPENAI_API_KEY is not configured.")
+    if not available[method]:
+        st.warning(
+            "The selected extraction method is no longer available. Restore its configuration "
+            "or explicitly select another method before extracting."
+        )
+    return method, available[method]
+
+
 def _add_documents() -> None:
     with st.expander("Add a document", expanded=not _docs()):
         st.caption(
             "Paste text or upload a text-based PDF/TXT. Scanned images and handwriting need transcription; OCR is not included."
         )
+        # Outside the form so provider-specific data handling is visible immediately,
+        # before the user submits any document to that provider.
+        method, configured = _extraction_method()
         with st.form("nmd_add_document"):
             left, right = st.columns(2)
             with left:
@@ -422,21 +478,13 @@ def _add_documents() -> None:
                 type=["pdf", "txt"],
                 help="Maximum 8 MB. Uploaded text is held in this session.",
             )
-            key_available = bool(os.environ.get("OPENAI_API_KEY"))
-            use_model = st.checkbox(
-                "Use OpenAI to propose fields from this document", disabled=not key_available
+            submitted = st.form_submit_button(
+                "Extract for review", type="primary", disabled=not configured
             )
-            if key_available:
-                st.caption(
-                    "Opting in sends this document’s text to OpenAI. Local extraction runs without sending document text externally."
-                )
-            else:
-                st.caption(
-                    "Local labeled-field extraction is available. Model extraction is not configured for this session."
-                )
-            submitted = st.form_submit_button("Extract for review", type="primary")
         if submitted:
             try:
+                if not configured:
+                    raise ValueError("The selected extraction method is unavailable.")
                 if source == "Upload a text PDF or TXT":
                     if uploaded is None:
                         raise ValueError("Choose a text-based PDF or TXT file first.")
@@ -452,7 +500,7 @@ def _add_documents() -> None:
                         document_text,
                         kind,
                         title.strip() or KINDS[kind],
-                        method="openai" if use_model else "local",
+                        method=method,
                     )
                 # New input must pass human review even when a parser supplies optimistic flags.
                 for fact in doc.fields.values():
@@ -463,7 +511,8 @@ def _add_documents() -> None:
                 st.session_state["nmd_fictional"] = False
                 st.rerun()
             except Exception as exc:
-                st.error(f"Could not read this document: {exc}")
+                st.error(f"{EXTRACTION_LABELS[method]} could not extract this document: {exc}")
+                st.caption("No alternate extraction method was used.")
 
 
 def _evidence(documents: list[Document]) -> None:

@@ -40,6 +40,7 @@ import {
   type Analysis,
   type Bootstrap,
   type Document,
+  type ExtractionMethod,
   type Fact,
 } from "@/lib/types";
 
@@ -1391,11 +1392,23 @@ function AddDocument({
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [method, setMethod] = useState("local");
+  const [method, setMethod] = useState<ExtractionMethod>("local");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const methodAvailable =
+    method === "local"
+      ? true
+      : method === "codex"
+        ? boot.codex_available
+        : boot.ai_available;
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!methodAvailable) {
+      setError(
+        "The selected extractor is unavailable. Restore its configuration or explicitly choose another method.",
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -1420,7 +1433,15 @@ function AddDocument({
         body.filename = file.name;
       }
       const result = await api<{ document: Document }>(body);
-      onAdded(result.document);
+      onAdded({
+        ...result.document,
+        fields: Object.fromEntries(
+          Object.entries(result.document.fields).map(([key, fact]) => [
+            key,
+            { ...fact, confirmed: false },
+          ]),
+        ),
+      });
       setText("");
       setTitle("");
       setFile(null);
@@ -1496,23 +1517,65 @@ function AddDocument({
         8 MB maximum. Local extraction reads explicit labels. Scans need
         transcription; OCR is not included.
       </p>
-      <label className="review-checkbox">
-        <input
-          type="checkbox"
-          checked={method === "openai"}
-          disabled={!boot.ai_available}
-          onChange={(e) => setMethod(e.target.checked ? "openai" : "local")}
-        />
-        <span>
-          Use OpenAI extraction{!boot.ai_available && " (not configured)"}
-        </span>
-      </label>
-      {method === "openai" && (
-        <p className="review-alert">
-          This sends the document text to the configured OpenAI provider.
-          Requests use store=False; provider retention policies apply.
-        </p>
-      )}
+      <label htmlFor="doc-extractor">Extraction method</label>
+      <select
+        id="doc-extractor"
+        value={method}
+        disabled={busy}
+        aria-describedby="extraction-help"
+        onChange={(e) => {
+          setMethod(e.target.value as ExtractionMethod);
+          setError("");
+        }}
+      >
+        <option value="local">Local parser (no network)</option>
+        <option value="codex" disabled={!boot.codex_available}>
+          Codex (ChatGPT sign-in)
+        </option>
+        <option value="openai" disabled={!boot.ai_available}>
+          OpenAI API
+        </option>
+      </select>
+      <div id="extraction-help">
+        {method === "local" && (
+          <p className="footnote">
+            Reads explicit labeled fields in the local app without sending
+            document text to OpenAI.
+          </p>
+        )}
+        {method === "codex" && (
+          <p className="review-alert">
+            Sends this document’s text to OpenAI through the local Codex CLI
+            using your ChatGPT sign-in and plan usage. No API key is required.
+            Intended for a local demo with fictional documents; this is an
+            online model call. Review every extracted fact.
+          </p>
+        )}
+        {method === "openai" && (
+          <p className="review-alert">
+            Sends this document’s text to OpenAI using the configured API key.
+            API usage is separate from your ChatGPT plan. Requests use
+            store=False; provider retention policies apply.
+          </p>
+        )}
+        {!boot.codex_available && (
+          <p className="footnote">
+            Codex is unavailable: the local Codex CLI was not found.
+          </p>
+        )}
+        {!boot.ai_available && (
+          <p className="footnote">
+            OpenAI API is unavailable: an API key is not configured.
+          </p>
+        )}
+        {!methodAvailable && (
+          <p className="error" role="alert">
+            The selected extractor is no longer available. Restore its
+            configuration or explicitly choose another method. Your selection
+            has not changed.
+          </p>
+        )}
+      </div>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -1520,7 +1583,7 @@ function AddDocument({
       )}
       <button
         className="button primary full"
-        disabled={busy || (!text.trim() && !file)}
+        disabled={busy || !methodAvailable || (!text.trim() && !file)}
       >
         {busy ? (
           <Loader2 className="spin" size={16} />
