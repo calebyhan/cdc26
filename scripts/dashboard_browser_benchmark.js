@@ -2,7 +2,7 @@
   const appWindow = document.querySelector('iframe[title="streamlitApp"]')?.contentWindow || window;
   const doc = appWindow.document;
   const view = window.ewsBenchmarkView;
-  const minimumCharts = {'Risk leaderboard':0,'Company detail':3,'Enforcement timeline':2,'Backtest results':3,'Limitations':0};
+  const minimumCharts = {'Complaint change monitor':0,'Company detail':3,'Enforcement timeline':2,'Backtest results':3,'Limitations':0};
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   let stableAt = null;
   while (performance.now()-window.ewsBenchmarkStarted < 15000) {

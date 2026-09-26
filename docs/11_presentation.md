@@ -43,10 +43,12 @@ Note: the "prior action" baseline is mechanically identical to volume (only 2 of
 
 ## Narrative arc (7 minutes)
 
+The animated deck in [presentation/deck.html](../presentation/deck.html) follows this arc; see [presentation/README.md](../presentation/README.md) to present or edit it.
+
 1. **Question and audience (30 s).** An analyst faces over 20,000 mortgage complaints a year across hundreds of companies. Where do they look first? We asked whether *unusual changes* in complaints point to future enforcement.
 2. **Data and the hard part (1 min).** 461k mortgage complaints, 386 enforcement actions, FDIC and HMDA exposure data. Entity resolution: Ocwen's complaint name, enforcement name and later name (Onity Group) resolve to one company. A no-look-ahead backtest: every score uses only data published before the cutoff.
 3. **The example that motivated us (45 s).** Planet Home Lending: our change score put it at #1 a month before its 2017 filing, when volume had it at #46. Pause: "That's one company. Did it generalize?"
-4. **The result (1 min 30 s).** Same cutoff, Jan 2017: Ocwen and Nationstar, #2 and #3 by volume, #108 and #109 by our score; both enforced within four months. Pooled over eight years: volume's top 20 caught 50% of later-enforced companies, ours 4%, random 11%. Our two statistical models did no better. Enforcement landed on persistent high-volume servicers. The event-aligned chart agrees directionally (enforced companies' complaints climbed about 3× vs about 1.6× for peers) but with 11 pairs the intervals overlap.
+4. **The result (1 min 30 s).** Same cutoff, Jan 2017: Ocwen and Nationstar, #2 and #3 by volume, #108 and #109 by our score; both enforced within four months. Pooled over eight years: volume's top 20 caught 50% of later-enforced companies, ours 4%, random 11%. Our two statistical models did no better. Enforcement landed on persistent high-volume servicers. The event-aligned chart agrees directionally (enforced companies' complaints climbed about 3.3× vs about 1.7× for peers) but with 11 pairs the intervals overlap.
 5. **Demo (2 min).** Click path below. Frame the change monitor as "what changed and why," with volume one click away as the historically stronger lens.
 6. **Limitations (45 s).** 13 enforcement events: every estimate is wide. No point-in-time size data, so we can't separate "big" from "bad." CFPB uses complaints in supervision, so volume may partly mirror regulatory attention. No CFPB filings since Aug 2025, and narratives stopped being published in Aug 2026. False alarms like DHI.
 7. **Next (15 s).** State regulator and multi-agency labels (more events), point-in-time servicing exposure for real size normalization, other products.

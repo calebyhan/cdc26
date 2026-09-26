@@ -1,0 +1,788 @@
+<title>Where to Look First</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap">
+<style>
+  /* A single-theme world: an examiner's ledger. Colour is meaning, never decoration:
+     green-teal is complaint volume, violet is the change score (Model A), crimson is a
+     CFPB filing, grey is everything offered only for comparison. Palette validated
+     (lightness, chroma, CVD, contrast) against the ledger ground. */
+  :root {
+    --ground: #eef1ec;
+    --ground-deep: #e3e8e2;
+    --ink: #1d2733;
+    --muted: #5b6770;
+    --rule: #cbd3cd;
+    --bar: #b3bdb7;
+    --vol: #00866f;
+    --chg: #8e4bc6;
+    --fil: #c8402f;
+    --ref: #7d878d;
+    --face: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink); font-family: var(--face);
+    display: grid; place-items: center; min-height: 100vh; overflow: hidden;
+  }
+  #stage {
+    position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9;
+    container-type: inline-size; background: var(--ground); cursor: pointer; user-select: none;
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  #head { position: absolute; left: 3cqw; top: 2.8cqw; width: 70cqw; }
+  h1 {
+    margin: 0; font-weight: 800; font-size: 3.1cqw; line-height: 1.02; letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  #title-card { position: absolute; left: 3cqw; top: 6cqw; width: 80cqw; display: grid; gap: 1.6cqw; pointer-events: none; }
+  #title-card h2 {
+    margin: 0; font-weight: 800; font-size: 7.4cqw; line-height: 0.92; letter-spacing: -0.035em;
+  }
+  #title-card p { margin: 0; font-size: 1.7cqw; line-height: 1.35; max-width: 52cqw; color: var(--ink); }
+  #title-card .by { font-size: 1.05cqw; color: var(--muted); }
+
+  #caption {
+    position: absolute; left: 3cqw; top: 45cqw; width: 64cqw; margin: 0;
+    font-size: 1.28cqw; line-height: 1.5; text-wrap: pretty;
+  }
+  #caption strong { font-weight: 700; }
+  /* Caption phrases keep ink colour; a thick underline in the series colour ties them to the chart. */
+  .vol, .chg, .fil {
+    text-decoration-line: underline; text-decoration-thickness: 0.2em; text-underline-offset: 0.18em;
+    text-decoration-skip-ink: none;
+  }
+  .vol { text-decoration-color: var(--vol); }
+  .chg { text-decoration-color: var(--chg); }
+  .fil { text-decoration-color: var(--fil); }
+  .fade-in { animation: fadein 380ms ease-out both; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+
+  .overlay { visibility: hidden; opacity: 0; position: absolute; }
+
+  #demo { left: 3cqw; top: 11.5cqw; width: 70cqw; }
+  #demo ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 1.5cqw; }
+  #demo li {
+    counter-increment: step; display: grid; grid-template-columns: 3.4cqw 1fr; column-gap: 1cqw;
+    font-size: 1.3cqw; line-height: 1.4;
+  }
+  #demo li::before {
+    content: counter(step); grid-row: span 2; font-weight: 800; font-size: 2.6cqw; line-height: 1;
+    color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  #demo li b { font-weight: 700; }
+  #demo li span { color: var(--muted); }
+  #demo .url {
+    margin-top: 2.6cqw; font-size: 1.9cqw; font-weight: 700; letter-spacing: -0.01em;
+    border-top: 1px solid var(--rule); padding-top: 1.4cqw;
+  }
+
+  #limits { left: 3cqw; top: 11cqw; width: 88cqw; }
+  #limits table { border-collapse: collapse; width: 100%; }
+  #limits td { vertical-align: top; padding: 1.15cqw 2cqw 1.15cqw 0; border-top: 1px solid var(--rule); font-size: 1.22cqw; line-height: 1.45; }
+  #limits td:first-child { width: 22cqw; font-weight: 800; font-size: 1.7cqw; line-height: 1.1; letter-spacing: -0.01em; }
+
+  #end { left: 3cqw; top: 13cqw; width: 80cqw; }
+  #end p { margin: 0 0 1.6cqw; font-size: 1.6cqw; line-height: 1.4; max-width: 60cqw; }
+  #end h3 { margin: 3cqw 0 0.8cqw; font-size: 1.1cqw; font-weight: 700; color: var(--muted); }
+  #end ul { margin: 0; padding: 0 0 0 1.2em; font-size: 1.25cqw; line-height: 1.6; }
+
+  footer {
+    position: absolute; left: 3cqw; right: 3cqw; bottom: 1.6cqw; display: flex; align-items: center; gap: 2cqw;
+    font-size: 0.72cqw; color: var(--muted);
+  }
+  .progress { display: flex; gap: 1.8cqw; flex: 1; }
+  .scene { display: grid; gap: 0.45cqw; }
+  .scene.on .label { color: var(--ink); font-weight: 700; }
+  .ticks { display: flex; gap: 0.3cqw; }
+  .tick { width: 1.8cqw; height: 0.28cqw; background: var(--rule); border-radius: 1px; }
+  .tick.done { background: var(--muted); }
+  .tick.now { background: var(--ink); }
+  .controls { display: flex; gap: 0.5cqw; align-items: center; }
+  button {
+    font: inherit; color: var(--ink); background: var(--ground-deep); border: 1px solid var(--rule);
+    border-radius: 0.3cqw; padding: 0.45cqw 0.8cqw; cursor: pointer; min-width: 2.6cqw;
+  }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+</style>
+
+<div id="stage" aria-label="Presentation: where should a complaint analyst look first?">
+  <canvas id="cv" role="img" aria-label="Chart for the current slide; the caption states its finding"></canvas>
+
+  <header id="head"><h1 id="headline"></h1></header>
+
+  <div id="title-card">
+    <h2>Where should a complaint analyst look first?</h2>
+    <p>Public mortgage complaints, CFPB enforcement, and a backtest of two ways to rank companies.</p>
+    <div class="by">CDC 2026</div>
+  </div>
+
+  <p id="caption"></p>
+
+  <section class="overlay" id="demo" aria-label="Dashboard demo path">
+    <ol>
+      <li><b>Complaint change monitor</b><span>Rank by unusual change, then switch to 12-month volume.</span></li>
+      <li><b>Company detail</b><span>Complaints against the peer band, issue mix by severity, why a company was flagged.</span></li>
+      <li><b>Enforcement timeline</b><span>Planet Home Lending's pre-filing flags, then Ocwen's absence of them.</span></li>
+      <li><b>Backtest results</b><span>The Jan 2017 top 20, by change and by volume.</span></li>
+      <li><b>Limitations</b><span>What the scores do and don't mean.</span></li>
+    </ol>
+    <div class="url">unccdc26.streamlit.app</div>
+  </section>
+
+  <section class="overlay" id="limits" aria-label="Limitations">
+    <table><tbody id="limit-rows"></tbody></table>
+  </section>
+
+  <section class="overlay" id="end" aria-label="Conclusion">
+    <p id="end-lede"></p>
+    <h3>What would make the answer sharper</h3>
+    <ul>
+      <li>More enforcement labels: state regulators and other federal agencies, not only the CFPB.</li>
+      <li>Point-in-time servicing exposure, so complaint rates can separate big from bad.</li>
+      <li>The same test on other products: credit reporting, debt collection, auto loans.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div class="progress" id="progress"></div>
+    <div class="controls">
+      <button type="button" id="prev" aria-label="Previous step">←</button>
+      <button type="button" id="next" aria-label="Next step">→</button>
+      <button type="button" id="rate" aria-label="Playback speed">1×</button>
+    </div>
+  </footer>
+</div>
+
+<script id="data" type="application/json">{"slice":{"window":"primary","policy":"include","horizon":12},"complaints":{"total":461350,"monthly":[["2011-12",1276],["2012-01",2063],["2012-02",2297],["2012-03",2996],["2012-04",2852],["2012-05",4046],["2012-06",3961],["2012-07",3514],["2012-08",3898],["2012-09",3053],["2012-10",3319],["2012-11",2931],["2012-12",3177],["2013-01",5931],["2013-02",4624],["2013-03",4693],["2013-04",4720],["2013-05",4372],["2013-06",4367],["2013-07",4351],["2013-08",4036],["2013-09",3368],["2013-10",3193],["2013-11",2883],["2013-12",2860],["2014-01",3599],["2014-02",3859],["2014-03",4178],["2014-04",4030],["2014-05",3452],["2014-06",3424],["2014-07",3637],["2014-08",3596],["2014-09",3435],["2014-10",3747],["2014-11",2971],["2014-12",3013],["2015-01",3009],["2015-02",3052],["2015-03",3555],["2015-04",3617],["2015-05",3589],["2015-06",3961],["2015-07",3746],["2015-08",4130],["2015-09",3794],["2015-10",3650],["2015-11",3140],["2015-12",3086],["2016-01",3485],["2016-02",3438],["2016-03",3892],["2016-04",3515],["2016-05",3479],["2016-06",3509],["2016-07",3186],["2016-08",3486],["2016-09",3680],["2016-10",3540],["2016-11",3191],["2016-12",3053],["2017-01",3300],["2017-02",2920],["2017-03",3247],["2017-04",2571],["2017-05",2664],["2017-06",2350],["2017-07",2293],["2017-08",2444],["2017-09",2262],["2017-10",2302],["2017-11",2168],["2017-12",2034],["2018-01",2124],["2018-02",2097],["2018-03",2420],["2018-04",2724],["2018-05",2219],["2018-06",1885],["2018-07",2015],["2018-08",2084],["2018-09",1779],["2018-10",1966],["2018-11",1634],["2018-12",1617],["2019-01",1779],["2019-02",1749],["2019-03",2002],["2019-04",1993],["2019-05",1945],["2019-06",1856],["2019-07",2012],["2019-08",2035],["2019-09",1857],["2019-10",2069],["2019-11",1717],["2019-12",1687],["2020-01",1835],["2020-02",1825],["2020-03",2136],["2020-04",2201],["2020-05",1904],["2020-06",2009],["2020-07",2132],["2020-08",2091],["2020-09",2330],["2020-10",2241],["2020-11",1821],["2020-12",2127],["2021-01",2189],["2021-02",2333],["2021-03",2914],["2021-04",2522],["2021-05",2325],["2021-06",2172],["2021-07",1993],["2021-08",2052],["2021-09",2059],["2021-10",2093],["2021-11",1867],["2021-12",2008],["2022-01",2212],["2022-02",2213],["2022-03",2505],["2022-04",2274],["2022-05",1793],["2022-06",1793],["2022-07",1720],["2022-08",2019],["2022-09",1783],["2022-10",1624],["2022-11",1518],["2022-12",1824],["2023-01",2837],["2023-02",2165],["2023-03",2176],["2023-04",1658],["2023-05",1887],["2023-06",1703],["2023-07",1633],["2023-08",1844],["2023-09",1632],["2023-10",1721],["2023-11",1818],["2023-12",1779],["2024-01",1812],["2024-02",1942],["2024-03",1893],["2024-04",1817],["2024-05",1713],["2024-06",1575],["2024-07",1737],["2024-08",1861],["2024-09",1779],["2024-10",1809],["2024-11",1717],["2024-12",1784],["2025-01",2204],["2025-02",1754],["2025-03",1824],["2025-04",1846],["2025-05",1969],["2025-06",1903],["2025-07",2173],["2025-08",2046],["2025-09",2021],["2025-10",2091],["2025-11",2215],["2025-12",2651],["2026-01",2999],["2026-02",2574],["2026-03",2945],["2026-04",3021],["2026-05",2788],["2026-06",2968],["2026-07",3100],["2026-08",2812]],"partial_month_dropped":"2026-09"},"filings":{"all":386,"mortgage":["2012-07-17","2012-12-03","2013-04-04","2013-04-04","2013-04-04","2013-04-04","2013-05-17","2013-07-23","2013-10-09","2013-10-09","2013-10-24","2013-11-15","2013-12-19","2013-12-23","2014-01-16","2014-01-29","2014-02-24","2014-05-28","2014-06-12","2014-06-17","2014-07-14","2014-07-22","2014-07-22","2014-08-12","2014-09-29","2014-09-30","2014-11-13","2015-01-22","2015-01-22","2015-01-22","2015-02-10","2015-02-12","2015-02-12","2015-02-12","2015-04-09","2015-04-21","2015-04-29","2015-05-11","2015-05-28","2015-06-04","2015-06-05","2015-07-28","2015-07-28","2015-07-30","2015-09-24","2016-05-25","2016-06-29","2016-12-07","2016-12-07","2016-12-07","2017-01-23","2017-01-23","2017-01-31","2017-01-31","2017-01-31","2017-01-31","2017-03-15","2017-04-20","2017-06-07","2017-09-27","2018-04-20","2018-12-04","2019-05-29","2019-06-05","2019-09-06","2020-05-11","2020-06-23","2020-07-15","2020-07-24","2020-07-24","2020-08-21","2020-08-26","2020-09-01","2020-09-01","2020-09-02","2020-09-14","2020-10-26","2020-10-27","2020-12-07","2020-12-18","2021-01-15","2021-04-27","2021-10-08","2021-10-22","2022-07-27","2022-11-17","2022-12-20","2023-02-27","2023-06-27","2023-08-17","2023-08-17","2023-10-10","2023-11-28","2023-12-20","2024-06-18","2024-06-18","2024-08-21","2024-08-29","2024-10-15","2024-12-23","2025-01-06","2025-01-17"],"other":["2012-07-18","2012-09-24","2012-10-01","2012-10-01","2012-10-01","2012-12-14","2013-05-07","2013-05-30","2013-06-14","2013-06-26","2013-06-26","2013-08-20","2013-09-09","2013-10-03","2013-11-21","2013-12-10","2013-12-16","2013-12-20","2013-12-24","2013-12-24","2013-12-24","2014-02-26","2014-04-09","2014-06-19","2014-07-10","2014-07-14","2014-07-29","2014-08-14","2014-08-20","2014-08-25","2014-09-08","2014-09-16","2014-09-25","2014-10-09","2014-11-19","2014-12-11","2014-12-11","2014-12-17","2014-12-17","2014-12-18","2015-02-04","2015-03-26","2015-03-30","2015-04-14","2015-04-20","2015-04-28","2015-05-01","2015-05-12","2015-05-19","2015-06-18","2015-07-01","2015-07-01","2015-07-08","2015-07-14","2015-07-21","2015-07-22","2015-07-23","2015-07-31","2015-08-12","2015-08-17","2015-08-19","2015-08-20","2015-09-09","2015-09-09","2015-09-28","2015-09-28","2015-09-30","2015-10-28","2015-10-29","2015-10-29","2015-11-18","2015-12-03","2015-12-07","2015-12-16","2015-12-17","2015-12-17","2015-12-17","2016-01-21","2016-02-02","2016-02-23","2016-02-23","2016-02-23","2016-02-23","2016-03-02","2016-03-30","2016-04-21","2016-04-21","2016-04-25","2016-04-25","2016-05-11","2016-06-06","2016-07-14","2016-08-22","2016-08-25","2016-09-08","2016-09-12","2016-09-20","2016-09-20","2016-09-20","2016-09-20","2016-09-20","2016-09-22","2016-09-26","2016-09-27","2016-10-11","2016-11-02","2016-11-03","2016-11-21","2016-12-16","2016-12-19","2016-12-19","2016-12-19","2016-12-19","2016-12-20","2017-01-03","2017-01-03","2017-01-09","2017-01-18","2017-01-19","2017-01-30","2017-02-01","2017-02-02","2017-02-07","2017-03-23","2017-04-17","2017-04-26","2017-04-27","2017-06-27","2017-08-02","2017-08-17","2017-08-23","2017-09-06","2017-09-18","2017-09-18","2017-09-19","2017-10-12","2017-10-17","2017-11-08","2017-11-15","2017-11-20","2017-11-21","2018-06-13","2018-06-29","2018-07-13","2018-07-19","2018-09-13","2018-10-04","2018-10-24","2018-11-20","2018-12-06","2019-01-03","2019-01-16","2019-01-23","2019-01-25","2019-02-05","2019-05-01","2019-05-02","2019-05-17","2019-06-14","2019-07-22","2019-08-14","2019-08-27","2019-08-28","2019-09-25","2019-10-01","2019-10-21","2019-11-22","2019-11-25","2019-11-25","2020-01-09","2020-01-30","2020-02-20","2020-03-09","2020-04-01","2020-05-22","2020-06-02","2020-07-06","2020-07-07","2020-07-13","2020-08-20","2020-08-31","2020-08-31","2020-09-08","2020-09-08","2020-09-15","2020-09-21","2020-10-13","2020-11-02","2020-11-05","2020-11-05","2020-11-12","2020-11-20","2020-11-20","2020-12-01","2020-12-04","2020-12-08","2020-12-09","2020-12-11","2020-12-21","2020-12-22","2020-12-22","2020-12-30","2021-02-22","2021-03-03","2021-03-16","2021-04-06","2021-04-13","2021-04-22","2021-05-21","2021-06-28","2021-07-12","2021-09-07","2021-09-08","2021-09-20","2021-10-19","2021-11-12","2022-01-10","2022-03-30","2022-04-12","2022-04-21","2022-05-04","2022-05-11","2022-06-09","2022-07-12","2022-07-14","2022-07-26","2022-07-28","2022-08-10","2022-09-28","2022-09-29","2022-10-04","2022-10-18","2022-12-22","2023-01-04","2023-02-23","2023-03-23","2023-04-05","2023-05-31","2023-06-08","2023-07-11","2023-07-11","2023-07-13","2023-07-19","2023-08-02","2023-08-22","2023-09-11","2023-10-12","2023-10-12","2023-10-17","2023-11-08","2023-11-15","2023-11-20","2023-12-07","2023-12-15","2023-12-19","2024-01-10","2024-04-17","2024-05-06","2024-05-07","2024-05-17","2024-05-20","2024-05-31","2024-07-09","2024-07-26","2024-09-11","2024-09-13","2024-10-10","2024-10-17","2024-10-23","2024-10-23","2024-10-31","2024-11-07","2024-11-14","2024-12-06","2024-12-09","2024-12-20","2024-12-23","2025-01-07","2025-01-14","2025-01-16","2025-01-17","2025-01-17","2025-01-30","2025-08-21"],"first":"2012-07-17","last":"2025-08-21"},"ocwen_aliases":[["Ocwen Financial Corporation","ccdb"],["Ocwen Financial Corp.","enforcement"],["Ocwen Financial Corporation","enforcement"],["Onity Group Inc.","curated"]],"ocwen_unlinked":["Ocwen Loan Servicing, LLC","Ocwen Mortgage Servicing, Inc."],"design":[{"cutoff":"2016-01-01","eligible":114,"events":[{"name":"AMERICAN ADVISORS GROUP","date":"2016-12-07"},{"name":"Reverse Mortgage Solutions, Inc.","date":"2016-12-07"}]},{"cutoff":"2017-01-01","eligible":114,"events":[{"name":"NATIONSTAR MORTGAGE LLC","date":"2017-03-15"},{"name":"PLANET HOME LENDING, LLC","date":"2017-01-31"},{"name":"Ocwen Financial Corporation","date":"2017-04-20"},{"name":"Fay Servicing, LLC","date":"2017-06-07"}]},{"cutoff":"2018-01-01","eligible":110,"events":[{"name":"Village Capital & Investment LLC","date":"2018-12-04"}]},{"cutoff":"2019-01-01","eligible":110,"events":[{"name":"Freedom Mortgage Company","date":"2019-06-05"},{"name":"BSI Financial Holdings, Inc.","date":"2019-05-29"}]},{"cutoff":"2020-01-01","eligible":109,"events":[{"name":"Seterus, Inc.","date":"2020-12-18"},{"name":"Specialized Loan Servicing Holdings LLC","date":"2020-05-11"}]},{"cutoff":"2021-01-01","eligible":107,"events":[]},{"cutoff":"2022-01-01","eligible":108,"events":[{"name":"CARRINGTON MORTGAGE SERVICES, LLC","date":"2022-11-17"}]},{"cutoff":"2023-01-01","eligible":106,"events":[{"name":"BANK OF AMERICA CORP","date":"2023-11-28"}]}],"planet":{"months":["2012-10","2012-11","2012-12","2013-01","2013-02","2013-03","2013-04","2013-05","2013-06","2013-07","2013-08","2013-09","2013-10","2013-11","2013-12","2014-01","2014-02","2014-03","2014-04","2014-05","2014-06","2014-07","2014-08","2014-09","2014-10","2014-11","2014-12","2015-01","2015-02","2015-03","2015-04","2015-05","2015-06","2015-07","2015-08","2015-09","2015-10","2015-11","2015-12","2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12","2017-01","2017-02","2017-03","2017-04","2017-05","2017-06","2017-07","2017-08","2017-09","2017-10","2017-11","2017-12","2018-01","2018-02","2018-03","2018-04","2018-05","2018-06"],"complaints":[1,2,1,0,1,1,0,2,2,3,1,0,2,1,1,0,4,1,0,3,1,3,4,3,8,3,1,2,2,2,1,2,4,5,1,6,0,4,5,5,7,4,3,1,1,4,0,9,13,9,3,5,4,7,4,5,2,3,4,3,7,5,4,3,6,5,8,4,3],"flags":[{"cutoff":"2016-01-01","a":3,"raw":58,"eligible":114},{"cutoff":"2017-01-01","a":1,"raw":46,"eligible":114}],"filed":"2017-01-31"},"rerank":{"cutoff":"2017-01-01","rows":[{"name":"PENNYMAC LOAN SERVICES, LLC.","a":93,"raw":18,"c12":338,"enforced":0},{"name":"Seterus, Inc.","a":100,"raw":6,"c12":961,"enforced":0},{"name":"AMA Advisors, LLC.","a":114,"raw":53,"c12":47,"enforced":0},{"name":"FIRST HORIZON CORP","a":38,"raw":74,"c12":25,"enforced":0},{"name":"Movement Mortgage LLC","a":19,"raw":65,"c12":32,"enforced":0},{"name":"Franklin Credit Management Corporation","a":36,"raw":60,"c12":35,"enforced":0},{"name":"KEYCORP","a":14,"raw":37,"c12":78,"enforced":0},{"name":"Rocket Mortgage, LLC","a":91,"raw":19,"c12":338,"enforced":0},{"name":"FCI Lender Services Inc.","a":106,"raw":61,"c12":35,"enforced":0},{"name":"AmeriHome Mortgage Company, LLC","a":39,"raw":66,"c12":32,"enforced":0},{"name":"Zions Bancorporation, N.A.","a":53,"raw":80,"c12":18,"enforced":0},{"name":"EVERBANK FINANCIAL CORP","a":22,"raw":31,"c12":127,"enforced":0},{"name":"NATIONSTAR MORTGAGE LLC","a":109,"raw":3,"c12":3147,"enforced":1},{"name":"Shellpoint Partners, LLC","a":46,"raw":15,"c12":431,"enforced":0},{"name":"CARRINGTON MORTGAGE SERVICES, LLC","a":69,"raw":11,"c12":573,"enforced":0},{"name":"Peer Advisors, LLC","a":110,"raw":99,"c12":9,"enforced":0},{"name":"Village Capital & Investment LLC","a":24,"raw":108,"c12":3,"enforced":0},{"name":"TORONTO-DOMINION BANK THE","a":94,"raw":29,"c12":156,"enforced":0},{"name":"PLANET HOME LENDING, LLC","a":1,"raw":46,"c12":61,"enforced":1},{"name":"SYNCHRONY FINANCIAL","a":50,"raw":109,"c12":3,"enforced":0},{"name":"Dovenmuehle Mortgage, Inc.","a":64,"raw":33,"c12":101,"enforced":0},{"name":"Data Mortgage Inc.","a":87,"raw":114,"c12":0,"enforced":0},{"name":"Lennar Financial Services, LLC","a":76,"raw":113,"c12":1,"enforced":0},{"name":"LAKEVIEW LOAN SERVICING, LLC","a":34,"raw":69,"c12":29,"enforced":0},{"name":"BANK OF NY MELLON CORP THE","a":4,"raw":110,"c12":2,"enforced":0},{"name":"Home Point Financial Corporation","a":92,"raw":92,"c12":12,"enforced":0},{"name":"Fairway Independent Mortgage Corporation","a":10,"raw":81,"c12":18,"enforced":0},{"name":"FIRST CITIZENS BANCSHARES INC","a":15,"raw":83,"c12":16,"enforced":0},{"name":"Pacific Union Financial, LLC","a":25,"raw":40,"c12":75,"enforced":0},{"name":"WEBSTER FINANCIAL CORP","a":9,"raw":100,"c12":9,"enforced":0},{"name":"CARDINAL FINANCIAL COMPANY, LIMITED PARTNERSHIP","a":29,"raw":55,"c12":41,"enforced":0},{"name":"LAND HOME FINANCIAL SERVICES","a":13,"raw":87,"c12":14,"enforced":0},{"name":"POPULAR INC","a":40,"raw":45,"c12":62,"enforced":0},{"name":"ASSOCIATED BANC-CORP","a":60,"raw":82,"c12":17,"enforced":0},{"name":"GUARANTEED RATE INC.","a":47,"raw":73,"c12":26,"enforced":0},{"name":"RUSHMORE LOAN MANAGEMENT SERVICES LLC","a":43,"raw":21,"c12":311,"enforced":0},{"name":"HSBC HOLDINGS PLC","a":8,"raw":12,"c12":566,"enforced":0},{"name":"Finance of America Holdings LLC","a":42,"raw":93,"c12":12,"enforced":0},{"name":"PRIMELENDING, A PLAINSCAPITAL COMPANY","a":96,"raw":72,"c12":27,"enforced":0},{"name":"BNP PARIBAS","a":3,"raw":62,"c12":34,"enforced":0},{"name":"Ocwen Financial Corporation","a":108,"raw":2,"c12":3372,"enforced":1},{"name":"MidAmerica Mortgage Inc","a":70,"raw":105,"c12":5,"enforced":0},{"name":"Union Home Mortgage Corp","a":26,"raw":111,"c12":2,"enforced":0},{"name":"Fay Servicing, LLC","a":74,"raw":24,"c12":198,"enforced":1},{"name":"American Financial Network Inc.","a":18,"raw":101,"c12":9,"enforced":0},{"name":"BOK FINANCIAL CORP","a":57,"raw":63,"c12":33,"enforced":0},{"name":"NVR INC.","a":88,"raw":85,"c12":15,"enforced":0},{"name":"BBVA USA / Banco Bilbao Vizcaya Argentaria","a":44,"raw":47,"c12":56,"enforced":0},{"name":"M&T BANK CORP","a":63,"raw":16,"c12":352,"enforced":0},{"name":"Community Loan Servicing, LLC (formerly known as Bayview Loan Servicing, LLC)","a":75,"raw":14,"c12":446,"enforced":0},{"name":"ARVEST BANK GROUP INC","a":99,"raw":52,"c12":49,"enforced":0},{"name":"Guild Holdings Company","a":90,"raw":54,"c12":43,"enforced":0},{"name":"Arbor Residential Mortgage LLC","a":113,"raw":41,"c12":71,"enforced":0},{"name":"CIT GROUP INC","a":45,"raw":28,"c12":175,"enforced":0},{"name":"NAVY FEDERAL CREDIT UNION","a":2,"raw":34,"c12":101,"enforced":0},{"name":"VANDERBILT MORTGAGE & FINANCE, INC","a":21,"raw":48,"c12":55,"enforced":0},{"name":"DISCOVER FINANCIAL SERVICES","a":6,"raw":102,"c12":8,"enforced":0},{"name":"CMG Financial Services, Inc.","a":67,"raw":103,"c12":8,"enforced":0},{"name":"U S BCORP","a":78,"raw":8,"c12":787,"enforced":0},{"name":"FIFTH THIRD BCORP","a":83,"raw":26,"c12":189,"enforced":0},{"name":"21ST MORTGAGE CORP.","a":59,"raw":43,"c12":69,"enforced":0},{"name":"SUN WEST MORTGAGE COMPANY, INC.","a":37,"raw":56,"c12":40,"enforced":0},{"name":"Paramount GR Holdings, LLC","a":28,"raw":104,"c12":7,"enforced":0},{"name":"IMPAC MORTGAGE HOLDINGS, INC.","a":31,"raw":70,"c12":28,"enforced":0},{"name":"BANKUNITED INC","a":58,"raw":79,"c12":19,"enforced":0},{"name":"MORGAN STANLEY","a":56,"raw":71,"c12":28,"enforced":0},{"name":"TCF FINANCIAL CORP","a":71,"raw":57,"c12":40,"enforced":0},{"name":"Mortgage Research Center, LLC","a":49,"raw":94,"c12":12,"enforced":0},{"name":"BANK OF MONTREAL","a":84,"raw":44,"c12":68,"enforced":0},{"name":"American Financial Resources, Inc.","a":30,"raw":67,"c12":32,"enforced":0},{"name":"CrossCountry Mortgage LLC","a":41,"raw":88,"c12":14,"enforced":0},{"name":"Stearns Ventures, LLC","a":97,"raw":42,"c12":71,"enforced":0},{"name":"PENTAGON FEDERAL CREDIT UNION","a":7,"raw":58,"c12":40,"enforced":0},{"name":"BROKER SOLUTIONS, INC.","a":35,"raw":75,"c12":25,"enforced":0},{"name":"SN SERVICING CORPORATION","a":23,"raw":77,"c12":22,"enforced":0},{"name":"RoundPoint Mortgage Servicing LLC","a":101,"raw":20,"c12":317,"enforced":0},{"name":"SELECT PORTFOLIO SERVICING, INC.","a":54,"raw":4,"c12":1381,"enforced":0},{"name":"FIRST BCORP","a":12,"raw":78,"c12":20,"enforced":0},{"name":"Caliber Home Loans, Inc.","a":16,"raw":9,"c12":761,"enforced":0},{"name":"PARAMOUNT RESIDENTIAL MORTGAGE GROUP","a":20,"raw":95,"c12":11,"enforced":0},{"name":"PRIMARY RESIDENTIAL MORTGAGE","a":62,"raw":84,"c12":16,"enforced":0},{"name":"UNITED SERVICES AUTOMOBILE ASSN","a":61,"raw":32,"c12":112,"enforced":0},{"name":"MORTGAGE SOLUTIONS OF COLORADO","a":32,"raw":106,"c12":5,"enforced":0},{"name":"CAPITAL ONE FINANCIAL CORP","a":95,"raw":27,"c12":183,"enforced":0},{"name":"Chrysalis Holdings LLC","a":111,"raw":89,"c12":13,"enforced":0},{"name":"Supreme Lending","a":85,"raw":96,"c12":11,"enforced":0},{"name":"BANK OF AMERICA CORP","a":68,"raw":1,"c12":3982,"enforced":0},{"name":"GATEWAY FIRST BCORP INC","a":11,"raw":86,"c12":15,"enforced":0},{"name":"REGIONS FINANCIAL CORP","a":102,"raw":39,"c12":76,"enforced":0},{"name":"Better Mortgage, Inc.","a":5,"raw":112,"c12":2,"enforced":0},{"name":"CITIZENS FINANCIAL GROUP INC","a":73,"raw":23,"c12":236,"enforced":0},{"name":"FRANKLIN AMERICAN MORTGAGE CO.","a":48,"raw":51,"c12":50,"enforced":0},{"name":"PNC FINL SERVICES GROUP INC","a":77,"raw":10,"c12":645,"enforced":0},{"name":"Statebridge Company","a":104,"raw":35,"c12":96,"enforced":0},{"name":"ALLY FINANCIAL INC","a":17,"raw":90,"c12":13,"enforced":0},{"name":"Freedom Mortgage Company","a":51,"raw":13,"c12":501,"enforced":0},{"name":"MONEY SOURCE, INC., THE","a":105,"raw":68,"c12":32,"enforced":0},{"name":"TRUIST FINANCIAL CORP","a":86,"raw":25,"c12":195,"enforced":0},{"name":"BSI Financial Holdings, Inc.","a":65,"raw":22,"c12":273,"enforced":0},{"name":"MidFirst Bank / Records family","a":112,"raw":50,"c12":54,"enforced":0},{"name":"Southwest Business Corporation","a":79,"raw":107,"c12":4,"enforced":0},{"name":"PLAZA HOME MORTGAGE, INC.","a":81,"raw":64,"c12":33,"enforced":0},{"name":"HUNTINGTON BANCSHARES INC","a":107,"raw":49,"c12":55,"enforced":0},{"name":"DHI Mortgage Company","a":98,"raw":97,"c12":10,"enforced":0},{"name":"Selene Finance LP","a":72,"raw":17,"c12":339,"enforced":0},{"name":"PulteGroup, Inc.","a":103,"raw":98,"c12":10,"enforced":0},{"name":"United Shore Financial Services, LLC","a":52,"raw":59,"c12":40,"enforced":0},{"name":"THIRD FS&LA OF CLEVELAND MHC","a":89,"raw":76,"c12":24,"enforced":0},{"name":"BANCO SANTANDER SA","a":55,"raw":36,"c12":96,"enforced":0},{"name":"Real Time Group, Inc.","a":33,"raw":38,"c12":78,"enforced":0},{"name":"LD Holdings Group, LLC","a":66,"raw":30,"c12":146,"enforced":0},{"name":"Specialized Loan Servicing Holdings LLC","a":80,"raw":7,"c12":935,"enforced":0},{"name":"F N B CORP","a":27,"raw":91,"c12":13,"enforced":0},{"name":"CITIGROUP INC","a":82,"raw":5,"c12":1163,"enforced":0}]},"overlap":[{"cutoff":"2016-01-01","shared":1},{"cutoff":"2017-01-01","shared":2},{"cutoff":"2018-01-01","shared":0},{"cutoff":"2019-01-01","shared":0},{"cutoff":"2020-01-01","shared":0},{"cutoff":"2021-01-01","shared":1},{"cutoff":"2022-01-01","shared":0},{"cutoff":"2023-01-01","shared":0}],"pooled":{"raw_count":{"recall_20":0.5,"recall_20_low":0.2,"recall_20_high":0.8,"precision_20":0.037500000000000006,"pr_auc":0.1647635546645565,"cutoffs":8},"A":{"recall_20":0.03571428571428571,"recall_20_low":0.0,"recall_20_high":0.29187499999999983,"precision_20":0.00625,"pr_auc":0.06224743643999594,"cutoffs":8,"delta_pr_auc":[-0.1025161182245605,-0.3439402075111704,0.0550319412108743]},"B":{"recall_20":0.3,"recall_20_low":0.0,"recall_20_high":0.6666666666666666,"precision_20":0.016666666666666666,"pr_auc":0.01796780764015364,"cutoffs":6,"delta_pr_auc":[-0.1378222131498671,-0.4998734282071496,-0.0496939828470486]},"C":{"recall_20":0.3333333333333333,"recall_20_low":0.0,"recall_20_high":0.6006249999999994,"precision_20":0.028571428571428574,"pr_auc":0.02147995691777724,"cutoffs":7,"delta_pr_auc":[-0.1657876932574816,-0.4973773820332892,-0.1149747698535868]},"random":{"recall_20":0.10714285714285714,"recall_20_low":0.0,"recall_20_high":0.5,"precision_20":0.0125,"pr_auc":0.04654329293452401,"cutoffs":8}},"event":{"series":{"case":[[-48.0,1.0,1.0,1.0],[-47.0,1.026,0.999,1.055],[-46.0,1.091,1.022,1.158],[-45.0,1.146,1.041,1.261],[-44.0,1.224,1.075,1.395],[-43.0,1.298,1.099,1.505],[-42.0,1.352,1.125,1.62],[-41.0,1.418,1.138,1.744],[-40.0,1.526,1.149,1.964],[-39.0,1.64,1.187,2.182],[-38.0,1.74,1.185,2.431],[-37.0,1.849,1.194,2.669],[-36.0,1.834,1.153,2.686],[-35.0,1.955,1.174,2.946],[-34.0,1.99,1.156,3.029],[-33.0,2.128,1.183,3.321],[-32.0,2.178,1.145,3.486],[-31.0,2.177,1.109,3.511],[-30.0,2.312,1.1,3.851],[-29.0,2.372,1.094,3.99],[-28.0,2.375,1.086,3.979],[-27.0,2.358,1.073,3.982],[-26.0,2.286,1.063,3.815],[-25.0,2.294,1.018,3.879],[-24.0,2.372,0.977,4.178],[-23.0,2.346,0.934,4.209],[-22.0,2.39,0.903,4.421],[-21.0,2.38,0.861,4.492],[-20.0,2.462,0.88,4.674],[-19.0,2.577,0.85,5.082],[-18.0,2.644,0.833,5.301],[-17.0,2.773,0.814,5.769],[-16.0,2.808,0.818,5.878],[-15.0,2.873,0.826,6.051],[-14.0,3.043,0.807,6.557],[-13.0,3.101,0.792,6.758],[-12.0,3.179,0.813,6.926],[-11.0,3.324,0.81,7.318],[-10.0,3.399,0.841,7.443],[-9.0,3.425,0.822,7.528],[-8.0,3.522,0.8,7.844],[-7.0,3.506,0.809,7.741],[-6.0,3.377,0.832,7.31],[-5.0,3.291,0.836,6.992],[-4.0,3.312,0.821,7.112],[-3.0,3.374,0.788,7.322],[-2.0,3.327,0.813,7.176],[-1.0,3.326,0.807,7.211],[0.0,3.282,0.755,7.208],[1.0,3.22,0.744,7.141],[2.0,3.213,0.715,7.203],[3.0,3.304,0.702,7.505],[4.0,3.388,0.695,7.815],[5.0,3.567,0.714,8.278],[6.0,3.776,0.691,8.912],[7.0,3.869,0.679,9.121],[8.0,4.054,0.684,9.67],[9.0,4.129,0.681,9.897],[10.0,4.202,0.668,10.102],[11.0,4.266,0.698,10.209],[12.0,4.425,0.709,10.552]],"peer":[[-48.0,1.0,1.0,1.0],[-47.0,1.065,1.011,1.137],[-46.0,1.1,0.994,1.219],[-45.0,1.186,1.063,1.341],[-44.0,1.245,1.089,1.425],[-43.0,1.261,1.075,1.471],[-42.0,1.312,1.066,1.58],[-41.0,1.399,1.103,1.741],[-40.0,1.466,1.125,1.852],[-39.0,1.505,1.098,1.979],[-38.0,1.56,1.138,2.034],[-37.0,1.587,1.113,2.12],[-36.0,1.665,1.132,2.269],[-35.0,1.735,1.164,2.356],[-34.0,1.785,1.171,2.434],[-33.0,1.823,1.162,2.542],[-32.0,1.882,1.174,2.636],[-31.0,1.917,1.18,2.705],[-30.0,1.947,1.201,2.763],[-29.0,1.922,1.196,2.709],[-28.0,1.922,1.183,2.737],[-27.0,1.911,1.218,2.641],[-26.0,1.904,1.231,2.629],[-25.0,1.88,1.202,2.62],[-24.0,1.818,1.188,2.523],[-23.0,1.747,1.155,2.44],[-22.0,1.702,1.114,2.397],[-21.0,1.635,1.043,2.352],[-20.0,1.613,1.014,2.362],[-19.0,1.605,0.973,2.383],[-18.0,1.559,0.94,2.331],[-17.0,1.565,0.935,2.335],[-16.0,1.569,0.9,2.338],[-15.0,1.534,0.858,2.348],[-14.0,1.507,0.847,2.324],[-13.0,1.53,0.847,2.328],[-12.0,1.542,0.847,2.351],[-11.0,1.538,0.834,2.35],[-10.0,1.559,0.838,2.375],[-9.0,1.584,0.877,2.418],[-8.0,1.566,0.864,2.431],[-7.0,1.534,0.844,2.419],[-6.0,1.605,0.892,2.479],[-5.0,1.633,0.879,2.518],[-4.0,1.655,0.906,2.526],[-3.0,1.652,0.906,2.543],[-2.0,1.672,0.91,2.538],[-1.0,1.66,0.904,2.53],[0.0,1.652,0.925,2.522],[1.0,1.669,0.956,2.523],[2.0,1.682,0.96,2.511],[3.0,1.687,0.965,2.507],[4.0,1.648,0.961,2.465],[5.0,1.638,0.958,2.441],[6.0,1.598,0.939,2.412],[7.0,1.553,0.91,2.347],[8.0,1.549,0.899,2.324],[9.0,1.613,0.95,2.436],[10.0,1.609,0.968,2.421],[11.0,1.605,0.973,2.41],[12.0,1.636,0.984,2.51]]},"pairs":11},"dhi":{"rank":1,"c12":9,"cutoff":"2016-01-01"}}
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const css = getComputedStyle(document.documentElement);
+  const tok = (n) => css.getPropertyValue(n).trim();
+  const C = {
+    ground: tok("--ground"), deep: tok("--ground-deep"), ink: tok("--ink"), muted: tok("--muted"),
+    rule: tok("--rule"), bar: tok("--bar"), vol: tok("--vol"), chg: tok("--chg"), fil: tok("--fil"), ref: tok("--ref"),
+  };
+  const FONT = "'Public Sans', 'Helvetica Neue', Arial, sans-serif";
+  const font = (w, s) => `${w} ${s}px ${FONT}`;
+  const num = (v) => Math.round(v).toLocaleString("en-US");
+  const pct = (v) => `${Math.round(v * 100)}%`;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const seg = (t, a, b) => clamp01((t - a) / (b - a));
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const ym = (s) => { const [y, m, d] = s.split("-").map(Number); return y * 12 + (m - 1) + ((d || 1) - 1) / 30.44; };
+  const longDate = (s) => { const [y, m, d] = s.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
+  const monthYear = (s) => { const [y, m] = s.split("-").map(Number); return `${MONTHS[m - 1]} ${y}`; };
+  const SHORT = [["NATIONSTAR", "Nationstar"], ["Ocwen", "Ocwen"], ["PLANET HOME", "Planet Home"], ["Fay Servicing", "Fay Servicing"]];
+  const short = (n) => (SHORT.find(([k]) => n.startsWith(k)) || [0, n])[1];
+
+  // ---------- derived numbers (every caption number comes from the data) ----------
+  const monthly = D.complaints.monthly;
+  const perMonth = D.complaints.total / monthly.length;
+  const events = D.design.flatMap((c) => c.events.map((e) => ({ ...e, cutoff: c.cutoff })));
+  const nEvents = events.length;
+  const eligible = D.design.map((c) => c.eligible);
+  const P0 = D.pooled;
+  const rr = D.rerank.rows;
+  const rrFiled = rr.filter((r) => r.enforced);
+  const inTop = (key) => rrFiled.filter((r) => r[key] <= 20).length;
+  const byName = (k) => rr.find((r) => short(r.name) === k);
+  const ocwen = byName("Ocwen"), nation = byName("Nationstar");
+  const shared2017 = D.overlap.find((o) => o.cutoff === D.rerank.cutoff).shared;
+  const maxShared = Math.max(...D.overlap.map((o) => o.shared));
+  const PL = D.planet, [pl16, pl17] = PL.flags;
+  const earlyMonths = Math.round(ym(PL.filed) - ym(pl16.cutoff));
+  const evAt = (series, m) => D.event.series[series].find((r) => r[0] === m);
+  const case0 = evAt("case", 0), peer0 = evAt("peer", 0);
+  const x1 = (v) => `${v.toFixed(1)}×`;
+  const lastFiling = D.filings.last;
+  const nMortgage = D.filings.mortgage.length;
+  const signed = (v) => (v < 0 ? `−${Math.abs(v).toFixed(2)}` : v.toFixed(2));
+  const delta = (m) => { const [d, lo, hi] = P0[m].delta_pr_auc; return `${signed(d)} [${signed(lo)}, ${signed(hi)}]`; };
+
+  // ---------- canvas ----------
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+  const W = 1600, H = 900;
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+  }
+  window.addEventListener("resize", resize);
+  const text = (s, x, y, { w = 400, size = 15, color = C.ink, align = "left", base = "alphabetic" } = {}) => {
+    ctx.font = font(w, size); ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y);
+  };
+  const line = (xa, ya, xb, yb, color, width = 1, dash = []) => {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.stroke(); ctx.setLineDash([]);
+  };
+  const dot = (x, y, r, color) => {
+    ctx.fillStyle = C.ground; ctx.beginPath(); ctx.arc(x, y, r + 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  };
+  const roundTop = (x, y, w, h, r) => {
+    r = Math.min(r, w / 2, h);
+    ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+    ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h); ctx.closePath(); ctx.fill();
+  };
+  const niceMax = (v, step) => Math.ceil(v / step) * step;
+
+  // ---------- 1 · the public record ----------
+  function drawTimeline(A, T, noteA) {
+    if (A <= 0.001) return;
+    const R = { x: 120, y: 190, w: 1380, h: 330 };
+    const n = monthly.length, pitch = R.w / n, base = R.y + R.h;
+    const t0 = ym(monthly[0][0]);
+    const X = (s) => R.x + (ym(s) - t0) * pitch;
+    const ymax = niceMax(Math.max(...monthly.map((m) => m[1])), 1000);
+    const Y = (v) => base - (v / ymax) * R.h;
+    ctx.save(); ctx.globalAlpha = A;
+    for (let v = 0; v <= ymax; v += 1000) {
+      line(R.x, Y(v), R.x + R.w, Y(v), v ? C.rule : C.muted, 1);
+      text(num(v), R.x - 12, Y(v), { size: 13, color: C.muted, align: "right", base: "middle" });
+    }
+    text("Mortgage complaints per month", R.x, R.y - 22, { size: 14, color: C.muted });
+    const shown = T * n;
+    ctx.fillStyle = C.vol;
+    monthly.forEach(([m, v], i) => {
+      if (i >= shown) return;
+      const grow = clamp01(shown - i);
+      roundTop(R.x + i * pitch + 0.8, Y(v * grow), pitch - 1.6, base - Y(v * grow), 2);
+    });
+    for (let y = 2012; y <= 2026; y += 2) text(`${y}`, X(`${y}-01`), base + 78, { size: 13, color: C.muted, align: "center" });
+    // Filings: mortgage-related in crimson, everything else the CFPB filed in grey beneath.
+    const cut = t0 + shown;
+    text("CFPB filings", R.x - 12, base + 22, { size: 12, color: C.muted, align: "right", base: "middle" });
+    for (const d of D.filings.mortgage) if (ym(d) <= cut) line(X(d), base + 12, X(d), base + 32, C.fil, 1.6);
+    for (const d of D.filings.other) if (ym(d) <= cut) line(X(d), base + 40, X(d), base + 50, C.ref, 1);
+    text("mortgage", R.x + R.w + 8, base + 22, { size: 12, color: C.muted, base: "middle" });
+    text("other products", R.x + R.w + 8, base + 45, { size: 12, color: C.muted, base: "middle" });
+    if (noteA > 0.001) {
+      ctx.globalAlpha = A * noteA;
+      const xa = X(lastFiling), xb = R.x + R.w;
+      ctx.fillStyle = "rgba(29,39,51,0.06)"; ctx.fillRect(xa, R.y, xb - xa, base + 52 - R.y);
+      line(xa, R.y - 4, xa, base + 52, C.ink, 1, [4, 4]);
+      text("No CFPB filings", xa - 10, R.y + 14, { w: 700, size: 15, align: "right" });
+      text(`since ${longDate(lastFiling)}`, xa - 10, R.y + 34, { size: 14, align: "right", color: C.muted });
+    }
+    ctx.restore();
+  }
+
+  // ---------- 2 · entity resolution ----------
+  function drawEntities(A, T) {
+    if (A <= 0.001) return;
+    ctx.save(); ctx.globalAlpha = A;
+    const SRC = { ccdb: "Complaint database", enforcement: "CFPB enforcement page", curated: "Company's current name" };
+    // One chip per distinct spelling, labelled by the first source that uses it.
+    const uniq = []; const names = new Set();
+    for (const [n, s] of D.ocwen_aliases) if (!names.has(n)) { names.add(n); uniq.push([n, s]); }
+    const node = { x: 980, y: 300, w: 470, h: 116 };
+    uniq.forEach(([n, s], i) => {
+      const y = 232 + i * 100, x = 120;
+      const u = ease(seg(T, i * 0.12, i * 0.12 + 0.35));
+      ctx.globalAlpha = A * u;
+      text(SRC[s] || s, x, y, { size: 14, color: C.muted });
+      text(n, x, y + 30, { w: 700, size: 24 });
+      const sx = x + 440, sy = y + 20, ex = node.x, ey = node.y + node.h / 2;
+      const k = ease(seg(T, 0.35 + i * 0.1, 0.75 + i * 0.1));
+      if (k > 0) {
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.beginPath();
+        const steps = 40;
+        for (let j = 0; j <= steps * k; j++) {
+          const t = j / steps, mt = 1 - t;
+          const bx = mt ** 3 * sx + 3 * mt * mt * t * (sx + 200) + 3 * mt * t * t * (ex - 200) + t ** 3 * ex;
+          const by = mt ** 3 * sy + 3 * mt * mt * t * sy + 3 * mt * t * t * ey + t ** 3 * ey;
+          j ? ctx.lineTo(bx, by) : ctx.moveTo(bx, by);
+        }
+        ctx.stroke();
+      }
+    });
+    const nu = ease(seg(T, 0.8, 1));
+    ctx.globalAlpha = A * nu;
+    ctx.fillStyle = C.deep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.roundRect(node.x, node.y, node.w, node.h, 10); ctx.fill(); ctx.stroke();
+    text("One entity", node.x + 24, node.y + 36, { size: 14, color: C.muted });
+    text(uniq[0][0], node.x + 24, node.y + 72, { w: 800, size: 26 });
+    text("complaints and filings joined", node.x + 24, node.y + 98, { size: 14, color: C.muted });
+    const su = ease(seg(T, 0.9, 1));
+    ctx.globalAlpha = A * su;
+    text("Kept separate: parent links weren't verified", node.x, 510, { size: 14, color: C.muted });
+    let chipX = node.x;
+    D.ocwen_unlinked.forEach((n, i) => {
+      ctx.font = font(400, 15);
+      const cw = ctx.measureText(n).width + 28;
+      const cx = i ? chipX : node.x;
+      chipX = cx + cw + 14;
+      ctx.strokeStyle = C.ref; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.roundRect(cx, 526, cw, 52, 8); ctx.stroke(); ctx.setLineDash([]);
+      text(n, cx + 14, 558, { size: 15, color: C.muted });
+    });
+    ctx.restore();
+  }
+
+  // ---------- 3 · backtest design ----------
+  function drawDesign(A, T) {
+    if (A <= 0.001) return;
+    const R = { x: 330, y: 210, w: 1170, rowH: 52 };
+    const t0 = ym("2012-01"), t1 = ym("2025-01");
+    const X = (s) => R.x + ((ym(s) - t0) / (t1 - t0)) * R.w;
+    ctx.save(); ctx.globalAlpha = A;
+    // legend
+    const lx = R.x, ly = R.y - 32;
+    line(lx, ly, lx + 30, ly, C.ref, 6); text("Data the ranking could use", lx + 40, ly, { size: 14, base: "middle" });
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.strokeRect(lx + 270, ly - 9, 30, 18);
+    text("12 months in which a filing counts", lx + 310, ly, { size: 14, base: "middle" });
+    dot(lx + 600, ly, 7, C.fil); text("First CFPB filing against a ranked company", lx + 616, ly, { size: 14, base: "middle" });
+    D.design.forEach((c, k) => {
+      const u = seg(T, k * 0.09, k * 0.09 + 0.3);
+      if (u <= 0) return;
+      const y = R.y + 24 + k * R.rowH;
+      ctx.globalAlpha = A * Math.min(1, u * 2);
+      text(monthYear(c.cutoff), 110, y, { w: 700, size: 16, base: "middle" });
+      text(`${c.eligible} companies`, R.x - 20, y, { size: 14, color: C.muted, align: "right", base: "middle" });
+      const xc = X(c.cutoff);
+      line(R.x, y, lerp(R.x, xc, ease(u)), y, C.ref, 6);
+      if (u >= 1) {
+        const end = `${+c.cutoff.slice(0, 4) + 1}${c.cutoff.slice(4)}`;
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.strokeRect(xc, y - 11, X(end) - xc, 22);
+        for (const e of c.events) dot(X(e.date), y, 7, C.fil);
+        if (!c.events.length) text("no filings", X(end) + 12, y, { size: 13, color: C.muted, base: "middle" });
+      }
+    });
+    ctx.globalAlpha = A;
+    const axisY = R.y + 24 + 8 * R.rowH;
+    line(R.x, axisY, R.x + R.w, axisY, C.rule);
+    for (let y = 2012; y <= 2025; y++) text(`${y}`, X(`${y}-01`), axisY + 22, { size: 13, color: C.muted, align: "center" });
+    ctx.restore();
+  }
+
+  // ---------- 4 · Planet Home Lending ----------
+  function drawPlanet(A, T) {
+    if (A <= 0.001) return;
+    const R = { x: 120, y: 200, w: 1060, h: 380 };
+    const n = PL.months.length, t0 = ym(PL.months[0]);
+    const X = (s) => R.x + ((ym(s) - t0) / (n - 1)) * R.w;
+    const ymax = niceMax(Math.max(...PL.complaints), 5);
+    const Y = (v) => R.y + R.h - (v / ymax) * R.h;
+    ctx.save(); ctx.globalAlpha = A;
+    for (let v = 0; v <= ymax; v += 5) {
+      line(R.x, Y(v), R.x + R.w, Y(v), v ? C.rule : C.muted);
+      text(`${v}`, R.x - 12, Y(v), { size: 13, color: C.muted, align: "right", base: "middle" });
+    }
+    text("Planet Home Lending, complaints per month", R.x, R.y - 22, { size: 14, color: C.muted });
+    for (let y = 2013; y <= 2018; y++) text(`${y}`, X(`${y}-01`), R.y + R.h + 26, { size: 13, color: C.muted, align: "center" });
+    // horizon windows after each flagged cutoff
+    const fu = ease(seg(T, 0.62, 0.8));
+    PL.flags.forEach((f) => {
+      const xa = X(f.cutoff), xb = X(`${+f.cutoff.slice(0, 4) + 1}${f.cutoff.slice(4)}`);
+      ctx.globalAlpha = A * fu;
+      ctx.fillStyle = "rgba(142,75,198,0.10)"; ctx.fillRect(xa, R.y, xb - xa, R.h);
+      line(xa, R.y, xa, R.y + R.h, C.chg, 2);
+      // Labels sit left of each cutoff line; the filing line hugs the right of the second.
+      const lx = xa - 8, align = "right";
+      text(`Model A #${f.a}`, lx, R.y + 20, { w: 700, size: 15, align });
+      text(`${monthYear(f.cutoff)} cutoff`, lx, R.y + 40, { size: 13, color: C.muted, align });
+    });
+    ctx.globalAlpha = A;
+    const upto = seg(T, 0, 0.6) * (n - 1);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.beginPath();
+    for (let i = 0; i <= Math.floor(upto); i++) { const x = X(PL.months[i]), y = Y(PL.complaints[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    const w = Math.floor(upto);
+    if (w < n - 1) ctx.lineTo(lerp(X(PL.months[w]), X(PL.months[w + 1]), upto - w), lerp(Y(PL.complaints[w]), Y(PL.complaints[w + 1]), upto - w));
+    ctx.stroke();
+    const ku = ease(seg(T, 0.82, 1));
+    if (ku > 0) {
+      ctx.globalAlpha = A * ku;
+      const xf = X(PL.filed);
+      line(xf, R.y - 6, xf, R.y + R.h, C.fil, 2.4);
+      text("CFPB filing", xf + 8, R.y + R.h - 44, { w: 700, size: 15 });
+      text(longDate(PL.filed), xf + 8, R.y + R.h - 24, { size: 14, color: C.muted });
+    }
+    // Side panel: the two rankings at each cutoff.
+    ctx.globalAlpha = A * ease(seg(T, 0.7, 0.9));
+    const px = 1250, py = 250;
+    text("Rank among eligible companies", px, py, { size: 14, color: C.muted });
+    [["", "Model A", "Volume"], ...PL.flags.map((f) => [monthYear(f.cutoff), `#${f.a}`, `#${f.raw}`])].forEach((row, i) => {
+      const y = py + 40 + i * 44;
+      if (i) line(px, y - 26, px + 290, y - 26, C.rule);
+      row.forEach((cell, j) => text(cell, px + [0, 150, 240][j], y, { w: i && j === 1 ? 800 : i ? 400 : 700, size: i ? 19 : 14, align: j ? "right" : "left", color: i ? C.ink : C.muted }));
+    });
+    line(px + 90, py + 48, px + 150, py + 48, C.chg, 3);
+    line(px + 180, py + 48, px + 240, py + 48, C.vol, 3);
+    text(`of ${pl17.eligible} companies`, px, py + 172, { size: 13, color: C.muted });
+    ctx.restore();
+  }
+
+  // ---------- 5 · the re-rank ----------
+  function drawRerank(A, T, grow) {
+    if (A <= 0.001) return;
+    const R = { x: 120, y: 212, w: 1380, h: 408 };
+    const n = rr.length, pitch = R.w / n, bw = pitch - 4, base = R.y + R.h;
+    const maxLog = Math.log10(Math.max(...rr.map((r) => r.c12)) + 1);
+    const barTop = R.y + 96;
+    const Hh = (c) => (Math.log10(c + 1) / maxLog) * (base - barTop);
+    const Xr = (rank) => R.x + (rank - 0.5) * pitch;
+    ctx.save(); ctx.globalAlpha = A;
+    // top-20 zone crossfades from change (violet) to volume (green-teal)
+    const zw = 20 * pitch;
+    ctx.fillStyle = `rgba(142,75,198,${0.1 * (1 - T)})`; ctx.fillRect(R.x, R.y, zw, R.h);
+    ctx.fillStyle = `rgba(0,134,111,${0.1 * T})`; ctx.fillRect(R.x, R.y, zw, R.h);
+    line(R.x + zw, R.y, R.x + zw, base, T < 0.5 ? C.chg : C.vol, 1.5, [4, 4]);
+    const zoneLabel = T < 0.5 ? "Top 20 by change" : "Top 20 by volume";
+    text(zoneLabel, R.x, R.y - 12, { w: 700, size: 15 });
+    const settled = T < 0.02 ? inTop("a") : T > 0.98 ? inTop("raw") : null;
+    if (settled != null) text(`${settled} of ${rrFiled.length} filed companies`, R.x + 150, R.y - 12, { size: 14, color: C.muted });
+    for (const v of [10, 100, 1000]) {
+      const y = base - Hh(v) * grow;
+      line(R.x + zw, y, R.x + R.w, y, C.rule, 1);
+      text(num(v), R.x + R.w + 8, y, { size: 13, color: C.muted, base: "middle" });
+    }
+    text("Complaints in the past 12 months (log scale)", R.x + R.w, R.y - 12, { size: 14, color: C.muted, align: "right" });
+    line(R.x, base, R.x + R.w, base, C.muted);
+    // Bars stagger so the largest movers read as a wave rather than a jump.
+    const place = (r) => {
+      const u = ease(clamp01((T - 0.25 * (r.a / n)) / 0.75));
+      return { x: lerp(Xr(r.a), Xr(r.raw), u), rank: Math.round(lerp(r.a, r.raw, u)) };
+    };
+    for (const pass of [0, 1]) {
+      for (const r of rr) {
+        if ((pass === 1) !== !!r.enforced) continue;
+        const { x } = place(r);
+        ctx.fillStyle = r.enforced ? C.fil : C.bar;
+        const h = Hh(r.c12) * grow;
+        roundTop(x - bw / 2, base - h, bw, h, 2);
+      }
+    }
+    // Labels for the filed companies, on fixed rows so they never swap mid-flight.
+    const ROW = { "Planet Home": 0, Ocwen: 0, Nationstar: 1, "Fay Servicing": 1 };
+    ctx.globalAlpha = A * grow;
+    for (const r of rrFiled) {
+      const { x, rank } = place(r);
+      const nm = short(r.name), row = ROW[nm] ?? 1;
+      const labelY = R.y + 30 + row * 26;
+      const h = Hh(r.c12) * grow;
+      line(x, labelY + 6, x, base - h - 4, C.fil, 1);
+      const right = x > R.x + R.w - 200;
+      ctx.font = font(700, 15);
+      const lab = `${nm}  #${rank}`;
+      const tw = ctx.measureText(lab).width;
+      const tx = right ? x - 6 - tw : x + 6;
+      ctx.fillStyle = C.ground; ctx.fillRect(tx - 3, labelY - 14, tw + 6, 20);
+      text(lab, tx, labelY, { w: 700, size: 15 });
+    }
+    ctx.globalAlpha = A;
+    for (const k of [1, 20, 50, 100, n]) text(`${k}`, Xr(k), base + 22, { size: 13, color: C.muted, align: "center" });
+    text("rank", R.x + R.w, base + 44, { size: 13, color: C.muted, align: "right" });
+    ctx.restore();
+  }
+
+  // ---------- 6 · pooled recall ----------
+  function drawForest(A, T) {
+    if (A <= 0.001) return;
+    const R = { x: 470, y: 230, w: 900, rowH: 74 };
+    const X = (v) => R.x + v * R.w;
+    const rows = [
+      ["raw_count", "Complaint volume", C.vol],
+      ["C", "Model C, survival", C.ref],
+      ["B", "Model B, hazard", C.ref],
+      ["random", "Random ranking", C.ref],
+      ["A", "Model A, change", C.chg],
+    ].sort((a, b) => P0[b[0]].recall_20 - P0[a[0]].recall_20);
+    const bottom = R.y + rows.length * R.rowH;
+    ctx.save(); ctx.globalAlpha = A;
+    for (let v = 0; v <= 1.0001; v += 0.25) {
+      line(X(v), R.y - 20, X(v), bottom, v ? C.rule : C.muted);
+      text(pct(v), X(v), bottom + 24, { size: 13, color: C.muted, align: "center" });
+    }
+    text("Of companies later filed against, share in the top 20 (recall@20), with 95% interval", R.x, R.y - 36, { size: 14, color: C.muted });
+    rows.forEach(([k, label, color], i) => {
+      const u = ease(seg(T, i * 0.13, i * 0.13 + 0.45));
+      const m = P0[k], y = R.y + 20 + i * R.rowH;
+      ctx.globalAlpha = A * Math.min(1, u * 2);
+      text(label, R.x - 24, y, { w: k === "raw_count" || k === "A" ? 700 : 400, size: 17, align: "right", base: "middle" });
+      text(`${m.cutoffs} cutoffs`, R.x - 24, y + 20, { size: 12, color: C.muted, align: "right", base: "middle" });
+      line(X(lerp(m.recall_20, m.recall_20_low, u)), y, X(lerp(m.recall_20, m.recall_20_high, u)), y, color, 2.4);
+      dot(X(m.recall_20), y, 8, color);
+      if (u > 0.9) text(pct(m.recall_20), X(m.recall_20_high) + 14, y, { w: 700, size: 17, base: "middle" });
+    });
+    ctx.globalAlpha = A * ease(seg(T, 0.75, 1));
+    text(`PR-AUC minus volume's: Model A ${delta("A")}; B ${delta("B")}; C ${delta("C")}`, R.x, bottom + 60, { size: 13, color: C.muted });
+    ctx.restore();
+  }
+
+  // ---------- 7 · event-aligned ----------
+  function drawEvent(A, T) {
+    if (A <= 0.001) return;
+    const R = { x: 150, y: 200, w: 1180, h: 400 };
+    const X = (m) => R.x + ((m + 48) / 60) * R.w;
+    const all = [...D.event.series.case, ...D.event.series.peer];
+    const ymax = niceMax(Math.max(...all.map((r) => r[3])), 2);
+    const Y = (v) => R.y + R.h - (v / ymax) * R.h;
+    const upto = -48 + 60 * T;
+    ctx.save(); ctx.globalAlpha = A;
+    for (let v = 0; v <= ymax; v += 2) {
+      line(R.x, Y(v), R.x + R.w, Y(v), C.rule);
+      text(`${v}×`, R.x - 12, Y(v), { size: 13, color: C.muted, align: "right", base: "middle" });
+    }
+    line(R.x, Y(1), R.x + R.w, Y(1), C.muted, 1, [3, 4]);
+    text("Trailing 12-month complaints relative to 48 months before the filing", R.x, R.y - 22, { size: 14, color: C.muted });
+    for (const m of [-48, -36, -24, -12, 0, 12]) text(m ? `${m > 0 ? "+" : ""}${m} mo` : "filing", X(m), R.y + R.h + 26, { size: 13, color: C.muted, align: "center" });
+    line(X(0), R.y, X(0), R.y + R.h, C.ink, 1, [4, 4]);
+    const draw = (rows, color, fill) => {
+      const vis = rows.filter((r) => r[0] <= upto);
+      if (vis.length < 2) return;
+      ctx.fillStyle = fill; ctx.beginPath();
+      vis.forEach((r, i) => (i ? ctx.lineTo(X(r[0]), Y(r[3])) : ctx.moveTo(X(r[0]), Y(r[3]))));
+      for (let i = vis.length - 1; i >= 0; i--) ctx.lineTo(X(vis[i][0]), Y(vis[i][2]));
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = color; ctx.lineWidth = 2.4; ctx.lineJoin = "round"; ctx.beginPath();
+      vis.forEach((r, i) => (i ? ctx.lineTo(X(r[0]), Y(r[1])) : ctx.moveTo(X(r[0]), Y(r[1]))));
+      ctx.stroke();
+    };
+    draw(D.event.series.peer, C.ref, "rgba(125,135,141,0.14)");
+    draw(D.event.series.case, C.fil, "rgba(200,64,47,0.10)");
+    if (T > 0.82) {
+      ctx.globalAlpha = A * ease(seg(T, 0.82, 1));
+      dot(X(0), Y(case0[1]), 6, C.fil); dot(X(0), Y(peer0[1]), 6, C.ref);
+      text(`${x1(case0[1])} enforced companies`, X(0) - 12, Y(case0[1]) - 14, { w: 700, size: 15, align: "right" });
+      text(`${x1(peer0[1])} matched peers`, X(0) + 12, Y(peer0[1]) - 12, { w: 700, size: 15 });
+      text(`${D.event.pairs} matched pairs; shaded bands are 95% intervals`, R.x + R.w, R.y - 22, { size: 14, color: C.muted, align: "right" });
+    }
+    ctx.restore();
+  }
+
+  // ---------- beats ----------
+  const DEFAULTS = {
+    titleA: 0, headA: 1, tlA: 0, tlT: 1, tlNoteA: 0, erA: 0, erT: 0, dzA: 0, dzT: 0, plA: 0, plT: 0,
+    rrA: 0, rrT: 0, rrGrow: 0, fpA: 0, fpT: 0, evA: 0, evT: 0, demoA: 0, limA: 0, endA: 0,
+  };
+  const BEATS = [
+    { scene: 0, headline: "", caption: "", to: { titleA: 1, headA: 0, tlA: 0, tlT: 1 }, dur: 900 },
+    {
+      scene: 0, headline: "Complaints keep arriving. Filings stopped.",
+      caption: `The CFPB has published <strong>${num(D.complaints.total)} mortgage complaints</strong> since ${monthYear(monthly[0][0])}, about ${num(perMonth)} a month, in <span class="vol">monthly volume</span> above. Over the same years it filed <span class="fil">${nMortgage} mortgage-related enforcement actions</span>, ${D.filings.all} across all products. None since ${longDate(lastFiling)}.`,
+      to: { titleA: 0, headA: 1, tlA: 1, tlNoteA: 1 }, dur: 700,
+      clocks: [{ k: "tlT", from: 0, to: 1, dur: 3000, delay: 300 }, { k: "tlNoteA", from: 0, to: 1, dur: 500, delay: 3300 }],
+    },
+    {
+      scene: 1, headline: "First, make every source name the same company",
+      caption: `Complaints, enforcement pages and bank records each spell a company differently. A reviewed crosswalk joins them: Ocwen's complaint name, enforcement name and current name are one entity. Unverified parent links stay unlinked rather than guessed.`,
+      to: { tlA: 0, tlNoteA: 0, erA: 1 }, dur: 800,
+      clocks: [{ k: "erT", from: 0, to: 1, dur: 2600, delay: 300 }],
+    },
+    {
+      scene: 1, headline: "Then rank as if it were that January, and wait a year",
+      caption: `At eight January cutoffs we ranked ${Math.min(...eligible)}–${Math.max(...eligible)} mortgage companies using only data published before the cutoff, then checked who drew a <span class="fil">first CFPB filing</span> in the next 12 months. That happened <strong>${nEvents} times</strong> in eight years, so every estimate that follows carries a wide interval.`,
+      to: { erA: 0, dzA: 1 }, dur: 800,
+      clocks: [{ k: "dzT", from: 0, to: 1, dur: 3200, delay: 300 }],
+    },
+    {
+      scene: 2, headline: "Where the change score worked: Planet Home Lending",
+      caption: `<span class="chg">Model A</span> scores how unusual a company's recent complaints are against its own history and its peers. In ${monthYear(pl17.cutoff)} it ranked Planet Home Lending <strong>#${pl17.a} of ${pl17.eligible}</strong>; <span class="vol">complaint volume</span> ranked it #${pl17.raw}. The <span class="fil">CFPB filed on ${longDate(PL.filed)}</span>. The ${monthYear(pl16.cutoff)} flag came ${earlyMonths} months early, so under our pre-set 12-month rule it counts as a false alarm.`,
+      to: { dzA: 0, plA: 1 }, dur: 800,
+      clocks: [{ k: "plT", from: 0, to: 1, dur: 3400, delay: 300 }],
+    },
+    {
+      scene: 2, headline: `${monthYear(D.rerank.cutoff)}, ranked by unusual change`,
+      caption: `Every eligible company at the ${monthYear(D.rerank.cutoff)} cutoff; bar height is its complaints over the past year. Ranked by <span class="chg">change</span>, the top 20 holds ${inTop("a")} of the ${rrFiled.length} companies <span class="fil">filed against that year</span>. Ocwen and Nationstar sit at #${ocwen.a} and #${nation.a}: their complaints were falling against their own history.`,
+      to: { plA: 0, rrA: 1, rrT: 0 }, dur: 700,
+      clocks: [{ k: "rrGrow", from: 0, to: 1, dur: 1400, delay: 300 }],
+    },
+    {
+      scene: 2, headline: "The same companies, ranked by complaint volume",
+      caption: `Ranked by plain <span class="vol">12-month volume</span>, Ocwen and Nationstar are #${ocwen.raw} and #${nation.raw}; both were filed against within four months. The two top-20 lists share ${shared2017} companies here, and never more than ${maxShared} at any of the eight cutoffs. The change score looks somewhere else entirely.`,
+      to: { rrT: 1 }, dur: 3200,
+    },
+    {
+      scene: 2, headline: `Across eight years, volume caught ${pct(P0.raw_count.recall_20)}. Change caught ${pct(P0.A.recall_20)}.`,
+      caption: `Of the companies later filed against, ranking by <span class="vol">volume</span> put ${pct(P0.raw_count.recall_20)} in its top 20. <span class="chg">Model A</span> put ${pct(P0.A.recall_20)}, below a random ranking's ${pct(P0.random.recall_20)}. Our two statistical models didn't beat volume either. The gap is large, but it rests on ${nEvents} filings: read the intervals, not just the dots.`,
+      to: { rrA: 0, fpA: 1 }, dur: 800,
+      clocks: [{ k: "fpT", from: 0, to: 1, dur: 2600, delay: 300 }],
+    },
+    {
+      scene: 2, headline: "Enforced companies' complaints did climb, but the evidence is thin",
+      caption: `Lined up on the filing date, <span class="fil">enforced companies</span> reached about ${x1(case0[1])} their complaint level four years earlier; matched peers from the same group with similar complaint counts reached ${x1(peer0[1])}. That points the same way as the volume result, but with ${D.event.pairs} pairs the intervals overlap.`,
+      to: { fpA: 0, evA: 1 }, dur: 800,
+      clocks: [{ k: "evT", from: 0, to: 1, dur: 3000, delay: 300 }],
+    },
+    {
+      scene: 3, headline: "In the dashboard",
+      caption: `The public dashboard serves a saved snapshot of this pipeline. It leads with what changed and why, and keeps volume one click away because that's the signal that held up.`,
+      to: { evA: 0, demoA: 1 }, dur: 700,
+    },
+    {
+      scene: 4, headline: "What this can't tell you",
+      caption: "",
+      to: { demoA: 0, limA: 1 }, dur: 700,
+    },
+    {
+      scene: 4, headline: "Enforcement followed persistent volume, not sudden change",
+      caption: "",
+      to: { limA: 0, endA: 1 }, dur: 700,
+    },
+  ];
+  const SCENES = ["The record", "The test", "The result", "Demo", "Limits"];
+
+  const LIMITS = [
+    [`${nEvents} filings`, `Eight cutoffs yield ${nEvents} first filings. Recall intervals for volume (${pct(P0.raw_count.recall_20_low)}–${pct(P0.raw_count.recall_20_high)}) and Model A (${pct(P0.A.recall_20_low)}–${pct(P0.A.recall_20_high)}) barely overlap, but on PR-AUC Model A isn't statistically distinguishable from volume.`],
+    ["No size data back in time", "Servicing exposure isn't archived point-in-time, so the size-normalized baseline was unavailable at every cutoff. We can't separate big from bad."],
+    ["Complaints feed supervision", "The CFPB uses complaints itself, so volume may partly mirror where regulators were already looking."],
+    ["A changed regime", `No CFPB filings since ${longDate(lastFiling)}, and complaint narratives stopped being published in Aug 2026. History may not describe the present.`],
+    ["Small bases mislead", `DHI Mortgage was Model A's #${D.dhi.rank} in ${monthYear(D.dhi.cutoff)} on ${D.dhi.c12} complaints. The live monitor now hides companies under 20.`],
+  ];
+  document.getElementById("limit-rows").innerHTML = LIMITS.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("");
+  document.getElementById("end-lede").innerHTML =
+    `Public complaints can tell an analyst where to look, just not the way we expected. Ranking by <span class="vol">volume</span> caught ${pct(P0.raw_count.recall_20)} of later-enforced companies; our <span class="chg">change score</span> caught ${pct(P0.A.recall_20)}. The change view still earns its place in the dashboard: it shows what moved and why. It just doesn't predict enforcement.`;
+
+  function stateAt(i) {
+    const p = { ...DEFAULTS };
+    for (let j = 0; j <= i; j++) {
+      Object.assign(p, BEATS[j].to);
+      for (const c of BEATS[j].clocks || []) p[c.k] = c.to;
+    }
+    return p;
+  }
+  const P = { ...DEFAULTS };
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let beat = 0, anim = null, rate = 1;
+
+  function go(i, animate) {
+    i = Math.max(0, Math.min(BEATS.length - 1, i));
+    const target = stateAt(i);
+    if (!animate || reduced) {
+      Object.assign(P, target);
+      anim = null;
+    } else {
+      const b = BEATS[i];
+      const clocks = b.clocks || [];
+      for (const c of clocks) P[c.k] = c.from;
+      anim = { from: { ...P }, to: target, dur: b.dur || 800, clocks, t: 0 };
+    }
+    beat = i;
+    renderText();
+  }
+  function next() {
+    if (anim) { Object.assign(P, anim.to); anim = null; return; }
+    if (beat < BEATS.length - 1) go(beat + 1, true);
+  }
+  function prev() { go(beat - 1, false); }
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const progress = $("progress");
+  SCENES.forEach((name, s) => {
+    const el = document.createElement("div");
+    el.className = "scene";
+    const ticks = BEATS.map((b, i) => (b.scene === s ? `<span class="tick" data-i="${i}"></span>` : "")).join("");
+    el.innerHTML = `<span class="label">${name}</span><span class="ticks">${ticks}</span>`;
+    progress.appendChild(el);
+  });
+
+  function renderText() {
+    const b = BEATS[beat];
+    $("headline").textContent = b.headline;
+    $("caption").innerHTML = b.caption;
+    for (const el of [$("head"), $("caption")]) { el.classList.remove("fade-in"); void el.offsetWidth; el.classList.add("fade-in"); }
+    document.querySelectorAll(".tick").forEach((t) => {
+      const i = +t.dataset.i;
+      t.className = "tick" + (i < beat ? " done" : i === beat ? " now" : "");
+    });
+    document.querySelectorAll(".scene").forEach((el, s) => el.classList.toggle("on", s === b.scene));
+    try { history.replaceState(null, "", `#b=${beat}`); } catch (e) { /* sandboxed frames may refuse */ }
+  }
+  function show(id, a) {
+    const el = $(id);
+    el.style.opacity = a;
+    el.style.visibility = a > 0.01 ? "visible" : "hidden";
+  }
+  function updateLive() {
+    $("title-card").style.opacity = P.titleA;
+    $("head").style.opacity = P.headA;
+    $("caption").style.opacity = 1 - P.titleA;
+    show("demo", P.demoA);
+    show("limits", P.limA);
+    show("end", P.endA);
+  }
+
+  function draw() {
+    ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.ground;
+    ctx.fillRect(0, 0, W, H);
+    drawTimeline(P.tlA, P.tlT, P.tlNoteA);
+    drawEntities(P.erA, P.erT);
+    drawDesign(P.dzA, P.dzT);
+    drawPlanet(P.plA, P.plT);
+    drawRerank(P.rrA, P.rrT, P.rrGrow);
+    drawForest(P.fpA, P.fpT);
+    drawEvent(P.evA, P.evT);
+  }
+
+  let lastNow = performance.now();
+  function frame(now) {
+    const dt = Math.min(100, now - lastNow);
+    lastNow = now;
+    if (anim) {
+      anim.t += dt * rate;
+      let done = true;
+      const clockKeys = new Set(anim.clocks.map((c) => c.k));
+      const u = Math.min(1, anim.t / anim.dur);
+      for (const k of Object.keys(anim.to)) {
+        if (clockKeys.has(k)) continue;
+        P[k] = lerp(anim.from[k], anim.to[k], ease(u));
+      }
+      if (u < 1) done = false;
+      for (const c of anim.clocks) {
+        const cu = clamp01((anim.t - (c.delay || 0)) / c.dur);
+        P[c.k] = lerp(c.from, c.to, cu);
+        if (cu < 1) done = false;
+      }
+      if (done) { Object.assign(P, anim.to); anim = null; }
+    }
+    draw();
+    updateLive();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- input ----------
+  $("stage").addEventListener("click", next);
+  $("next").addEventListener("click", (e) => { e.stopPropagation(); next(); });
+  $("prev").addEventListener("click", (e) => { e.stopPropagation(); prev(); });
+  const RATES = [0.5, 1, 2, 4];
+  $("rate").addEventListener("click", (e) => {
+    e.stopPropagation();
+    rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
+    $("rate").textContent = `${rate}×`;
+  });
+  window.addEventListener("keydown", (e) => {
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (/^[1-9]$/.test(e.key)) {
+      const first = BEATS.findIndex((b) => b.scene === +e.key - 1);
+      if (first >= 0) go(first, true);
+    } else if (e.key === "s" || e.key === "S") { $("rate").click(); }
+    else if (e.key === "r" || e.key === "R") { go(beat, true); }
+    else if (e.key === "f" || e.key === "F") {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.().catch(() => { /* blocked outside a user gesture */ });
+    }
+  });
+
+  resize();
+  const m = /b=(\d+)/.exec(location.hash);
+  go(m ? +m[1] : 0, false);
+  const start = () => requestAnimationFrame((t) => { lastNow = t; frame(t); });
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(start, start);
+})();
+</script>

@@ -9,7 +9,7 @@
       try { doc = frame.contentDocument; } catch { return; }
     }
     if (!doc) return;
-    const heading = [...doc.querySelectorAll('h1')].some(node => node.textContent.trim() === 'Risk leaderboard');
+    const heading = [...doc.querySelectorAll('h1')].some(node => node.textContent.trim() === 'Complaint change monitor');
     const footer = [...doc.querySelectorAll('p')].some(node => node.textContent.includes('View prepared in'));
     const idle = doc.querySelector('[data-testid="stApp"]')?.getAttribute('data-test-script-state') === 'notRunning';
     const table = doc.querySelector('.screening-table tbody tr');

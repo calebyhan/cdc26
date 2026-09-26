@@ -20,7 +20,7 @@ args = parser.parse_args()
 base = ["agent-browser", "--session", args.session, "--json"]
 script = Path(__file__).with_name("dashboard_browser_benchmark.js").read_text()
 views = [
-    "Risk leaderboard",
+    "Complaint change monitor",
     "Company detail",
     "Enforcement timeline",
     "Backtest results",
