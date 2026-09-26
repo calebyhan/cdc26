@@ -1,204 +1,117 @@
-# Mortgage Complaint Early-Warning System (MVP 1)
+# Not My Debt
 
-A transparent system that ranks mortgage lenders and servicers by **abnormal complaint activity**, using public complaints, mortgage activity, corporate identity, and financial-condition data. It is validated by backtesting against historical CFPB enforcement actions (2012–2025).
+A medical-billing evidence workspace: connect a provider bill, insurance explanation,
+payment receipt, and collection notice; inspect discrepancies; prepare a factual
+response packet for review.
 
-The product has two halves, because CFPB enforcement has been dormant since August 2025 (see [FINDINGS.md](FINDINGS.md)):
-- **Snapshot:** a manually refreshed anomaly ranking built only from structured complaint fields.
-- **Historical:** a backtest showing whether the same signals preceded the enforcement actions that did happen.
+**Data boundary:** CFPB supplies complaint records and archived consumer narratives,
+not the underlying bills or receipts. The Research view uses real public data.
+The document scenarios are fictional, and document-reconciliation tests are synthetic.
+This prototype has not been validated on real patient paperwork or legal outcomes.
 
-> **This is a regulatory-risk screening tool.** A high score means a company shows an unusual complaint signal relative to its size and peers. It is not evidence or a finding that the company violated any law.
+## Run locally
 
-## Core question
-
-Among mortgage lenders, mortgage servicers, and bank-affiliated mortgage companies, does an unusual rise in *normalized* CFPB complaints predict a CFPB enforcement action within the next 6–18 months?
-
-## What we know from the data so far
-
-Profiled from the CFPB complaint export (`complaints.csv`, pulled 2026-09-26):
-
-| Fact | Value | Implication |
-|---|---|---|
-| Total complaints (all products) | 18.0M, Dec 2011 – Sep 2026 | Store as Parquet and query with DuckDB |
-| `Product = Mortgage` | 461,350 complaints | This is the MVP 1 universe |
-| Distinct mortgage company names | 2,524 | Entity resolution is required |
-| Names with ≥50 mortgage complaints | 290 | Realistic modeling universe is a few hundred entities |
-| Mortgage volume per year since 2018 | ~21k–25k, stable | No credit-bureau-style volume distortion in this product |
-| Top names | Wells Fargo, BofA, Ocwen, Chase, Nationstar, Shellpoint, SPS, Ditech, Mr. Cooper | Several are **nonbank servicers** with no FDIC data and little HMDA origination volume |
-| Issue taxonomy | Old labels (e.g. "Loan modification,collection,foreclosure") and new labels (e.g. "Struggling to pay mortgage") both present | The complaint form changed in 2017, so severity mapping needs a crosswalk |
-| Narrative text | CFPB stopped publishing narratives on 2026-08-14. Old ones survive only in a frozen FOIA archive | No live NLP, ever. Historical NLP is a stretch goal |
-| Enforcement actions | 386 total, 2012-07-17 → 2025-08-21, none filed in the 13 months since | Enforcement is a historical label, not a live target |
-| Top mortgage companies | Top 150 names = 94.1% of mortgage complaints | A hand-curated alias table is feasible |
-| `Timely response? = No` (mortgage) | 1.9% | Rare-event feature only |
-
-## Documentation map
-
-| Doc | Purpose |
-|---|---|
-| [FINDINGS.md](FINDINGS.md) | Data-source spike: live API behavior, limits, schemas, gotchas |
-| [00_project_spec.md](docs/00_project_spec.md) | Question, hypotheses, scope, success criteria |
-| [01_data_sources.md](docs/01_data_sources.md) | Every dataset: role, access, fields, point-in-time availability |
-| [02_data_model.md](docs/02_data_model.md) | Table schemas from raw data to model panel to score snapshots |
-| [03_entity_resolution.md](docs/03_entity_resolution.md) | Canonical company IDs across all sources |
-| [04_features.md](docs/04_features.md) | Feature catalog, severity map, normalization rules |
-| [05_modeling.md](docs/05_modeling.md) | Target definition, transparent score, hazard models |
-| [06_backtesting.md](docs/06_backtesting.md) | Rolling-cutoff protocol, metrics, baselines, leakage checks |
-| [07_dashboard.md](docs/07_dashboard.md) | The four dashboard views and their data contracts |
-| [08_roadmap.md](docs/08_roadmap.md) | Milestones, tasks, exit criteria, stretch goals |
-| [09_decisions.md](docs/09_decisions.md) | Architecture decision log and open questions |
-| [10_risks_limitations.md](docs/10_risks_limitations.md) | Methodological, ethical, and data caveats |
-| [11_presentation.md](docs/11_presentation.md) | Narrative arc, demo script, rubric mapping |
-
-## Repository layout
-
-```
-cfpb-ews/
-├── README.md
-├── Makefile                 # make ingest | resolve | features | train | backtest | app
-├── pyproject.toml
-├── data/
-│   ├── raw/                 # untouched downloads (gitignored)
-│   ├── staging/             # typed, cleaned Parquet
-│   ├── reference/           # hand-maintained CSVs: severity_map, overrides, enforcement_labels
-│   └── marts/               # company_month panel, score snapshots
-├── src/ews/
-│   ├── ingest/              # complaints, enforcement scraper, hmda, fdic, ffiec, gleif
-│   ├── resolve/             # normalization, rapidfuzz candidates, alias table, rollup
-│   ├── features/
-│   ├── models/              # transparent score, discrete-time hazard, cox
-│   ├── backtest/
-│   └── app/                 # Streamlit dashboard
-├── spike/                 # feasibility scripts from the data spike (see FINDINGS.md)
-├── notebooks/               # exploration only; nothing the pipeline depends on
-├── tests/
-└── docs/
-```
-
-## Stack
-
-Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly
-
-## Quickstart
-
-Requires Python 3.11+, `uv`, and `make` (macOS/Linux).
-
-```bash
-make setup      # create .venv and install the editable package + dev tools
-make ingest     # download CSV if absent; rebuild all-product Parquet and mortgage staging
-make delta      # new complaints + 30-day overlap, upsert by complaint_id
-make enforcement # archive CFPB actions, validate reviewed labels, stage events + parties
-make test
-make lint       # ruff + black
-```
-
-Run commands from the repository root. For an existing export:
-`make ingest CSV=/absolute/path/complaints.csv`. `DATA_DIR=/path/to/data` overrides
-the output root; crosswalks remain in this repository's `data/reference/`.
-A first download needs network access and about 6 GB of free space. Subsequent
-`make ingest` runs reuse the raw CSV but **rebuild both Parquet files**; to reconcile
-against a newer bulk export, replace the CSV with a fresh download first.
-
-Outputs are `data/staging/complaints_all.parquet` (all products) and
-`data/staging/stg_complaints.parquet` (Mortgage only). `data/staging/ews.duckdb`
-exposes `stg_complaints` as a SQL view over its Parquet file, avoiding two mutable
-copies. The view stores an absolute path; rerun ingestion after relocating data.
-Dates are typed DATE, IDs BIGINT, ZIP codes strings, and `ingested_at` is UTC.
-Issue and response crosswalks add severity and response eligibility columns;
-in-progress/unknown responses remain available for future updates.
-
-Delta pulls use JSON content-type checks, `search_after`, and 3.1-second pacing.
-The overlap starts 29 days before the existing maximum received date (or today,
-whichever is earlier), so missed days are included after downtime. Raw delta
-JSONL is retained under `data/raw/deltas/`. A file lock prevents concurrent writers; complete
-validation precedes atomic staging-file replacement. Failed pulls leave staging
-unchanged; repeated unchanged payloads preserve ingestion timestamps.
-
-Additional source tools: `make fdic`, `make hmda-spike`.
-`make enforcement` caches raw HTML and SHA-256/URL/retrieval-time sidecars under
-`data/raw/enforcement/`. It requires exactly 386 unique slugs matching the listing
-count, stops repeated pagination, and validates every action label, party review,
-and product mapping before staging. Missing or changed labels fail the build.
-`make enforcement ENFORCEMENT_ARGS=--offline` rebuilds from that archive;
-`ENFORCEMENT_ARGS=--refresh` fetches a new live snapshot that may require reference
-reviews. `DATA_DIR` also applies to enforcement. Raw HTML and staging are ignored
-by Git; the reviewed references are committed source data.
-The action-grain `enforcement_events` and party-grain `stg_enforcement` are Parquet
-files with DuckDB views, accompanied by CSVs and `enforcement_counts.json`.
-See [ADR-008](docs/09_decisions.md#adr-008-m1-event-count-and-fallback-panel-eligibility-pending-m2m3)
-for the 86/88 window counts and the remaining panel-eligibility gate.
-Normalization and blocked candidate matching are in `ews.resolve.matching`.
-`make format` applies formatting. To enable Git hooks, run
-`.venv/bin/pre-commit install`. The original `spike/` remains unchanged.
-
-`make resolve` publishes [crosswalk.csv](data/marts/crosswalk.csv), a review queue,
-typed entity/alias tables and complaint/enforcement entity joins. Replay with
-`make resolve RESOLVE_ARGS=--offline`. The current Codex-reviewed aliases cover
-94.0646% of mortgage complaints and all 131 named company-party rows in mortgage
-actions. Independent human adjudication remains outstanding; enable its separate
-gate with `RESOLVE_ARGS='--offline --require-human-review'`. Review inputs and
-merger/rename decisions live in `data/reference/`; see the
-[resolution report](docs/12_entity_resolution_report.md) for source gaps and
-identifier/ownership limits. GLEIF and NIC remain deferred under ADR-012.
-
-Ingestion, resolution, features, models, and backtesting are implemented.
-The dashboard remains a later milestone.
-See [FINDINGS §9](FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26)
-for measured M0 results and HMDA constraints.
-
-
-### Panel and features (M3)
-
-`make pipeline` rebuilds staging, reviewed M2 identities, FDIC quarterly financials,
-2018–2025 HMDA lender-year counts, and `data/marts/company_month.parquet`.
-Use `PIPELINE_ARGS=--offline` to replay archived inputs, or
-`PIPELINE_ARGS='--offline --end 2024-12-31'` for the primary observation window.
-The initial HMDA ingestion needs about 8 GB for compressed archives plus up to
-10 GB temporarily for one expanded vintage. Read [M3 conventions and version
-limitations](docs/13_panel_features.md) before interpreting historical exposure
-coverage. Current revised datasets are never backdated to their original releases.
-Nonbank servicers use structured complaint features only (ADR-007 option a).
-
-### Models and backtesting (M4)
-
-After M3, `make backtest` rebuilds the unrestricted complaint-feature grid, fits
-Models A/B/C, runs annual rolling tests at 6/12/18-month horizons, and generates
-[the backtest report](reports/backtest_2026-09-26.md). Primary outcomes end in
-December 2024; secondary outcomes end in August 2025. Each window includes a
-confirmed-dismissal exclusion sensitivity. Training transforms and expanding
-validation folds respect horizon embargoes. Statistical fits obey ADR-008's
-event-based parameter budget; sparse early folds are explicitly unavailable.
-
-Reports contain per-cutoff and pooled metrics with 400-draw company-cluster
-bootstrap intervals, paired baseline comparisons, calibration, matched-peer
-trajectories, company-level errors, and fitted-model artifacts. Machine-readable
-results and predictions also populate the `backtest_results` and `score_snapshot`
-Parquet marts. Model A always supplies the [live ranking](reports/live_model_a.csv),
-with three component explanations and no post-August-2025 accuracy claim.
-
-Historical revised FDIC/HMDA snapshots are unavailable at the evaluated cutoffs,
-so the verified size-normalized baseline is reported as N/A. The separately
-named self-normalized reference does not substitute for that missing exposure
-comparison. All three models underperform raw count by point-estimate PR-AUC in
-the primary 12-month paired comparison; see the report's intervals and limits.
-`make test lint` verifies the implementation; `BACKTEST_ARGS=--reuse-grid` reuses
-the feature grid for a rerun. The original M3 panel and enforcement labels are
-checksum-protected during backtesting.
-
-## Public screening dashboard
-
-[Open the public dashboard](https://unccdc26.streamlit.app).
-
-The Streamlit + Plotly app provides a complaint change monitor, company detail,
-event-aligned enforcement timelines, backtest results, and a limitations page.
-It reads only the small precomputed DuckDB/Parquet bundle in `data/dashboard`.
+Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required.
 
 ```sh
-uv pip install --python .venv/bin/python -e '.[dev,dashboard]'
-make dashboard
+uv sync --extra dev
+uv run streamlit run streamlit_app.py
 ```
 
-See [dashboard operations](docs/14_dashboard_operations.md) for deployment,
-manual refreshes, score interpretation, missing ownership coverage and deployment
-checks. Run `make refresh-dashboard` when you want updated complaints; it pulls
-new data plus the trailing 30 days, rebuilds the marts and tests every view.
-Review and commit the resulting snapshot yourself. No scheduled refresh or
-automatic commits are configured.
+The app opens with Maya's fictional paid-bill case. Switch off the receipt to see
+the payment finding disappear. Other examples cover partial payment, wrong account,
+duplicate payment evidence, missing receipt, and records that agree.
+
+Use **Evidence** to paste text or upload a text-based PDF, review extracted facts,
+and make corrections. Source passages remain visible beside corrected values.
+Use **Findings** to inspect the ledger and supporting evidence. **Response packet**
+produces a reviewed HTML download that can be printed to PDF from a browser.
+Nothing is sent to providers, collectors, or regulators.
+
+## Extraction and data handling
+
+The local parser recognizes explicit `Label: value` fields. It does not perform
+general OCR or understand arbitrary document layouts. Scanned PDFs need transcription.
+Confirmed user corrections remain labeled and the original source is preserved.
+
+Optional AI extraction uses the OpenAI Responses API and a structured schema:
+
+```sh
+export OPENAI_API_KEY='your-key'
+export OPENAI_MODEL='gpt-6-astra'
+uv run streamlit run streamlit_app.py
+```
+
+Then select **Use OpenAI** for a document. The app explicitly sends that document's
+text to the configured API. Requests use `store=False`; provider retention policies
+still apply. Values and exact source quotations are checked before human review.
+The app works without a key. Live AI extraction was not exercised during this
+implementation because no API key was configured; local extraction and model-output
+validation are covered by tests.
+
+Private case data stays in session memory and is not written to a shared application
+database/cache or committed files. Downloaded packets contain case information.
+The public hackathon demo uses fictional documents. API keys belong in environment
+variables, never in Git. `.env.example` documents configuration; `.env` is not
+automatically loaded by the app.
+
+## How the evidence engine works
+
+- Extract typed facts with exact source passages and page references.
+- Require confirmation before using a field.
+- Match provider, patient, account, service date, and available claim identifiers.
+- Reconcile amounts with integer cents; an EOB is never proof of patient payment.
+- Check payment status and chronology, deduplicate references, and withhold a final
+  balance when records are contradictory or ambiguous.
+- Draft from the resulting evidence and reviewed procedural guidance.
+
+Supported scope is one provider, one account, one encounter. The engine currently
+requires exact normalized identities and explicit payment status; ambiguous masked
+identifiers and missing facts require review. It does not adjudicate insurance
+coverage, diagnose billing-code errors, decide legal liability, or calculate legal
+deadlines. It surfaces the date printed on a collection notice.
+
+## Research
+
+The committed aggregate snapshot contains 8,843 medical-debt complaint records
+received in 2025. A bounded January–February 2025 archive contains 1,644 medical
+complaints, 819 nonempty narratives, and 812 unique normalized narrative texts.
+
+Pattern/document-mention counts use transparent keyword rules. They overlap and
+are not verified events, unique people, or supervised-model accuracy. Raw archive
+and extracted narratives are excluded from Git; aggregates and source checksums
+are committed. See [sources and methods](docs/data_sources.md).
+
+```sh
+uv run python scripts/refresh_research.py --help
+```
+
+## Verify
+
+```sh
+uv run pytest -q
+uv run ruff check .
+```
+
+Tests cover evidence matching, missing/partial/duplicate/reversed payments, dates,
+invalid amounts, source verification, extraction uncertainty, safe HTML rendering,
+and research aggregation. Synthetic regression results are not an accuracy estimate
+for real-world documents. No debt cancellation, credit correction, or savings
+outcome has been measured.
+
+## Project files
+
+- `src/not_my_debt/`: schema, extraction, reconciliation, packet export, research, UI.
+- `data/research/`: reproducible public aggregate data and source manifest.
+- `tests/`: synthetic regression cases and parser/aggregation checks.
+- [Scope and presentation storyboard](docs/scope.md).
+
+This pivot uses branch `pivot/not-my-debt`. The mortgage project is preserved on
+`main` and tag `mortgage-v1` in the shared repository.
+
+## Attribution
+
+Created with assistance from OpenAI Codex for design, code, tests, and documentation.
+Official guidance: [CFPB response resources](https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/),
+[CMS EOB explanation](https://www.cms.gov/initiatives/your-patient-rights/medical-bill-rights/get-help/medical-bill-guides-resources/how-read-health-insurance-explanation-benefits),
+and [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
