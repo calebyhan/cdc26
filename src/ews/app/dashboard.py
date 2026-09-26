@@ -12,7 +12,7 @@ import streamlit as st
 from ews.app.data import BUNDLE, manifest, read
 
 VIEWS = [
-    "Risk leaderboard",
+    "Complaint change monitor",
     "Company detail",
     "Enforcement timeline",
     "Backtest results",
@@ -30,6 +30,37 @@ COLORS = [
     "#898B94",
     "#93BAC1",
 ]
+SORTS = ["Unusual change (Model A)", "12-month complaint volume"]
+# Tiny complaint bases produce extreme self-history z-scores; "sparse history"
+# was a leading false-positive category in the M4 error review.
+MIN_COMPLAINTS = 20
+
+
+def screen(frame, sort, min_complaints=MIN_COMPLAINTS):
+    frame = frame[frame.c_12m.ge(min_complaints)]
+    column = "anomaly_score" if sort == SORTS[0] else "c_12m"
+    return frame.sort_values([column, "entity_id"], ascending=[False, True])
+
+
+def backtest_headline(metrics, window, policy, horizon):
+    pooled = metrics[
+        metrics.window.eq(window)
+        & metrics.policy.eq(policy)
+        & metrics.horizon.eq(horizon)
+        & metrics.cutoff.eq("pooled")
+    ].set_index("model")
+    if not {"A", "raw_count", "random"}.issubset(pooled.index):
+        return ""
+    recall = pooled.recall_20
+    return (
+        f"**Headline: plain complaint volume beat the Model A change score.** Of the companies later "
+        f"hit by a CFPB filing within {horizon} months, ranking by 12-month complaint volume "
+        f"put {recall['raw_count']:.0%} in its top 20. The Model A change score put "
+        f"{recall['A']:.0%} there; a random ranking, {recall['random']:.0%}. Pooled over "
+        f"{int(pooled.n_cutoffs['A'])} annual cutoffs with few filings, so intervals are wide. "
+        "Model A surfaces different companies than volume does. It shows what changed, "
+        "not who will be enforced."
+    )
 
 
 def band(value):
@@ -100,11 +131,22 @@ def company_select(key, ids=None):
 
 
 def leaderboard():
-    st.title("Risk leaderboard")
+    st.title(VIEWS[0])
     st.caption(
-        "Elevated complaint signal · Model A screening score · public mortgage complaint patterns"
+        "Which mortgage companies' complaints changed unusually versus their own history and peers, and why. "
+        "In the 2016–2023 backtest, this change score did not beat plain complaint volume at anticipating "
+        "CFPB filings ([Backtest results](?view=Backtest%20results)), so use it to see what changed, not to predict enforcement."
     )
     frame = read("leaderboard")
+    top = st.columns([2, 1])
+    sort = top[0].radio("Rank by", SORTS, horizontal=True, key="leaderboard_sort")
+    minimum = top[1].number_input(
+        "Minimum 12m complaints",
+        min_value=0,
+        value=MIN_COMPLAINTS,
+        step=5,
+        key="leaderboard_min",
+    )
     cols = st.columns([1.2, 1.5, 1, 1.5])
     groups = cols[0].multiselect("Peer group", sorted(frame.peer_group.unique()))
     sizes = cols[1].multiselect("Size band", sorted(frame.size_band.unique()))
@@ -123,13 +165,13 @@ def leaderboard():
         ]
     if exclude:
         frame = frame[~frame.active_action]
-    frame = frame.sort_values(["anomaly_score", "entity_id"], ascending=[False, True])
+    frame = screen(frame, sort, minimum)
     a, b, c = st.columns(3)
     a.metric("Companies", len(frame))
-    b.metric("Elevated / high risk tier", int(frame.risk_tier.ne("low").sum()))
+    b.metric("Elevated / high change tier", int(frame.risk_tier.ne("low").sum()))
     c.metric("Score month", manifest()["live_as_of"])
     st.caption(
-        "Size bands use trailing complaint volume. State filters use the buffered 12-month complaint geography; scores remain national. Risk tiers: low <0.5, elevated 0.5–<1, high ≥1."
+        "Size bands use trailing complaint volume. State filters use the buffered 12-month complaint geography; scores remain national. Change tiers (Model A score): low <0.5, elevated 0.5–<1, high ≥1."
     )
     st.caption(
         "Model B/C columns: historical-regime estimate · low <3%, elevated 3%–<10%, high ≥10%. Hover a band for its numeric value. Frozen pre-2025 models applied to current features; no present-regime calibration claim."
@@ -138,8 +180,8 @@ def leaderboard():
         "Rank",
         "Company",
         "Peer group",
-        "Screening score",
-        "Risk tier",
+        "Change score",
+        "Change tier",
         "12m complaints",
         "Normalized rate",
         "Top 3 drivers",
@@ -150,14 +192,14 @@ def leaderboard():
         for h in [6, 12, 18]
     ]
     rows = []
-    for row in frame.itertuples():
+    for position, row in enumerate(frame.itertuples(), start=1):
         rate = (
             "Unavailable"
             if pd.isna(row.normalized_rate)
             else f"{row.normalized_rate:.2f} {row.rate_basis}"
         )
         cells = [
-            str(row.rank),
+            str(position),
             f'<a href="?view=Company%20detail&amp;company={row.entity_id}">{html.escape(row.display_name)}</a>',
             html.escape(row.peer_group),
             f"{row.anomaly_score:.3f}",
@@ -187,7 +229,7 @@ def leaderboard():
         st.write(info["action_filter_rule"])
         st.json(info["hazard_sources"])
         st.write(
-            "High risk tiers can arise from very few complaints. Always inspect complaint counts and missing exposure denominators before interpreting a screening score."
+            "High change tiers can arise from very few complaints; the minimum-complaints filter hides the smallest bases. Always inspect complaint counts and missing exposure denominators before interpreting a change score."
         )
 
 
@@ -620,6 +662,9 @@ def backtest_results():
     st.caption(
         "Primary: outcomes through 2024-12-31. Secondary: through 2025-08-31. Dismissals describe case status, not merits. 95% company-cluster bootstrap intervals; undefined metrics remain unavailable."
     )
+    headline = backtest_headline(metrics, window, policy, horizon)
+    if headline:
+        st.markdown(headline)
     selected = metrics[
         metrics.window.eq(window)
         & metrics.policy.eq(policy)

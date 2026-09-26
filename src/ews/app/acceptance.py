@@ -30,7 +30,7 @@ def audit(url=None, browser_report=None):
     if browser_report and Path(browser_report).exists():
         browser = json.loads(Path(browser_report).read_text())
         required = {
-            "Risk leaderboard",
+            "Complaint change monitor",
             "Company detail",
             "Enforcement timeline",
             "Backtest results",

@@ -187,7 +187,7 @@ checksum-protected during backtesting.
 
 [Open the public dashboard](https://unccdc26.streamlit.app).
 
-The Streamlit + Plotly app provides a risk leaderboard, company detail,
+The Streamlit + Plotly app provides a complaint change monitor, company detail,
 event-aligned enforcement timelines, backtest results, and a limitations page.
 It reads only the small precomputed DuckDB/Parquet bundle in `data/dashboard`.
 

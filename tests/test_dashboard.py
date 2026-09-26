@@ -8,7 +8,16 @@ import duckdb
 import numpy as np
 from streamlit.testing.v1 import AppTest
 
-from ews.app.dashboard import BANNER, REGIME, VIEWS, band, probability_cell
+from ews.app.dashboard import (
+    BANNER,
+    REGIME,
+    SORTS,
+    VIEWS,
+    backtest_headline,
+    band,
+    probability_cell,
+    screen,
+)
 from ews.app.data import BUNDLE
 from ews.app.precompute import restore_hazard
 
@@ -127,6 +136,30 @@ def test_leaderboard_filters_and_historical_hazard_table():
         ["low", "elevated", "high", "unavailable"]
     )
     assert "score" not in table.columns
+
+
+def test_screen_hides_sparse_companies_and_sorts_by_choice():
+    from ews.app.data import read
+
+    frame = read("leaderboard")
+    assert frame.c_12m.lt(20).any(), "fixture must contain sparse companies"
+    change = screen(frame, SORTS[0], min_complaints=20)
+    assert change.c_12m.ge(20).all()
+    assert change.anomaly_score.is_monotonic_decreasing
+    volume = screen(frame, SORTS[1], min_complaints=0)
+    assert len(volume) == len(frame)
+    assert volume.c_12m.is_monotonic_decreasing
+
+
+def test_backtest_headline_reports_model_a_against_complaint_volume():
+    from ews.app.data import read
+
+    text = backtest_headline(read("metrics"), "primary", "include", 12)
+    assert "complaint volume" in text
+    assert "50%" in text  # raw-count recall@20, primary/include/12m
+    assert "4%" in text  # Model A recall@20
+    assert "11%" in text  # random recall@20
+    assert backtest_headline(read("metrics"), "primary", "include", 99) == ""
 
 
 def test_manual_snapshot_acceptance_needs_no_github_access():

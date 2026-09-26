@@ -6,16 +6,17 @@
 
 ## Language rules (applies across every view)
 
-- Use "elevated complaint signal", "risk tier", and "screening score".
+- Use "elevated complaint signal", "change tier", and "change score". Model A did not beat 12-month complaint volume in the backtest, so never present its ranking as enforcement risk.
 - Never use "violator", "likely guilty", or "will be sued".
 - A persistent banner reads: *Screening tool based on public complaint data. Not a finding of wrongdoing.* It links to the limitations page.
 - Show probabilities as bands (low / elevated / high) with the numeric value only on hover.
 - Label every probability "historical-regime estimate". A second banner notes that CFPB has filed no enforcement action since 2025-08-21.
 
-## View 1: Risk leaderboard
+## View 1: Complaint change monitor
 
-- **Default sort:** anomaly score (Model A). Model B/C probabilities appear as secondary columns.
-- **Table:** rank, company, peer group, anomaly score, risk band, p_6m / p_12m / p_18m, 12-month complaints, normalized rate, top 3 drivers, sparkline of the last 24 months.
+- **Sort:** unusual change (Model A anomaly score, default) or 12-month complaint volume, the strongest backtest baseline. Model B/C probabilities appear as secondary columns.
+- **Minimum complaints:** hides companies below 20 complaints in 12 months by default; tiny bases produce extreme self-history scores.
+- **Table:** position, company, peer group, change score, change tier, p_6m / p_12m / p_18m, 12-month complaints, normalized rate, top 3 drivers, sparkline of the last 24 months.
 - **Filters:** peer group, size band, state, "exclude companies with active actions".
 - **Reads:** latest `score_snapshot`, `company_month`.
 
