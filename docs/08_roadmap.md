@@ -33,14 +33,22 @@ required distinction between action counts and eligible company first events are
 recorded in ADR-008. Entity resolution and panel eligibility remain M2/M3 work.
 
 ## M2: Entity resolution
-- [ ] `normalize()` from the spike, plus exact-key matching and first-token-blocked `token_sort_ratio`
-- [ ] Review queue for scores 85–95
+- [x] `normalize()` from the spike, plus exact-key matching and first-token-blocked `token_sort_ratio`
+- [x] Review queue for scores 85–95
 - [ ] Hand-verify the top 150 mortgage names and every mortgage-related enforcement party (budget: half a day)
-- [ ] FDIC rollup by `RSSDHCR`. Mergers from `/history`, plus a hand-kept nonbank rename list (Nationstar/Mr. Cooper, Ocwen/Onity, Ditech, …)
-- [ ] Publish `crosswalk.csv`
-- [ ] Decide whether NIC or GLEIF are needed for the remaining gaps
+- [x] FDIC rollup by `RSSDHCR`. Mergers from `/history`, plus a hand-kept nonbank rename list (Nationstar/Mr. Cooper, Ocwen/Onity, Ditech, …)
+- [x] Publish `crosswalk.csv`
+- [x] Decide whether NIC or GLEIF are needed for the remaining gaps
 
 **Exit:** at least 94% of mortgage complaints map to a reviewed `entity_id`, and 100% of company parties in mortgage-related actions are mapped.
+
+**2026-09-26:** Codex individually reviewed all 150 priority names (149 accepted,
+one unresolved CFPB routing placeholder) and all 121 distinct mortgage company-party
+strings. Reviewed coverage is **433,967/461,350 (94.0646%)**, with **131/131 company
+party rows mapped**. Independent human adjudication remains outstanding, so the
+manual sign-off item above remains open. `make resolve RESOLVE_ARGS=--offline`
+reproduces the artifacts; `--require-human-review` enforces the additional human
+gate. [Details and source gaps](12_entity_resolution_report.md). GLEIF/NIC deferred.
 
 ## M3: Panel and features
 - [ ] FDIC quarterly financials (summed per holding company) and HMDA lender-year counts, each with `available_from`

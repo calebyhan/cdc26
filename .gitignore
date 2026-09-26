@@ -47,6 +47,8 @@ __pycache__/
 !/data/raw/.gitkeep
 !/data/staging/.gitkeep
 !/data/marts/.gitkeep
+!/data/marts/crosswalk.csv
+!/data/marts/resolution_report.json
 /complaints.csv
 /dist/
 /data/.complaints.lock

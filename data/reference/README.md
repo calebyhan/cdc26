@@ -76,3 +76,54 @@ Reproduce with `make enforcement`; replay with
 `make enforcement ENFORCEMENT_ARGS=--offline`. Outputs, count definitions and the
 initial feature cap are recorded in ADR-008. Company identity and panel eligibility
 remain separate M2/M3 work, so action counts cannot serve as fitted-model event counts.
+
+## Entity identity reviews (M2, 2026-09-26)
+
+`entity_manual.csv` fixes stable entity IDs, types, FDIC charter membership and
+holding-company anchors. `alias_manual.csv` overrides all automatic proposals on
+exact `(source, raw_string)` keys and inclusive validity dates. Rejections and
+unresolved decisions also override proposals. `hmda_lei_manual.csv` records the
+reviewed reporter LEIs and their entity-linkage intervals; notably Flagstar's LEI
+belongs to the predecessor before 2022-12-01 and NYCB thereafter.
+`entity_relationships.csv` distinguishes a rename, a bank merger, a corporate
+merger and an asset sale. Only mergers set a different successor. Historical
+complaints are not rewritten to successor IDs. Ditech's asset-sale entry records
+court approval, not a fabricated dissolution/closing date or universal successor.
+
+These decisions were individually reviewed by **Codex**, not an independent
+human. Names without a verified cross-source identifier remain identity-only
+records, with null identifiers; they are not assigned to a similarly named bank.
+The CFPB `Pending Company Match` routing placeholder is explicitly unresolved.
+All 150 priority names have a decision, of which 149 are accepted. Human
+adjudication remains outstanding. Do not replace the reviewer column merely to
+make the human gate pass.
+
+Run `make resolve` after complaint/enforcement staging exists. The first run
+archives the complete active/inactive FDIC roster, relevant `/history` events,
+2018–2023 HMDA panels and 2024–2025 transmittal sheets. Replay with
+`make resolve RESOLVE_ARGS=--offline`; refetch with `RESOLVE_ARGS=--refresh`.
+Archive hashes, JSON/ZIP content checks, pagination counts, and reviewed reference
+validation precede publication. `--require-human-review` additionally requires
+94% independent human complaint coverage and human review of all company parties.
+
+The published `data/marts/crosswalk.csv` is intentionally one alias × identifier
+observation per row. Never join complaints directly to that expanded table:
+join `alias.parquet` by exact source/name and date, or use
+`complaint_entity.parquet`. RSSD, LEI and HMDA identifier remain strings; blank,
+zero and `-1` are missing. Modern HMDA identifiers are LEIs. Legacy IDs and the
+headerless 2017 panel are deliberately not guessed into this modern crosswalk.
+`identifier_year` describes the identifier observation's vintage, not public
+availability. The reviewed `rssdhcr` is the modeling identity anchor; the
+2024–2025 TS files do not verify current ownership. Financial membership and
+release-time joins still need dated evidence in M3. Nonbanks and credit unions
+have no FDIC charter/deposit denominator.
+
+`match_review_queue.csv` includes 85–95 inclusive and ambiguous exact matches;
+95 is conservatively queued. Scores above 95 with one best entity are proposals
+marked `auto_accept`; they never count as manual coverage or enter the published
+reviewed alias table. Unmatched/alternative proposals are in
+`match_proposals.csv`. To accept a queue decision, add its evidence and exact
+source spelling to the reviewed references, then rebuild.
+
+See [the resolution report](../../docs/12_entity_resolution_report.md) for coverage,
+identifier gaps, source decisions and remaining independent review.

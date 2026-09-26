@@ -96,3 +96,14 @@ Format: context, decision, consequences. Add a new entry for any decision made a
 ## ADR-012: GLEIF, NIC, Y-9C optional *(new)*
 - **Context:** FDIC `RSSDHCR` and `/history` already cover bank holding-company rollup and mergers.
 - **Decision:** these three sources are deferred. Add them only if M2 shows gaps that FDIC can't fill.
+- **M2 evidence (2026-09-26, before backtesting):** FDIC active/inactive identities,
+  `/history` merger events and dated HMDA reporter identities support 94.0646%
+  Codex-reviewed complaint coverage and 131/131 mortgage company-party mappings.
+  Historical Flagstar ownership is available in dated panels despite missing
+  current FDIC holding-company fields. The 129 entities without a reviewed HMDA
+  LEI are documented identity/exposure gaps, not fabricated reporters; none blocks
+  the measured identity joins. Continue to defer GLEIF/NIC. Reconsider them only
+  for a specific required M3 reporter/ownership link that these sources cannot
+  supply. Nonbank RSSD absence is not itself a reason to add NIC or infer bank
+  denominators. Independent human identity adjudication remains outstanding.
+  See [M2 report](12_entity_resolution_report.md).

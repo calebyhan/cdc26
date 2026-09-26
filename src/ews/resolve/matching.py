@@ -22,6 +22,7 @@ ABBREV = {
     "INTL": "INTERNATIONAL",
     "AMER": "AMERICA",
     "MTG": "MORTGAGE",
+    "ASSN": "ASSOCIATION",
     "CORPORATION": "CORP",
     "COMPANY": "CO",
 }
@@ -52,7 +53,7 @@ GENERIC = {"BANK", "BANCORP", "BANCSHARES", "SERVICES", "SERVICING", "US"}
 
 def normalize(name: str) -> str:
     s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().upper()
-    s = re.split(r"\b(?:D/B/A|DBA|A/K/A|AKA|F/K/A|FKA)\b", s)[
+    s = re.split(r"\b(?:D/B/A|DBA|A/K/A|AKA|F/K/A|FKA|N/K/A|NKA)\b", s)[
         0
     ]  # drop trade-name aliases
     s = s.replace("&", " AND ")
@@ -79,10 +80,10 @@ def build_index(names):
 
 def best(query, idx, cutoff=90):
     key = normalize(query)
-    if key in idx:
-        return idx[key], 100.0
     if not key:
         return None, 0.0
+    if key in idx:
+        return idx[key], 100.0
     first = key.split()[0]
     cands = [
         k for k in idx if k and k.split()[0] == first
@@ -93,8 +94,22 @@ def best(query, idx, cutoff=90):
     return (idx[hit[0]], hit[1]) if hit else (None, 0.0)
 
 
-def naive(query, idx, cutoff=88):
-    hit = process.extractOne(
-        normalize(query), list(idx), scorer=fuzz.token_set_ratio, score_cutoff=cutoff
-    )
-    return idx[hit[0]] if hit else None
+def candidates(query, index, cutoff=85):
+    """Return all exact ties, otherwise blocked token-sort proposals.
+
+    The caller must distinguish normalized-key collisions by entity, rather than
+    accepting an arbitrary first row. Empty names never match.
+    """
+    key = normalize(query)
+    if not key:
+        return []
+    if key in index:
+        return [(name, 100.0, "exact") for name in index[key]]
+    block = [k for k in index if k and k.split()[0] == key.split()[0]]
+    return [
+        (name, score, "fuzzy")
+        for match, score, _ in process.extract(
+            key, block, scorer=fuzz.token_sort_ratio, score_cutoff=cutoff, limit=None
+        )
+        for name in index[match]
+    ]

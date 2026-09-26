@@ -725,3 +725,55 @@ Two consecutive complete offline scrape/validate/stage runs took **3.96 s** and
 drift, archive tampering, summary extraction, caption delimiters/aliases, typed
 staging and action-level counting, missing reviews, and changed-source rejection
 before staging replacement. Ruff and Black checks pass.
+
+## 11. M2 entity resolution (2026-09-26)
+
+`make resolve` publishes [`data/marts/crosswalk.csv`](data/marts/crosswalk.csv),
+exact dated alias/entity tables, a top-150 review sheet, a score-85–95 review queue,
+and complaint/enforcement entity joins. Inputs are versioned manual decisions;
+FDIC and modern HMDA identity downloads have URL/time/checksum sidecars and offline
+replay. The complete FDIC roster has **27,834** active/inactive institutions;
+the selected history archive has **217** merger/name-change events. Modern
+2018–2025 panel/TS identity files have **39,269** rows. No LAR download is needed
+for identity resolution.
+
+The individually inspected review set contains **232 entities**, **307 alias
+review rows**, **104 dated reporter-LEI links**, and **16 rename/merger/asset-sale
+relationships**. **433,967/461,350 mortgage complaints (94.0646%)** map through
+accepted reviewed aliases. All 150 priority names have a decision; 149 are
+accepted and the 195 complaints labeled `Pending Company Match` remain unresolved.
+All **131 company-party rows / 121 distinct party strings** in mortgage-related
+actions are mapped. A named respondent without complaint presence receives a
+separate identity, rather than a guessed complaint-company match.
+
+**Reviewer qualification:** these are Codex-authored identity/evidence reviews,
+not independent human adjudication. The numerical coverage gate passes for this
+set; ADR-009's independent human sign-off remains outstanding.
+`--require-human-review` fails before publication and retains prior artifacts.
+The references and published report disclose the reviewer explicitly.
+
+Exact collisions remain candidates, not arbitrary first-row choices. Fuzzy
+matching uses first-token-blocked `token_sort_ratio`, never the unsafe spike
+baseline scorers. Scores 85–95 inclusive go to review; unique best scores above
+95 are proposals excluded from manual coverage. Bank merger validation uses
+FDIC **OUT_CERT → SUR_CERT** and `EFFDATE`. Predecessor IDs survive mergers;
+Flagstar's ownership transition is date-bounded. Ditech's selected asset sale does
+not establish one legal successor or a dissolution date.
+
+GLEIF/NIC remain deferred. The **129 entities without a reviewed HMDA LEI** are
+recorded gaps; some are non-reporters or legacy/parent-branded names requiring a
+narrower operating-company link before exposure can be attached. None blocks the
+measured identity joins. Current/dated bank identities are sufficient for the
+demonstrated bank gaps. These identity observations do not establish historical
+financial membership or servicing exposure; M3 must preserve release provenance
+and never attach a bank denominator to nonbanks or credit unions.
+
+Verification: **63 tests pass**, Ruff and Black pass, complaint entity joins retain
+461,350 distinct complaint IDs, and separate-process offline rebuilds produce
+byte-identical CSV and coverage-report artifacts. The alias leave-one-spelling-out
+check yields **71/73 correct unique predictions (97.26% precision)** and **0 false
+positives at or above 95**; recall is **71/306 (23.20%)**. This is a self-check of
+the Codex-reviewed gold aliases, not independent accuracy validation. Regression
+tests cover the spike's seven unsafe-scorer false positives. Full definitions,
+source gaps and the remaining human/backtest work are in the
+[M2 report](docs/12_entity_resolution_report.md).

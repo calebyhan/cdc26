@@ -2,9 +2,10 @@ PYTHON ?= .venv/bin/python
 CSV ?= data/raw/complaints.csv
 DATA_DIR ?= data
 ENFORCEMENT_ARGS ?=
+RESOLVE_ARGS ?=
 export PYTHONPATH := src
 
-.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike
+.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike resolve
 setup:
 	uv venv --allow-existing .venv
 	uv pip install --python $(PYTHON) -e '.[dev]'
@@ -26,3 +27,5 @@ enforcement:
 	$(PYTHON) -m ews.ingest.enforcement --data-dir "$(DATA_DIR)" $(ENFORCEMENT_ARGS)
 hmda-spike:
 	$(PYTHON) -m ews.ingest.hmda
+resolve:
+	$(PYTHON) -m ews.resolve.pipeline --data-dir "$(DATA_DIR)" $(RESOLVE_ARGS)

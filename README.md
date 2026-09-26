@@ -129,7 +129,17 @@ Normalization and blocked candidate matching are in `ews.resolve.matching`.
 `make format` applies formatting. To enable Git hooks, run
 `.venv/bin/pre-commit install`. The original `spike/` remains unchanged.
 
-Resolution, features, models, backtesting, and the app are later milestones;
+`make resolve` publishes [crosswalk.csv](data/marts/crosswalk.csv), a review queue,
+typed entity/alias tables and complaint/enforcement entity joins. Replay with
+`make resolve RESOLVE_ARGS=--offline`. The current Codex-reviewed aliases cover
+94.0646% of mortgage complaints and all 131 named company-party rows in mortgage
+actions. Independent human adjudication remains outstanding; enable its separate
+gate with `RESOLVE_ARGS='--offline --require-human-review'`. Review inputs and
+merger/rename decisions live in `data/reference/`; see the
+[resolution report](docs/12_entity_resolution_report.md) for source gaps and
+identifier/ownership limits. GLEIF and NIC remain deferred under ADR-012.
+
+Features, models, backtesting, and the app are later milestones;
 the corresponding package directories are scaffolded, not yet implemented.
 See [FINDINGS §9](FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26)
 for measured M0 results and HMDA constraints.
