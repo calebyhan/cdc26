@@ -14,6 +14,7 @@ dev = ["pytest>=8,<10", "ruff==0.15.7", "black==26.3.1", "pre-commit>=4,<5"]
 
 [project.scripts]
 ews-complaints = "ews.ingest.complaints:main"
+ews-pipeline = "ews.pipeline:main"
 ews-resolve = "ews.resolve.pipeline:main"
 
 [tool.hatch.build.targets.wheel]

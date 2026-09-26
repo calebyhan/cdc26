@@ -77,7 +77,7 @@ cfpb-ews/
 
 Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly · GitHub Actions (daily refresh)
 
-## Quickstart (M0 and M1 implemented)
+## Quickstart
 
 Requires Python 3.11+, `uv`, and `make` (macOS/Linux).
 
@@ -143,3 +143,16 @@ Features, models, backtesting, and the app are later milestones;
 the corresponding package directories are scaffolded, not yet implemented.
 See [FINDINGS §9](FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26)
 for measured M0 results and HMDA constraints.
+
+
+### Panel and features (M3)
+
+`make pipeline` rebuilds staging, reviewed M2 identities, FDIC quarterly financials,
+2018–2025 HMDA lender-year counts, and `data/marts/company_month.parquet`.
+Use `PIPELINE_ARGS=--offline` to replay archived inputs, or
+`PIPELINE_ARGS='--offline --end 2024-12-31'` for the primary observation window.
+The initial HMDA ingestion needs about 8 GB for compressed archives plus up to
+10 GB temporarily for one expanded vintage. Read [M3 conventions and version
+limitations](docs/13_panel_features.md) before interpreting historical exposure
+coverage. Current revised datasets are never backdated to their original releases.
+Nonbank servicers use structured complaint features only (ADR-007 option a).

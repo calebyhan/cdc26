@@ -35,7 +35,7 @@ recorded in ADR-008. Entity resolution and panel eligibility remain M2/M3 work.
 ## M2: Entity resolution
 - [x] `normalize()` from the spike, plus exact-key matching and first-token-blocked `token_sort_ratio`
 - [x] Review queue for scores 85–95
-- [ ] Hand-verify the top 150 mortgage names and every mortgage-related enforcement party (budget: half a day)
+- [x] Individually verify the top 150 mortgage names and every mortgage-related enforcement company party (Codex review; independent human audit remains separate)
 - [x] FDIC rollup by `RSSDHCR`. Mergers from `/history`, plus a hand-kept nonbank rename list (Nationstar/Mr. Cooper, Ocwen/Onity, Ditech, …)
 - [x] Publish `crosswalk.csv`
 - [x] Decide whether NIC or GLEIF are needed for the remaining gaps
@@ -45,18 +45,28 @@ recorded in ADR-008. Entity resolution and panel eligibility remain M2/M3 work.
 **2026-09-26:** Codex individually reviewed all 150 priority names (149 accepted,
 one unresolved CFPB routing placeholder) and all 121 distinct mortgage company-party
 strings. Reviewed coverage is **433,967/461,350 (94.0646%)**, with **131/131 company
-party rows mapped**. Independent human adjudication remains outstanding, so the
-manual sign-off item above remains open. `make resolve RESOLVE_ARGS=--offline`
+party rows mapped**. The user accepted this M2 baseline for M3. Independent human adjudication remains
+an additional audit, with Codex review provenance preserved. `make resolve RESOLVE_ARGS=--offline`
 reproduces the artifacts; `--require-human-review` enforces the additional human
 gate. [Details and source gaps](12_entity_resolution_report.md). GLEIF/NIC deferred.
 
 ## M3: Panel and features
-- [ ] FDIC quarterly financials (summed per holding company) and HMDA lender-year counts, each with `available_from`
-- [ ] `company_month` panel with counting-process fields and horizon labels
-- [ ] All complaint features (structured fields only), plus exposure and financial features
-- [ ] Unit tests: point-in-time joins, no future rows, window arithmetic, ordering by `Date received`
+- [x] FDIC quarterly financials (summed per holding company) and HMDA lender-year counts, each with `available_from`
+- [x] `company_month` panel with counting-process fields and horizon labels
+- [x] All complaint features (structured fields only), plus exposure and financial features
+- [x] Unit tests: point-in-time joins, no future rows, window arithmetic, ordering by `Date received`
 
 **Exit:** the panel builds from scratch, and the leakage tests pass.
+
+**Verified 2026-09-26:** `make pipeline` rebuilt all stages and produced 16,714
+company-month rows for 135 companies through 2026-09-26, with 26 first-company
+events. Primary: 14,566 rows, 132 companies, 25 first events. Secondary: 15,380
+rows, 132 companies, 26 first events. All 81 tests pass, including 18 M3 tests;
+Ruff and Black pass. An offline rebuild from an empty output directory reproduced
+the panel with zero differing rows. ADR-007 selects option (a). Current revised FDIC/HMDA
+versions are not backdated, so exposure features remain null in the primary and
+secondary historical windows. [Conventions and limitations](13_panel_features.md);
+[recorded build counts](panel_probe_2026-09-26.json).
 
 ## M4: Models and backtest
 - [ ] Model A (transparent anomaly score)

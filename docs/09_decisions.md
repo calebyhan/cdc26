@@ -26,17 +26,16 @@ Format: context, decision, consequences. Add a new entry for any decision made a
 ## ADR-006: Never apply bank denominators to nonbanks
 - **Decision:** rate features are null where no appropriate exposure measure exists. Nonbanks form their own peer groups and rely on self-normalized features. FDIC covers banks only (verified).
 
-## ADR-007 (OPEN): Servicing-exposure denominator
+## ADR-007: Servicing-exposure denominator
 - **Context:** the companies with the most complaints include servicing-heavy nonbanks (Ocwen, Nationstar/Mr. Cooper, Shellpoint, SPS, Ditech, SLS). HMDA measures originations, and FDIC does not cover nonbanks.
 - **Options:**
   - (a) Self-normalized features only for servicers.
   - (b) A proxy from agency loan-level datasets that list large servicers.
   - (c) Ginnie Mae issuer data.
   - (d) Exclude servicers.
-- **Leaning toward:** (a) for MVP 1, with (b) as a stretch goal. (d) is rejected.
-- **Owner / due:** _TBD_ · before M3.
+- **Decision (2026-09-26, before backtesting):** (a), as explicitly requested for M3. Nonbank servicers receive structured complaint and self-normalized features only; exposure-normalized rates and bank financials stay null, including after peer transformations. (b) remains a stretch goal. (d) is rejected.
 
-## ADR-008: M1 event count and fallback (panel eligibility pending M2/M3)
+## ADR-008: Event count and fallback (panel eligibility verified in M3)
 - **Context / evidence (2026-09-26, before any backtest):** the live CFPB listing
   advertised **386 filtered results**. The scraper retrieved 386 unique action
   slugs over 16 listing pages and archived all 386 detail pages. Every action has
@@ -79,6 +78,17 @@ Format: context, decision, consequences. Add a new entry for any decision made a
   The source combines expiry, termination and dismissal in one status label;
   do not treat all 53 secondary-window `Expired/Terminated/Dismissed` actions as
   dismissed in a later sensitivity analysis.
+
+- **M3 eligibility update (2026-09-26, before backtesting):** the primary panel
+  contains **25 first-company events across 132 eligible companies**; the secondary
+  panel contains **26 across 132 companies**. The current full panel has 26 events
+  across 135 companies. These are counting-process event flags after entry and
+  censoring, not action or party counts. Retain the primary window and the cap of
+  **two substantive predictor degrees of freedom**, with the stricter per-fold
+  total-degree constraint above still applying. No model has been fit. Current
+  revised FDIC/HMDA exposures are unavailable at historical cutoffs under the
+  conservative version policy; any backtest must respect those nulls. See
+  [M3 conventions](13_panel_features.md) and [build counts](panel_probe_2026-09-26.json).
 
 ## ADR-009: rapidfuzz + curated alias table instead of Splink *(new, from the data spike)*
 - **Context:** naive fuzzy matching produced 7 false positives among the top 40 names. The improved approach still missed about 15 enforcement matches. The top 150 mortgage names cover 94.1% of complaints.

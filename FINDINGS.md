@@ -777,3 +777,42 @@ the Codex-reviewed gold aliases, not independent accuracy validation. Regression
 tests cover the spike's seven unsafe-scorer false positives. Full definitions,
 source gaps and the remaining human/backtest work are in the
 [M2 report](docs/12_entity_resolution_report.md).
+
+
+## 12. M3 panel and feature validation (2026-09-26)
+
+`make pipeline` now rebuilds ingestion, reviewed M2 resolution, exposures, and
+`company_month.parquet`. An offline rebuild from raw archives alone, starting
+without staging, marts, or reference tables, produced exactly the same panel rows.
+All **81 tests pass**, including **18 M3 tests**, plus Ruff and Black.
+
+- FDIC: **5,227 bank-quarter records**, with amounts summed by quarter-specific
+  `RSSDHCR` before computing ratios. The official
+  [financial field schema](https://api.fdic.gov/banks/docs/risview_properties.yaml)
+  identifies `LNRERES`, `NCLNLS`, `LNLSGR`, `ELNATQ`, and `OFFDOM`; amounts remain
+  in $ thousands. Inbound acquisitions supplement the M2 merger history for
+  `recent_merger_24m`.
+- HMDA: all **2018–2025 full LAR snapshots** aggregated to lender-year. Applications
+  exclude purchased loans (action 6); originations use action 1. Public release
+  dates remain separate from current object-version timestamps.
+- Panel: **16,714 rows / 135 companies / 26 first-company events** through
+  2026-09-26. Primary ending 2024-12-31: **14,566 / 132 / 25**. Secondary ending
+  2025-08-31: **15,380 / 132 / 26**. ADR-008's two-predictor cap remains appropriate,
+  subject to each training fold's stricter event budget.
+- ADR-007 selects **option (a)** before backtesting. Servicers use complaint
+  features only; exposure rates and bank financials remain null through peer
+  transformations. Narrative and company-public-response fields never enter
+  feature construction.
+
+**Point-in-time limitation:** historical HMDA snapshot objects carry a November
+2025 version timestamp, and the archived FDIC financial index was created in
+August 2026. Current revised values are not backdated to their original releases.
+Consequently, **both exposure sources remain null in the primary and secondary
+historical panels**. The current full panel contains 40 eligible FDIC observations
+and 668 HMDA observations. Archived original vintages are required to expand
+historical exposure coverage. The existing complaint-response version caveat
+also remains; the receipt-date publication buffer is not historical-version proof.
+Pre-2018 legacy HMDA exposure links remain unverified.
+
+See [M3 conventions](docs/13_panel_features.md) and
+[recorded build counts](docs/panel_probe_2026-09-26.json).
