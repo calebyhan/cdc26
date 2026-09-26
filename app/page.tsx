@@ -45,6 +45,9 @@ import {
 
 import { ChartTooltip } from "@/app/components/chart-tooltip";
 
+const demoPdfUrl = (file: string) =>
+  `/api/demo-document?file=${encodeURIComponent(file)}`;
+
 const steps = ["Your case", "Connect the records", "Prepare a response"];
 const names: Record<string, string> = {
   eob: "Insurance explanation",
@@ -79,6 +82,9 @@ type Drawer = { docId?: string; refs?: string[]; edit?: boolean };
 export default function Home() {
   const [boot, setBoot] = useState<Bootstrap | null>(null);
   const [documents, setDocuments] = useState<Document[] | null>(null);
+  const [documentSources, setDocumentSources] = useState<
+    Record<string, string>
+  >({});
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [step, setStep] = useState(0);
   const [workspace, setWorkspace] = useState("demo");
@@ -101,6 +107,7 @@ export default function Home() {
       .then((data) => {
         setBoot(data);
         setDocuments(data.examples.paid);
+        setDocumentSources(data.document_sources.paid);
       })
       .catch((e) => {
         if (e.name !== "AbortError") {
@@ -141,6 +148,7 @@ export default function Home() {
     if (!boot) return;
     replaceDocuments(structuredClone(boot.examples[key]));
     setScenario(key);
+    setDocumentSources(boot.document_sources[key]);
     setFictional(true);
     setStep(0);
     setWorkspace("demo");
@@ -276,6 +284,7 @@ export default function Home() {
               className="text-button"
               onClick={() => {
                 replaceDocuments([]);
+                setDocumentSources({});
                 setFictional(false);
                 setWorkspace("evidence");
               }}
@@ -1025,6 +1034,7 @@ export default function Home() {
           drawer={drawer}
           documents={documents}
           labels={boot.field_labels}
+          sources={documentSources}
           onClose={() => setDrawer(null)}
           onSave={(doc) =>
             replaceDocuments(documents.map((d) => (d.id === doc.id ? doc : d)))
@@ -1039,17 +1049,20 @@ function EvidenceDrawer({
   drawer,
   documents,
   labels,
+  sources,
   onClose,
   onSave,
 }: {
   drawer: Drawer;
   documents: Document[];
   labels: Record<string, string>;
+  sources: Record<string, string>;
   onClose: () => void;
   onSave: (doc: Document) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const doc = documents.find((d) => d.id === drawer.docId);
+  const [sourceView, setSourceView] = useState<"pdf" | "text">("pdf");
   const [fields, setFields] = useState<Record<string, Fact>>(
     doc ? structuredClone(doc.fields) : {},
   );
@@ -1096,6 +1109,7 @@ function EvidenceDrawer({
       setSaving(false);
     }
   }
+  const pdf = doc && sources[doc.id] ? demoPdfUrl(sources[doc.id]) : undefined;
   const refs = [...new Set(drawer.refs || [])];
   const referenced = refs.map((ref) => {
     const document = documents.find(
@@ -1134,7 +1148,60 @@ function EvidenceDrawer({
               <FileText size={16} />
               {doc.extraction_method}
             </div>
-            <pre className="original-document">{doc.text}</pre>
+            {pdf && (
+              <>
+                <div className="source-toolbar">
+                  <div className="source-tabs" aria-label="Source view">
+                    <button
+                      className={sourceView === "pdf" ? "selected" : ""}
+                      onClick={() => setSourceView("pdf")}
+                      aria-pressed={sourceView === "pdf"}
+                    >
+                      Original PDF
+                    </button>
+                    <button
+                      className={sourceView === "text" ? "selected" : ""}
+                      onClick={() => setSourceView("text")}
+                      aria-pressed={sourceView === "text"}
+                    >
+                      Extracted text
+                    </button>
+                  </div>
+                  <a
+                    href={pdf}
+                    download={sources[doc.id]}
+                    className="text-button"
+                  >
+                    <Download size={14} />
+                    Download PDF
+                  </a>
+                </div>
+                <p className="footnote source-disclosure">
+                  Fictional original document. Corrected fields do not change
+                  this PDF.
+                </p>
+              </>
+            )}
+            {pdf && sourceView === "pdf" ? (
+              <>
+                <iframe
+                  className="pdf-preview"
+                  src={`${pdf}#toolbar=0&navpanes=0&view=FitH`}
+                  title={`Original fictional PDF: ${doc.title}`}
+                />
+                <a
+                  href={pdf}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-button"
+                >
+                  Open PDF in a new tab <ExternalLink size={13} />
+                </a>
+              </>
+            ) : (
+              <pre className="original-document">{doc.text}</pre>
+            )}
+
             <button className="button secondary" onClick={onClose}>
               Close source <Check size={15} />
             </button>
@@ -1266,6 +1333,30 @@ function EvidenceDrawer({
             </button>
           </>
         )}
+        {!doc &&
+          referenced.some((item) => item.doc && sources[item.doc.id]) && (
+            <div className="source-pdf-links">
+              <span className="eyebrow">ORIGINAL FICTIONAL PDFS</span>
+              {[
+                ...new Map(
+                  referenced
+                    .filter((item) => item.doc && sources[item.doc.id])
+                    .map((item) => [item.doc!.id, item.doc!]),
+                ).values(),
+              ].map((document) => (
+                <a
+                  key={document.id}
+                  href={demoPdfUrl(sources[document.id])}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <FileText size={14} />
+                  {document.title}
+                  <ExternalLink size={12} />
+                </a>
+              ))}
+            </div>
+          )}
         {!doc &&
           referenced
             .filter((item) => item.doc)

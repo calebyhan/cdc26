@@ -2,6 +2,10 @@
 
 Implemented with assistance from OpenAI Codex. All case records are fictional;
 the default facts are preconfirmed. No live model connection is needed.
+The document cards open the original fictional PDFs; **Extracted text** shows the
+local parser's source text, and **Download PDF** saves an attachment. Alternate
+cases use the matching receipt PDF. Documents without a matching PDF retain
+their explicit text fixture. Uploads still require user review.
 
 Run `uv sync --extra dev`, `npm ci`, and `npm run dev`. Open
 http://127.0.0.1:3000 and use **Reset demo** before rehearsal. The Next.js UI

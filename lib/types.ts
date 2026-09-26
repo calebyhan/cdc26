@@ -40,6 +40,7 @@ export type Count = { label: string; count: number };
 export type Bootstrap = {
   scenarios: Record<string, string>;
   examples: Record<string, Document[]>;
+  document_sources: Record<string, Record<string, string>>;
   field_labels: Record<string, string>;
   kinds: Record<string, string>;
   ai_available: boolean;
