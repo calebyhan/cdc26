@@ -176,3 +176,54 @@ def test_bank_financial_panel_uses_available_exposures():
     assert not app.exception
     assert any(metric.label == "Assets ($bn)" for metric in app.metric)
     assert any(metric.label == "Equity / assets" for metric in app.metric)
+
+
+def test_community_cloud_health_checks_app_frame(monkeypatch):
+    from types import SimpleNamespace
+
+    from ews.app import acceptance
+
+    requested = []
+
+    def response(url, timeout):
+        requested.append(url)
+        body = "ok" if "/~/+/" in url else "<!doctype html><html></html>"
+        return SimpleNamespace(ok=True, text=body)
+
+    monkeypatch.setattr(acceptance.requests, "get", response)
+    result = acceptance.audit("https://unccdc26.streamlit.app")
+    assert result["public_streamlit_health_verified"]
+    assert requested == [
+        "https://unccdc26.streamlit.app/_stcore/health",
+        "https://unccdc26.streamlit.app/~/+/_stcore/health",
+    ]
+    assert not result["exit_criteria_met"]
+
+
+def test_public_acceptance_separates_initial_load_from_view_switches(
+    monkeypatch, tmp_path
+):
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+
+    from ews.app import acceptance
+
+    monkeypatch.setattr(
+        acceptance.requests,
+        "get",
+        lambda *args, **kwargs: SimpleNamespace(ok=True, text="ok"),
+    )
+    browser = {
+        "public_url": "https://unccdc26.streamlit.app",
+        "measured_at": datetime.now(timezone.utc).isoformat(),
+        "initial_page_load_verified": True,
+        "views": {view: {"seconds": 1.0} for view in VIEWS},
+    }
+    path = tmp_path / "browser.json"
+    for initial_seconds, expected in [(2.0, True), (8.36, False)]:
+        browser["initial_page_load_seconds"] = initial_seconds
+        path.write_text(json.dumps(browser))
+        result = acceptance.audit(browser["public_url"], path)
+        assert result["deployed_view_switching_under_three_seconds"]
+        assert result["deployed_initial_load_under_three_seconds"] is expected
+        assert result["exit_criteria_met"] is expected

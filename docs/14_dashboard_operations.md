@@ -33,6 +33,8 @@ FDIC history and discloses the missing parent coverage.
 
 ## Deployment
 
+Public URL: https://unccdc26.streamlit.app.
+
 Streamlit Community Cloud configuration:
 
 - Repository: `calebyhan/cdc26`
@@ -44,9 +46,9 @@ Streamlit Community Cloud configuration:
 
 The deployment must use the real Streamlit entrypoint, with a Python server and
 WebSocket support. A static HTML preview is not an equivalent deployment.
-The account owner must sign in to Community Cloud if no authenticated hosting
-session exists. Once deployed, record and verify the actual URL; do not infer it
-from a proposed subdomain.
+The deployment is public and its app health endpoint is verified. Community
+Cloud embeds the app at `/~/+/`, so the root `/_stcore/health` path serves the
+HTML wrapper; verification also checks `/~/+/_stcore/health` for a plain `ok`.
 
 ## Manual refresh
 
@@ -104,7 +106,26 @@ python -m ews.app.acceptance --url https://<actual-app>.streamlit.app \
 ```
 
 The browser benchmark includes chart rendering and CLI overhead, after initial
-assets have loaded. It explicitly leaves initial-page-load verification false;
-measure and record cold initial page readiness separately before claiming the
-full deployment performance gate. Its local localhost results never count as
-public deployment evidence.
+assets have loaded. When the session starts with the init script shown below,
+the report also captures first-page readiness. Without that script, initial
+page load remains unverified. Local localhost results never count as public
+deployment evidence.
+
+## Public performance evidence
+
+The fresh-browser measurement includes the Community Cloud wrapper, network,
+asset downloads, the first app session and a 150ms readiness stability window.
+View switching is measured separately after assets have loaded. The public
+benchmark observed all five view switches below three seconds, while initial
+navigation took 8.36 seconds; the strict initial-load gate remains unmet.
+See `reports/dashboard_browser_performance.json` and
+`reports/dashboard_acceptance.json` for measurements and remaining checks.
+
+To reproduce first-load measurement, launch a fresh browser session with the
+provided init script before navigation:
+
+```sh
+agent-browser --session dashboard-public --init-script scripts/dashboard_initial_load.js \
+  open https://unccdc26.streamlit.app
+python scripts/benchmark_dashboard.py --session dashboard-public
+```

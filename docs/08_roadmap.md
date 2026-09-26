@@ -100,7 +100,7 @@ accuracy claims extend beyond 2025-08.
 - [x] Four views, banners (screening tool; historical-regime estimates; enforcement dormant), limitations page
 - [x] Data freshness display from CCDB `_meta`
 - [x] Manual snapshot refresh (`make refresh-dashboard`); no scheduled job or automatic commits
-- [ ] Deployed (Streamlit Community Cloud or similar)
+- [x] Deployed at https://unccdc26.streamlit.app (Streamlit Community Cloud)
 
 **Exit:** a public URL works and every view loads in under 3 seconds. Refreshes are manual; no multi-day refresh streak is required.
 

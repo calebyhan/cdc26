@@ -1,59 +1,66 @@
 {
-  "public_url": null,
-  "public_streamlit_health_verified": false,
+  "public_url": "https://unccdc26.streamlit.app",
+  "public_streamlit_health_verified": true,
   "refresh_mode": "manual",
   "local_performance": {
     "scope": "Local Streamlit AppTest; imports excluded; network/browser/deployed cold start unverified",
     "views": {
       "Risk leaderboard": {
-        "script_seconds": 0.16621987501275726,
-        "apptest_seconds": 0.25437204202171415
+        "script_seconds": 0.16511283299769275,
+        "apptest_seconds": 0.2537309580075089
       },
       "Company detail": {
-        "script_seconds": 0.20636650000233203,
-        "apptest_seconds": 0.26750612500472926
+        "script_seconds": 0.1997884580050595,
+        "apptest_seconds": 0.26138179199188016
       },
       "Enforcement timeline": {
-        "script_seconds": 0.08726374999969266,
-        "apptest_seconds": 0.14828441699501127
+        "script_seconds": 0.08462637499906123,
+        "apptest_seconds": 0.14610737501061521
       },
       "Backtest results": {
-        "script_seconds": 0.12448150001000613,
-        "apptest_seconds": 0.187955833011074
+        "script_seconds": 0.12288633297430351,
+        "apptest_seconds": 0.18447850001393817
       },
       "Limitations": {
-        "script_seconds": 0.001129375013988465,
-        "apptest_seconds": 0.06687229199451394
+        "script_seconds": 0.001200625003548339,
+        "apptest_seconds": 0.06392504199175164
       }
     }
   },
   "deployed_browser_performance_verified": false,
+  "deployed_view_switching_under_three_seconds": true,
+  "deployed_initial_load_under_three_seconds": false,
   "browser_performance": {
     "scope": "Browser view switching after initial assets load; includes CDP/CLI overhead, chart rendering and 150ms stability window",
-    "public_url": "http://127.0.0.1:8501",
-    "measured_at": "2026-09-26T19:51:19.627777+00:00",
-    "initial_page_load_verified": false,
+    "public_url": "https://unccdc26.streamlit.app",
+    "measured_at": "2026-09-26T20:06:56.350187+00:00",
+    "initial_page_load_verified": true,
+    "initial_page_load_seconds": 8.363299999982118,
+    "initial_page_load": {
+      "measured_at": "2026-09-26T20:05:07.758Z",
+      "scope": "Fresh browser first navigation through full leaderboard readiness; includes Cloud wrapper, network, assets, app session and 150ms stability window",
+      "seconds": 8.363299999982118
+    },
     "views": {
       "Risk leaderboard": {
-        "seconds": 0.6280999999940395
+        "seconds": 0.793
       },
       "Company detail": {
-        "seconds": 1.0588000000119209
+        "seconds": 0.828199999988079
       },
       "Enforcement timeline": {
-        "seconds": 0.7965
+        "seconds": 0.8015
       },
       "Backtest results": {
-        "seconds": 0.927
+        "seconds": 1.4817000000178815
       },
       "Limitations": {
-        "seconds": 0.6705
+        "seconds": 0.6759000000059605
       }
     }
   },
   "exit_criteria_met": false,
   "remaining": [
-    "Public deployment not verified",
-    "Measure every view in the deployed browser under three seconds"
+    "Initial deployed page load must be measured below three seconds"
   ]
 }

@@ -1,6 +1,7 @@
 """Measure real browser view switching with agent-browser's trusted CDP clicks.
 
-Use an already loaded session (assets and initial load measured separately):
+Use an already loaded session. Start it with dashboard_initial_load.js to also
+capture first-page readiness:
 python scripts/benchmark_dashboard.py --session dashboard-qa
 """
 
@@ -26,7 +27,16 @@ views = [
     "Limitations",
 ]
 results = {}
-for number, view in enumerate(views):
+for view in views:
+    snapshot_process = subprocess.run(
+        base + ["snapshot", "-i"], text=True, capture_output=True, check=True
+    )
+    refs = json.loads(snapshot_process.stdout)["data"]["refs"]
+    target = next(
+        ref
+        for ref, node in refs.items()
+        if node.get("role") == "radio" and node.get("name") == view
+    )
     # JSON data stays in JS over stdin, not shell interpolation.
     start_script = (
         "window.ewsBenchmarkView="
@@ -41,8 +51,7 @@ for number, view in enumerate(views):
         check=True,
     )
     subprocess.run(
-        base
-        + ["click", f'label[data-testid="stRadioOption"]:has(input[value="{number}"])'],
+        base + ["click", "@" + target],
         text=True,
         capture_output=True,
         check=True,
@@ -59,11 +68,20 @@ for number, view in enumerate(views):
         raise RuntimeError(result["error"])
     results[view] = {"seconds": result["data"]["result"]["seconds"]}
     url = result["data"]["result"]["url"]
+initial_process = subprocess.run(
+    base + ["eval", "window.ewsInitialLoad || null"],
+    text=True,
+    capture_output=True,
+    check=True,
+)
+initial = json.loads(initial_process.stdout)["data"]["result"]
 report = {
     "scope": "Browser view switching after initial assets load; includes CDP/CLI overhead, chart rendering and 150ms stability window",
     "public_url": url,
     "measured_at": datetime.now(timezone.utc).isoformat(),
-    "initial_page_load_verified": False,
+    "initial_page_load_verified": initial is not None,
+    "initial_page_load_seconds": initial["seconds"] if initial else None,
+    "initial_page_load": initial,
     "views": results,
 }
 args.output.write_text(json.dumps(report, indent=2) + "\n")
