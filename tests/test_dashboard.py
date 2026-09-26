@@ -161,3 +161,26 @@ def test_freshness_warning_and_missing_data_path(monkeypatch):
     app = AppTest.from_file(str(ROOT / "streamlit_app.py"), default_timeout=15).run()
     assert not app.exception
     assert any("CCDB reports stale data" in e.value for e in app.warning)
+
+
+def test_navigation_keeps_widget_identity_stable():
+    app = AppTest.from_file(str(ROOT / "streamlit_app.py"), default_timeout=15).run()
+    for view in VIEWS[1:] + VIEWS[:2]:
+        app.sidebar.radio[0].set_value(view).run()
+        assert not app.exception
+        assert app.sidebar.radio[0].value == view
+        assert any(title.value == view for title in app.title)
+
+
+def test_bank_financial_panel_uses_available_exposures():
+    from ews.app.data import read
+
+    banks = read("leaderboard")
+    banks = banks[banks.peer_group.eq("bank") & banks.normalized_rate.notna()]
+    app = AppTest.from_file(str(ROOT / "streamlit_app.py"), default_timeout=15)
+    app.query_params["view"] = "Company detail"
+    app.query_params["company"] = banks.entity_id.iloc[0]
+    app.run()
+    assert not app.exception
+    assert any(metric.label == "Assets ($bn)" for metric in app.metric)
+    assert any(metric.label == "Equity / assets" for metric in app.metric)

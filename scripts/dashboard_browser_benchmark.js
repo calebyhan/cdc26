@@ -1,34 +1,21 @@
 (async () => {
-  const views = ['Risk leaderboard','Company detail','Enforcement timeline','Backtest results','Limitations'];
-  const minimumCharts = {'Risk leaderboard':0,'Company detail':3,'Enforcement timeline':3,'Backtest results':3,'Limitations':0};
-  const results = {};
+  const view = window.ewsBenchmarkView;
+  const minimumCharts = {'Risk leaderboard':0,'Company detail':3,'Enforcement timeline':2,'Backtest results':3,'Limitations':0};
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  for (const view of views) {
-    const label = [...document.querySelectorAll('label')].find(node => node.textContent.trim() === view);
-    if (!label) throw new Error(`Navigation label missing: ${view}`);
-    const started = performance.now();
-    label.click();
-    let stableAt = null;
-    while (performance.now()-started < 15000) {
-      const title = [...document.querySelectorAll('h1')].some(node => node.textContent.trim()===view);
-      const footer = [...document.querySelectorAll('p')].some(node => node.textContent.includes('View prepared in'));
-      const charts = document.querySelectorAll('.js-plotly-plot .main-svg').length;
-      const busy = document.querySelector('[data-testid="stStatusWidget"] button');
-      const ready = title && footer && charts >= minimumCharts[view] && !busy;
-      if (ready) {
-        stableAt ??= performance.now();
-        if (performance.now()-stableAt >= 150) break;
-      } else stableAt = null;
-      await sleep(20);
-    }
-    if (stableAt === null) throw new Error(`View did not finish rendering: ${view}`);
-    results[view] = {seconds:(performance.now()-started)/1000};
+  let stableAt = null;
+  while (performance.now()-window.ewsBenchmarkStarted < 15000) {
+    const title = [...document.querySelectorAll('h1')].some(node => node.textContent.trim()===view);
+    const footer = [...document.querySelectorAll('p')].some(node => node.textContent.includes('View prepared in'));
+    const charts = [...document.querySelectorAll('[data-testid="stPlotlyChart"]')];
+    const drawn = charts.every(node => node.querySelector(".js-plotly-plot .main-svg"));
+    const idle = document.querySelector("[data-testid=stApp]")?.getAttribute("data-test-script-state") === "notRunning";
+    const ready = title && footer && idle && drawn && charts.length >= minimumCharts[view];
+    if (ready) {
+      stableAt ??= performance.now();
+      if (performance.now()-stableAt >= 150) break;
+    } else stableAt = null;
+    await sleep(20);
   }
-  return {
-    scope:'browser view switching after initial assets load; includes chart rendering and 150ms stability window',
-    public_url:location.origin,
-    measured_at:new Date().toISOString(),
-    initial_page_load_verified:false,
-    views:results,
-  };
+  if (stableAt === null) throw new Error(`View did not finish rendering: ${view}`);
+  return {seconds:(performance.now()-window.ewsBenchmarkStarted)/1000,url:location.origin};
 })()

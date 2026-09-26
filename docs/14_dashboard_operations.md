@@ -92,3 +92,18 @@ failed attempt break the streak. The exit requirement needs three consecutive
 successful dates plus separately measured browser timings at the deployed URL.
 The acceptance report deliberately remains incomplete until all this evidence
 exists; it does not use local build timestamps as proof of scheduled runs.
+
+A real-browser switching benchmark is available after opening the app in an
+agent-browser session:
+
+```sh
+python scripts/benchmark_dashboard.py --session dashboard-qa
+python -m ews.app.acceptance --url https://<actual-app>.streamlit.app \
+  --browser-report reports/dashboard_browser_performance.json
+```
+
+The browser benchmark includes chart rendering and CLI overhead, after initial
+assets have loaded. It explicitly leaves initial-page-load verification false;
+measure and record cold initial page readiness separately before claiming the
+full deployment performance gate. Its local localhost results never count as
+public deployment evidence.

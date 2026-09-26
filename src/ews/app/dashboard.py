@@ -82,6 +82,14 @@ def company_select(key, ids=None):
         st.info("No companies available for this selection.")
         return None
     preferred = st.query_params.get("company", read("leaderboard").entity_id.iloc[0])
+    if ids is not None and preferred not in options:
+        observed = set(read("event_company").entity_id)
+        candidates = read("leaderboard")
+        candidates = candidates[
+            candidates.entity_id.isin(options) & candidates.entity_id.isin(observed)
+        ]
+        if len(candidates):
+            preferred = candidates.entity_id.iloc[0]
     return st.selectbox(
         "Company",
         options,
@@ -827,9 +835,9 @@ def run():
     </style>""")
     st.sidebar.title("Mortgage screening")
     initial = st.query_params.get("view", VIEWS[0])
-    view = st.sidebar.radio(
-        "View", VIEWS, index=VIEWS.index(initial) if initial in VIEWS else 0
-    )
+    if "dashboard_view" not in st.session_state:
+        st.session_state["dashboard_view"] = initial if initial in VIEWS else VIEWS[0]
+    view = st.sidebar.radio("View", VIEWS, key="dashboard_view")
     st.query_params["view"] = view
     st.info(BANNER + " [Read limitations](?view=Limitations).")
     st.warning(REGIME)

@@ -2,24 +2,24 @@
   "scope": "Local Streamlit AppTest; imports excluded; network/browser/deployed cold start unverified",
   "views": {
     "Risk leaderboard": {
-      "script_seconds": 0.3633429789999951,
-      "apptest_seconds": 0.5073978360000098
+      "script_seconds": 0.10832379199564457,
+      "apptest_seconds": 0.19163004201254807
     },
     "Company detail": {
-      "script_seconds": 0.4000632920000129,
-      "apptest_seconds": 0.5325816150000122
+      "script_seconds": 0.19792904201312922,
+      "apptest_seconds": 0.29811633299686946
     },
     "Enforcement timeline": {
-      "script_seconds": 0.15763619599999856,
-      "apptest_seconds": 0.30055102100000397
+      "script_seconds": 0.08761250000679865,
+      "apptest_seconds": 0.15075958298984915
     },
     "Backtest results": {
-      "script_seconds": 1.0510526599999963,
-      "apptest_seconds": 1.1860413170000044
+      "script_seconds": 0.35122700000647455,
+      "apptest_seconds": 0.4158244999998715
     },
     "Limitations": {
-      "script_seconds": 0.0031241909999977224,
-      "apptest_seconds": 0.14050196700000583
+      "script_seconds": 0.0011750419798772782,
+      "apptest_seconds": 0.06309929100098088
     }
   }
 }
