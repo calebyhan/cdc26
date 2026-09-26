@@ -1,0 +1,56 @@
+name: Daily dashboard refresh
+on:
+  schedule:
+    - cron: '17 10 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: dashboard-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONPATH: src
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -e '.[dev,dashboard]'
+      - name: Restore operational checkpoint
+        run: |
+          gh release download dashboard-state --pattern refresh-state.tar.gz --dir /tmp
+          tar -xzf /tmp/refresh-state.tar.gz
+      - name: Pull new complaints and trailing 30 days; rebuild and rescore
+        run: python -m ews.app.refresh > reports/latest_refresh.json
+      - name: Validate every view and performance budget
+        run: python -m pytest tests/test_dashboard.py -q
+      - name: Record successful pipeline refresh
+        run: python -m ews.app.refresh --mark-success
+      - name: Publish dashboard bundle
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add data/dashboard reports/latest_refresh.json reports/dashboard_performance.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh public complaint screening dashboard'
+            git push
+          fi
+      - name: Save next operational checkpoint
+        run: |
+          python -m ews.app.checkpoint --output /tmp/refresh-state.tar.gz
+          gh release upload dashboard-state /tmp/refresh-state.tar.gz --clobber
+      - name: Archive refresh evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-evidence-${{ github.run_id }}
+          path: |
+            reports/latest_refresh.json
+            reports/dashboard_performance.json

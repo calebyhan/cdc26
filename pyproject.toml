@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = ["duckdb>=1.4,<2", "requests>=2.32,<3", "beautifulsoup4>=4.12,<5", "rapidfuzz>=3.14,<4", "numpy>=2,<3", "pandas>=2.2,<3", "scipy>=1.13,<2", "statsmodels>=0.14,<0.15", "lifelines>=0.30,<0.31", "matplotlib>=3.9,<4", "scikit-learn>=1.5,<2"]
 
 [project.optional-dependencies]
+dashboard = ["streamlit>=1.50,<2", "plotly>=6,<7"]
 dev = ["pytest>=8,<10", "ruff==0.15.7", "black==26.3.1", "pre-commit>=4,<5"]
 
 [project.scripts]

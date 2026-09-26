@@ -182,3 +182,19 @@ the primary 12-month paired comparison; see the report's intervals and limits.
 `make test lint` verifies the implementation; `BACKTEST_ARGS=--reuse-grid` reuses
 the feature grid for a rerun. The original M3 panel and enforcement labels are
 checksum-protected during backtesting.
+
+## Public screening dashboard
+
+The Streamlit + Plotly app provides a risk leaderboard, company detail,
+event-aligned enforcement timelines, backtest results, and a limitations page.
+It reads only the small precomputed DuckDB/Parquet bundle in `data/dashboard`.
+
+```sh
+uv pip install --python .venv/bin/python -e '.[dev,dashboard]'
+make dashboard
+```
+
+See [dashboard operations](docs/14_dashboard_operations.md) for deployment,
+refresh checkpoints, score interpretation, missing ownership coverage and the
+three-day operational exit gate. The daily GitHub Actions refresh pulls new
+complaints plus the trailing 30 days and tests every view before publication.

@@ -37,3 +37,15 @@ pipeline:
 
 backtest:
 	$(PYTHON) -m ews.backtest.pipeline --data-dir "$(DATA_DIR)" $(BACKTEST_ARGS)
+
+.PHONY: dashboard dashboard-marts refresh-dashboard dashboard-acceptance
+dashboard:
+	$(PYTHON) -m streamlit run streamlit_app.py
+dashboard-marts:
+	$(PYTHON) -m ews.app.precompute --data-dir "$(DATA_DIR)"
+refresh-dashboard:
+	$(PYTHON) -m ews.app.refresh --data-dir "$(DATA_DIR)"
+	$(PYTHON) -m pytest tests/test_dashboard.py -q
+	$(PYTHON) -m ews.app.refresh --data-dir "$(DATA_DIR)" --mark-success
+dashboard-acceptance:
+	$(PYTHON) -m ews.app.acceptance

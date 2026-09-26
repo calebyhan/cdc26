@@ -1,0 +1,25 @@
+{
+  "scope": "Local Streamlit AppTest; imports excluded; network/browser/deployed cold start unverified",
+  "views": {
+    "Risk leaderboard": {
+      "script_seconds": 0.16600925000966527,
+      "apptest_seconds": 0.2530028330220375
+    },
+    "Company detail": {
+      "script_seconds": 0.21426724997581914,
+      "apptest_seconds": 0.2785351670172531
+    },
+    "Enforcement timeline": {
+      "script_seconds": 0.06697899999562651,
+      "apptest_seconds": 0.1323811670008581
+    },
+    "Backtest results": {
+      "script_seconds": 0.12155833299038932,
+      "apptest_seconds": 0.18522958300309256
+    },
+    "Limitations": {
+      "script_seconds": 0.0011192090169060975,
+      "apptest_seconds": 0.06322662500315346
+    }
+  }
+}
