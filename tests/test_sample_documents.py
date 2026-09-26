@@ -39,7 +39,7 @@ def test_pdf_upload_preserves_fixture_facts_and_sources(name):
     assert not reader.is_encrypted
     assert len(reader.pages) == 1
     document = load_pdf(name)
-    assert "FICTIONAL DEMO - NOT A REAL PATIENT RECORD" in document.text
+    assert "Fictional demo" in document.text
     assert not document.warnings
     assert {key: fact.value for key, fact in document.fields.items()} == expected
     for fact in document.fields.values():

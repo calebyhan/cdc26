@@ -136,13 +136,9 @@ def create_pdf(path: Path, document, variant: str | None = None) -> dict:
     pdf.setAuthor("Not My Debt team; created with assistance from OpenAI Codex")
     pdf.setSubject("Synthetic hackathon upload fixture. No real patient information.")
 
-    pdf.setFillColor(CREAM)
-    pdf.rect(0, 748, 612, 44, fill=1, stroke=0)
-    pdf.setFillColor(INK)
-    pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(48, 768, "FICTIONAL DEMO - NOT A REAL PATIENT RECORD")
+    pdf.setFillColor(MUTED)
     pdf.setFont("Helvetica", 8)
-    pdf.drawString(48, 755, "All names, organizations, identifiers, dates, and amounts are invented.")
+    pdf.drawRightString(564, 748, "Fictional demo")
 
     pdf.setFillColor(accent)
     pdf.setFont("Helvetica-Bold", 12)
