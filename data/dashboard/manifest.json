@@ -1,6 +1,6 @@
 {
-  "built_at": "2026-09-26T19:45:35.027032+00:00",
-  "last_successful_refresh": "2026-09-26T19:45:43.863162+00:00",
+  "built_at": "2026-09-26T19:53:13.705452+00:00",
+  "last_successful_refresh": "2026-09-26T19:53:21.207033+00:00",
   "ccdb_meta": {
     "license": "CC0",
     "last_updated": "2026-09-26T12:00:00-05:00",
@@ -98,9 +98,9 @@
   },
   "files": {
     "events.parquet": "1b2f7596c46007ab7c5ce53c999a7d93c074d18d68eedf8304c48ee2dc8d8123",
-    "bank_history.parquet": "69e2f1e8fcabe55896ebf4768e1931e39691e5b981fa16c401c9a6a81501cfeb",
+    "bank_history.parquet": "10df2e2fe1e0654c2d92a52b14a99eef86541a05608b329b4ea4d8fb5fdb941b",
     "company_trend.parquet": "40e3ef72a93cc646d1e7e08a334f98252cf73189dec383ff39a39b93b99d0764",
-    "leaderboard.parquet": "6f1dc775eace33a43bb9a208e859783e9514d9195bb9a3ec308ea7d5f05d3802",
+    "leaderboard.parquet": "cebbdf9ad5adf7ada13fc10254f050f15643e32911271ff19148a1284ff23dc0",
     "drivers.parquet": "392d576c3c52579445f9aaa764e5632a0a71a6007d917e9991f9213db26bd37c",
     "errors.parquet": "4529349f6a9fe6d284a4043634589cc11c473e6dc02228f50628e14d0c2b286c",
     "aliases.parquet": "9893e73d5d3b654b51464f9ea0ab5f701dc56ed29f3e4d289c245bc47e749b4e",
@@ -110,11 +110,11 @@
     "event_pairs.parquet": "f67b3e04df3010fbb898a75b5b122415ab19caa3df769bff34fbdab04bfafac6",
     "hits.parquet": "ae8d5d6faefb4637bae59bf2e17cdd6fc1b89a929a96fb8842c171a4923eb036",
     "metrics.parquet": "901e479cc4cb0170b60c783b85a6767d69109d2ff6bbffd3206518a9be1f6946",
-    "issue_mix.parquet": "63db0795aa6d89b4e9e4d28eabb5629911ddb3bc025c019e89a3ca6e52fa5ba4",
+    "issue_mix.parquet": "a95fc53dc43e5e46ab7bfee32e742bafe284d77ba3ea6ec1411efac62f930bfe",
     "flags.parquet": "8b13070e801e82aa86d04856fb1a528d502e15ec4ef8718e9e68687170a14175",
     "event_aggregate.parquet": "f3ef20355a986249ce3a18d13c22ae20760b591367c6af32bd5129ffd9dd703a",
-    "leads.parquet": "37f38dbdddaceedca5c2042bc88913fc9c3ae718594c1665193b3f5a6160d5d2",
+    "leads.parquet": "7098f0be952d466033fec8eced251c66014bad7cd4a7b5952e1dad998b5bb202",
     "entities.parquet": "6c7f6d7a5de54eabb001bb3ee44671b958902bf6e84bfc39ece66f9dfc74b700",
-    "states.parquet": "0a1b4cd86f9acd5e8b2e47586617b1d2bc1e67135b82995c65e26f4237a8d89c"
+    "states.parquet": "a4e1d1be4d9553e9a62d04fb63e4b6fbd9b5d738d13eca6aeb0f77cee659f6e0"
   }
 }
