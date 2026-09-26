@@ -19,25 +19,35 @@ an explicitly simplified notice excerpt, not a legally complete notice template.
 Its September 20, 2026 dispute date belongs to the fictional scenario; it is not
 a live deadline.
 
-## Upload into the prototype
+## Use in the Next.js demo
 
-1. In the sidebar, open **More cases & tools**, then **Start an empty case**. This
-   removes the preloaded example and opens **Evidence & uploads**.
-2. Expand **Add a document**. Select its **Document role**, choose
-   **Upload a text PDF or TXT**, select the PDF, and click **Extract for review**.
-   Leave optional OpenAI extraction unchecked; these files work with the local parser.
-3. Open the added document's expander. Compare the extracted facts to the PDF,
-   check **I checked every value above against this document**, then select
-   **Save reviewed facts**.
-4. Repeat for all four PDFs with the roles in the table above.
-5. Set **Workspace** to **Presentation demo**, then select **2 · Connect the records**.
-   The supplied records should support a possible uncredited $150 payment and a
-   $0 reconstructed balance. The notice still requests $150.
-6. Select **3 · Prepare a response** to review and export the packet. Original
-   PDFs must be attached separately when using that packet; the app sends nothing.
+The default case already loads facts and original quotes extracted locally from
+these PDFs. They are preconfirmed because they are known fictional fixtures.
+Open a document card to view **Original PDF**, switch to **Extracted text**, or
+**Download PDF**. Ledger citations also link to the original fictional PDFs.
+Corrections preserve the original source. Alternate cases automatically select
+the matching receipt PDF; the later zero-balance text fixtures have no PDF.
 
-Do not select **Reset demo** or **Load fictional case** after uploading: those
+To demonstrate the upload and review path:
+
+1. Open **Explore another case**, then **Start an empty case**. This opens
+   **Documents & review**.
+2. In **Add a document**, select **Document role**, choose a PDF, and click
+   **Extract for review**. Leave **Use OpenAI extraction** unchecked; these files
+   work with the local parser.
+3. Click **Review** on the added document. Compare its values to the source,
+   check **I reviewed all displayed facts**, then **Save reviewed facts**.
+4. Repeat for the four main PDFs with the roles in the table above.
+5. Select **Return to reconciliation**. The supplied records should support a
+   possible uncredited $150 payment and a $0 reconstructed balance. The notice
+   still requests $150.
+6. Select **Prepare a response** to review and export the packet. Original PDFs
+   must be attached separately when using that packet; the app sends nothing.
+
+Do not select **Reset demo** or change the selected case after uploading: those
 replace the uploaded records. Never upload both a main receipt and its replacement.
+User uploads require review and remain in memory; only the committed fictional
+PDFs are served by the original-document endpoint.
 
 ## Useful demo variations
 

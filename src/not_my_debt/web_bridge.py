@@ -13,8 +13,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
+from not_my_debt.demo_documents import demo_cases
 from not_my_debt.domain import FIELD_LABELS, KINDS, Document, Fact
-from not_my_debt.examples import SCENARIOS, example_documents
+from not_my_debt.examples import SCENARIOS
 from not_my_debt.extract import extract_document, normalize_value, read_upload
 from not_my_debt.packet import draft_letter, render_packet
 from not_my_debt.reconcile import reconcile
@@ -71,9 +72,11 @@ def handle_request(request: dict) -> dict:
     operation = request.get("operation")
     if operation == "bootstrap":
         research_path = Path(__file__).resolve().parents[2] / "data/research/research.json"
+        examples, sources = demo_cases()
         return {
             "scenarios": SCENARIOS,
-            "examples": {key: [asdict(doc) for doc in example_documents(key)] for key in SCENARIOS},
+            "examples": examples,
+            "document_sources": sources,
             "field_labels": FIELD_LABELS,
             "kinds": KINDS,
             "ai_available": bool(os.environ.get("OPENAI_API_KEY")),

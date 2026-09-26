@@ -24,7 +24,10 @@ npm run dev
 
 Open **http://127.0.0.1:3000**. No API key is needed. The app starts with Maya's
 preconfirmed fictional case: **Your case → Connect the records → Prepare a response**.
-Open a document or ledger row to inspect its source. Switch off **Include payment
+Open a document to view its original fictional PDF, switch to extracted text, or
+download the file. Ledger sources link to the same PDFs. Demo facts are extracted
+locally from those files and preconfirmed only because these are known fixtures.
+Switch off **Include payment
 receipt** to see the finding and balance chart change; restore it, review the
 provider inquiry, and download the printable HTML evidence packet. Nothing is sent
 or filed. **Reset demo** restores the documents and clears edits and review approval.
@@ -42,7 +45,7 @@ npm run build
 npm start
 ```
 
-The Node server needs the Python package, `src/`, public research aggregates,
+The Node server needs the Python package, `src/`, `sample_documents/`, public research aggregates,
 and a Python environment at runtime. By default it uses `.venv/bin/python`;
 set `NMD_PYTHON` to a different interpreter if needed. This is a Node + Python
 application, not a static export or a deploy-ready Node-only serverless app.
