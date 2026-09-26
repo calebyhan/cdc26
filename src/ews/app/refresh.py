@@ -1,4 +1,4 @@
-"""Daily complaint delta, dated reviewed links, current panel and frozen-model scores."""
+"""Manual complaint delta, dated reviewed links, current panel and frozen-model scores."""
 
 import argparse
 import json
@@ -18,7 +18,7 @@ from ews.ingest.complaints import delta
 from ews.models.anomaly import AnomalyModel
 
 # A small operational checkpoint, not the 13GB raw archive. Static exposures retain
-# their original report and availability dates; daily updates only change CCDB data.
+# their original report and availability dates; manual updates only change CCDB data.
 SEED_FILES = [
     "staging/stg_complaints.parquet",
     "staging/stg_fdic_financials.parquet",
@@ -138,11 +138,19 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
     parser.add_argument("--mark-success", action="store_true")
+    parser.add_argument(
+        "--report-path", type=Path, default=Path("reports/latest_refresh.json")
+    )
     args = parser.parse_args()
     if args.mark_success:
         mark_success(args.data_dir)
     else:
-        print(json.dumps(run(args.data_dir, args.reports_dir), indent=2))
+        report = json.dumps(run(args.data_dir, args.reports_dir), indent=2) + "\n"
+        args.report_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = args.report_path.with_suffix(".partial")
+        temporary.write_text(report)
+        temporary.replace(args.report_path)
+        print(report, end="")
 
 
 if __name__ == "__main__":

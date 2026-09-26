@@ -1,6 +1,6 @@
 # 07 · Dashboard
 
-**Stack:** Streamlit + Plotly, reading Parquet marts through DuckDB. A daily GitHub Actions job pulls new complaints from the CCDB API (plus a trailing-30-day re-pull), rebuilds the marts, and re-scores.
+**Stack:** Streamlit + Plotly, reading Parquet marts through DuckDB. An on-demand `make refresh-dashboard` run pulls new complaints from the CCDB API (plus a trailing-30-day re-pull), rebuilds the marts, and re-scores. The dashboard serves a saved snapshot; there are no scheduled refreshes or automatic commits.
 
 **Freshness:** show the CCDB `_meta.last_indexed` timestamp and our last successful refresh. Show a warning if CCDB reports `is_data_stale` or `has_data_issue`.
 

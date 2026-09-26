@@ -482,7 +482,7 @@ def company_detail():
         )
     else:
         st.info(
-            "No live Model A drivers available; this entity may have exited through merger or closure."
+            "No snapshot Model A drivers available; this entity may have exited through merger or closure."
         )
 
 
@@ -805,11 +805,11 @@ def limitations():
         ),
         (
             "Ethics and screening indicators",
-            "Named companies are real. Complaint signals and HMDA denial rates do not establish misconduct or discrimination. Political context and dismissals are presented factually without attributing motives. Live Model A rankings make no enforcement accuracy claim.",
+            "Named companies are real. Complaint signals and HMDA denial rates do not establish misconduct or discrimination. Political context and dismissals are presented factually without attributing motives. Snapshot Model A rankings make no enforcement accuracy claim.",
         ),
         (
             "Operational limits",
-            "The CCDB API can return HTML with status 200 and silently ignore parameters. Ingestion validates JSON and filter bounds, and fails loudly. Exposure and reviewed identity sources are archived; daily complaint refreshes do not replace the separate FDIC/HMDA release-review process. Few events, source layout changes, missing exposure data, and model performance below baselines remain project risks.",
+            "The CCDB API can return HTML with status 200 and silently ignore parameters. Ingestion validates JSON and filter bounds, and fails loudly. Exposure and reviewed identity sources are archived; manual complaint refreshes do not replace the separate FDIC/HMDA release-review process. Few events, source layout changes, missing exposure data, and model performance below baselines remain project risks.",
         ),
     ]:
         st.subheader(title)
@@ -834,6 +834,7 @@ def run():
     .tier{border-radius:10px;padding:3px 9px;white-space:nowrap}.low{background:#EAF0F5}.elevated{background:#F5EAD3}.high{background:#EDDCE1}
     </style>""")
     st.sidebar.title("Mortgage screening")
+    st.sidebar.caption("Saved data snapshot · updated manually")
     initial = st.query_params.get("view", VIEWS[0])
     if "dashboard_view" not in st.session_state:
         st.session_state["dashboard_view"] = initial if initial in VIEWS else VIEWS[0]

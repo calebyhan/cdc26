@@ -12,7 +12,7 @@
 - **Publication lag.** Complaints are published with a delay, which we model as a 1-month lag.
 - **No narratives, permanently.** CFPB stopped publishing narratives on 2026-08-14 and removed the consent option. Older narratives survive only in a frozen FOIA archive, whose coverage of recent months is near zero.
 - **Unstable API.** In August 2026 endpoints were removed and now return the HTML page with HTTP 200. Unknown parameters are silently ignored. Ingestion asserts the JSON content type and fails loudly.
-- **Values change after publication.** `company_response` moves from "In progress" to a final value. We handle this with a daily trailing-30-day re-pull and a 1-month feature lag.
+- **Values change after publication.** `company_response` moves from "In progress" to a final value. We handle this with a trailing-30-day re-pull on each manual refresh and a 1-month feature lag.
 
 ## Statistical
 - **Few events.** Estimates will be imprecise. We report confidence intervals everywhere and limit the number of features.

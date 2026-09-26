@@ -20,7 +20,7 @@ Every source gets a **point-in-time rule**: the earliest date its data could hav
 
 **Access (verified):**
 - **History:** bulk `complaints.csv.zip` (348 MB zipped, 5.46 GB unzipped, regenerated daily). Load it once into Parquet.
-- **Daily delta:** the search API at `…/search/api/v1/` (the **trailing slash is required**). Page with `search_after`, since offset paging caps at 10,000. Anonymous use is limited to about 20 requests per minute.
+- **On-demand delta:** the search API at `…/search/api/v1/` (the **trailing slash is required**). Page with `search_after`, since offset paging caps at 10,000. Anonymous use is limited to about 20 requests per minute.
 - **Every day, re-pull the trailing 30 days** and upsert on `Complaint ID`. `company_response` changes from "In progress" to its final value after ingestion.
 - The JSON bulk file (`complaints.json.zip`) and the `/trends` and `/geo/states` endpoints have been removed. They now return 404 or the HTML search page with HTTP 200. Compute trends from our own tables.
 

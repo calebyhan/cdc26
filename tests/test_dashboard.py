@@ -129,23 +129,15 @@ def test_leaderboard_filters_and_historical_hazard_table():
     assert "score" not in table.columns
 
 
-def test_refresh_streak_requires_distinct_consecutive_days():
-    from datetime import date, timedelta
+def test_manual_snapshot_acceptance_needs_no_github_access():
+    from ews.app.acceptance import audit
 
-    from ews.app.acceptance import consecutive_days
-
-    today = date.today()
-
-    def run(offset, conclusion="success", hour="10"):
-        return {
-            "created_at": f"{today-timedelta(days=offset)}T{hour}:00:00Z",
-            "conclusion": conclusion,
-        }
-
-    assert consecutive_days([run(0), run(0, hour="11"), run(0, hour="12")]) == 1
-    assert consecutive_days([run(0), run(1), run(2)]) == 3
-    assert consecutive_days([run(0), run(2)]) == 1
-    assert consecutive_days([run(0), run(0, "failure", "11"), run(1), run(2)]) == 0
+    result = audit()
+    assert result["refresh_mode"] == "manual"
+    assert result["exit_criteria_met"] is False
+    assert "consecutive_successful_refresh_dates" not in result
+    assert "runs" not in result
+    assert not any("refresh" in item.lower() for item in result["remaining"])
 
 
 def test_freshness_warning_and_missing_data_path(monkeypatch):

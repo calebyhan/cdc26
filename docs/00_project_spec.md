@@ -9,7 +9,7 @@ CFPB enforcement actions arrive after years of investigation. Complaints about t
 CFPB has filed no enforcement action since 2025-08-21, and stopped publishing complaint narratives on 2026-08-14 ([FINDINGS.md](../FINDINGS.md)). The project therefore has two parts:
 
 1. **Historical evidence:** did normalized complaint anomalies precede the enforcement actions of 2012–2025? (The backtest.)
-2. **Live product:** a daily anomaly ranking from structured complaint fields. Its enforcement probabilities are labeled as estimates from the historical regime, not forecasts for today's CFPB.
+2. **Dashboard product:** a manually refreshed anomaly ranking from structured complaint fields. Its enforcement probabilities are labeled as estimates from the historical regime, not forecasts for today's CFPB.
 
 ## Research question
 

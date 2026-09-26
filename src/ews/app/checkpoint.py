@@ -1,4 +1,4 @@
-"""Package only the small inputs required by the daily refresh job."""
+"""Package only the small inputs required by the manual refresh recovery."""
 
 import argparse
 import tarfile

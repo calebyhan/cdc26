@@ -1,8 +1,7 @@
-"""Record deployment and three distinct consecutive successful refresh dates."""
+"""Record public deployment and performance for a manually refreshed snapshot."""
 
 import argparse
 import json
-import subprocess
 from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
@@ -10,40 +9,7 @@ from urllib.parse import urlparse
 import requests
 
 
-def consecutive_days(runs):
-    daily = {}
-    for run in runs:
-        day = date.fromisoformat(run["created_at"][:10])
-        # Only completed successful workflow runs count; latest attempt per date
-        # wins, so a later failure invalidates that day's operational evidence.
-        if day not in daily or run["created_at"] > daily[day]["created_at"]:
-            daily[day] = run
-    if not daily:
-        return 0
-    day = max(daily)
-    streak = 0
-    while day in daily and daily[day].get("conclusion") == "success":
-        streak += 1
-        day -= timedelta(days=1)
-    # Old streaks do not establish that today's deployment is being refreshed.
-    if max(daily) < date.today() - timedelta(days=1):
-        return 0
-    return streak
-
-
 def audit(url=None, browser_report=None):
-    response = subprocess.run(
-        [
-            "gh",
-            "api",
-            "repos/calebyhan/cdc26/actions/workflows/daily-refresh.yml/runs?per_page=100",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    runs = json.loads(response.stdout)["workflow_runs"]
-    streak = consecutive_days(runs)
     deployed = False
     if url:
         parsed = urlparse(url)
@@ -75,30 +41,21 @@ def audit(url=None, browser_report=None):
     return {
         "public_url": url,
         "public_streamlit_health_verified": deployed,
-        "consecutive_successful_refresh_dates": streak,
+        "refresh_mode": "manual",
         "local_performance": performance,
         "deployed_browser_performance_verified": browser_verified,
         "browser_performance": browser,
-        "exit_criteria_met": deployed and streak >= 3 and browser_verified,
+        "exit_criteria_met": deployed and browser_verified,
         "remaining": [
             label
             for condition, label in [
                 (not deployed, "Public deployment not verified"),
-                (streak < 3, "Daily refresh needs three consecutive successful dates"),
                 (
-                    True,
+                    not browser_verified,
                     "Measure every view in the deployed browser under three seconds",
                 ),
             ]
             if condition
-        ],
-        "runs": [
-            {
-                "url": r["html_url"],
-                "created_at": r["created_at"],
-                "conclusion": r["conclusion"],
-            }
-            for r in runs[:10]
         ],
     }
 

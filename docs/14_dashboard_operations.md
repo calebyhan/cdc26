@@ -15,7 +15,7 @@ baseline matches, updates trajectories from the feature grid, and reports
 company-cluster bootstrap intervals. Excluded early filings are explicitly
 listed; the chart does not claim complete coverage of every filed company.
 
-Model A sets the live default order. B/C models and training transforms are
+Model A sets the snapshot default order. B/C models and training transforms are
 restored from the latest **primary**, pre-2025 artifact for each horizon, and
 replayed against saved historical predictions in tests. Current features are
 scored without refitting enforcement models after the regime change. The
@@ -48,34 +48,38 @@ The account owner must sign in to Community Cloud if no authenticated hosting
 session exists. Once deployed, record and verify the actual URL; do not infer it
 from a proposed subdomain.
 
-## Daily refresh
+## Manual refresh
 
-`.github/workflows/daily-refresh.yml` runs at 10:17 UTC daily and supports manual
-dispatch. It restores the small `refresh-state.tar.gz` operational checkpoint
-from the `dashboard-state` GitHub release. The checkpoint contains typed
-complaints, frozen exposure sources, reviewed identity marts and archived M4
-scores/metrics, not the 13GB raw archive or complaint narratives.
+The app serves the committed snapshot in `data/dashboard`; opening a page does
+not call the CCDB API. There is no scheduled workflow or automatic commit.
 
-`python -m ews.app.checkpoint --output /tmp/refresh-state.tar.gz` creates the
-checkpoint. Initial setup publishes this archive as a release asset named
-`refresh-state.tar.gz` on the `dashboard-state` release. After each successful
-refresh, the workflow updates that asset for the next run.
+When you want updated data, run:
 
-The job validates CCDB JSON and `_meta.last_indexed`, pulls new data and the
-trailing 30 days (plus missed days after downtime), rebuilds dated reviewed alias
-links and both panel marts, rescores Model A and the frozen B/C models, rebuilds
-chart aggregates, and tests all views. An unreviewed-name coverage drop below
-94% stops publication. Only after these checks does it record the successful
-refresh timestamp and commit the published bundle. GitHub must permit
-`GITHUB_TOKEN` contents writes on `main`; branch protections may require a
-separate publishing branch and matching deployment configuration.
+```sh
+make refresh-dashboard
+```
 
-The refresh uses a temporary workspace until all ingestion/linking/scoring
-checks pass. Failed source refreshes leave the published dashboard bundle intact.
-Historical backtest results remain the archived M4 evaluation rather than being
-silently retrained by the daily job. FDIC/HMDA releases, ownership and enforcement
-status require their separate source/review process; they are not claimed to be
-updated daily by CCDB ingestion.
+This validates CCDB JSON and `_meta.last_indexed`, pulls new complaints and the
+trailing 30 days (plus missed days after downtime), rebuilds reviewed alias links
+and both panel marts, rescores Model A and the frozen B/C models, rebuilds chart
+aggregates, and tests every view. Coverage below 94% stops publication. After
+validation, it records the successful refresh timestamp. The refresh command
+saves `reports/latest_refresh.json` atomically after successful ingestion.
+Review the updated `data/dashboard` bundle and reports, then commit them normally
+under your own Git identity if you want the deployed snapshot updated.
+
+The refresh uses a temporary workspace until ingestion, linking and scoring
+checks pass. Failed source refreshes leave the published bundle intact.
+Historical backtest results remain the archived M4 evaluation. FDIC/HMDA releases,
+ownership and enforcement status retain their separate source/review process.
+Between manual updates, the freshness display continues to show the saved source
+metadata and last successful refresh rather than suggesting live data.
+
+`make dashboard-marts` rebuilds chart-ready aggregates from existing local data
+without fetching new complaints. An optional `refresh-state.tar.gz` checkpoint
+on the `dashboard-state` GitHub release can restore the small operational inputs
+on another machine; it is not maintained automatically. Create a local checkpoint
+with `python -m ews.app.checkpoint --output /tmp/refresh-state.tar.gz`.
 
 ## Exit evidence
 
@@ -86,12 +90,9 @@ seconds and check default pages, filtering, probability hover presentation,
 model artifact replay, freshness alerts and complete event-aligned offsets.
 
 Run `python -m ews.app.acceptance --url https://<actual-app>.streamlit.app` to
-record public Streamlit health and the latest real GitHub run history. Three
-successful runs on the same date count as one date. Missing dates or a later
-failed attempt break the streak. The exit requirement needs three consecutive
-successful dates plus separately measured browser timings at the deployed URL.
-The acceptance report deliberately remains incomplete until all this evidence
-exists; it does not use local build timestamps as proof of scheduled runs.
+record public Streamlit health and performance evidence. This check does not
+need GitHub access. The exit gate requires public deployment and each deployed
+view loading in under three seconds; there is no refresh-streak requirement.
 
 A real-browser switching benchmark is available after opening the app in an
 agent-browser session:

@@ -3,7 +3,7 @@
 A transparent system that ranks mortgage lenders and servicers by **abnormal complaint activity**, using public complaints, mortgage activity, corporate identity, and financial-condition data. It is validated by backtesting against historical CFPB enforcement actions (2012–2025).
 
 The product has two halves, because CFPB enforcement has been dormant since August 2025 (see [FINDINGS.md](FINDINGS.md)):
-- **Live:** a daily-refreshed anomaly ranking built only from structured complaint fields.
+- **Snapshot:** a manually refreshed anomaly ranking built only from structured complaint fields.
 - **Historical:** a backtest showing whether the same signals preceded the enforcement actions that did happen.
 
 > **This is a regulatory-risk screening tool.** A high score means a company shows an unusual complaint signal relative to its size and peers. It is not evidence or a finding that the company violated any law.
@@ -75,7 +75,7 @@ cfpb-ews/
 
 ## Stack
 
-Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly · GitHub Actions (daily refresh)
+Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly
 
 ## Quickstart
 
@@ -195,6 +195,8 @@ make dashboard
 ```
 
 See [dashboard operations](docs/14_dashboard_operations.md) for deployment,
-refresh checkpoints, score interpretation, missing ownership coverage and the
-three-day operational exit gate. The daily GitHub Actions refresh pulls new
-complaints plus the trailing 30 days and tests every view before publication.
+manual refreshes, score interpretation, missing ownership coverage and deployment
+checks. Run `make refresh-dashboard` when you want updated complaints; it pulls
+new data plus the trailing 30 days, rebuilds the marts and tests every view.
+Review and commit the resulting snapshot yourself. No scheduled refresh or
+automatic commits are configured.

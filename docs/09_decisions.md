@@ -7,9 +7,9 @@ Format: context, decision, consequences. Add a new entry for any decision made a
 - **Decision:** MVP 1 uses only `Product = Mortgage`. Credit bureaus, collectors, and fintechs are excluded.
 - **Consequences:** a cleaner signal, but fewer events. See ADR-008.
 
-## ADR-002: DuckDB + Parquet; bulk history plus daily API delta
+## ADR-002: DuckDB + Parquet; bulk history plus on-demand API delta
 - **Context:** 18M rows, one team, hackathon timeframe. The spike verified that the bulk CSV is regenerated daily, that the API supports `search_after` at about 20 requests per minute, and that `company_response` changes after ingestion.
-- **Decision:** load the bulk CSV once into Parquet. Refresh daily from the API, re-pulling the trailing 30 days and upserting on `complaint_id`. Compute trends ourselves, since `/trends` has been removed.
+- **Decision:** load the bulk CSV once into Parquet. Refresh on demand from the API, re-pulling the trailing 30 days and upserting on `complaint_id`. Compute trends ourselves, since `/trends` has been removed.
 - **Consequences:** no database server to run. Ingestion must check the JSON content type, because removed endpoints return HTML with a 200 status.
 
 ## ADR-003: Transparent score always ships; discrete-time hazard is the planned primary model

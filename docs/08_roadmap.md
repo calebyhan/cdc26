@@ -97,12 +97,12 @@ always drives live ranking; B remains the primary statistical output. No
 accuracy claims extend beyond 2025-08.
 
 ## M5: Dashboard
-- [ ] Four views, banners (screening tool; historical-regime estimates; enforcement dormant), limitations page
-- [ ] Data freshness display from CCDB `_meta`
-- [ ] Daily GitHub Actions refresh
+- [x] Four views, banners (screening tool; historical-regime estimates; enforcement dormant), limitations page
+- [x] Data freshness display from CCDB `_meta`
+- [x] Manual snapshot refresh (`make refresh-dashboard`); no scheduled job or automatic commits
 - [ ] Deployed (Streamlit Community Cloud or similar)
 
-**Exit:** a public URL works, the daily refresh has succeeded at least 3 days in a row, and every view loads in under 3 seconds.
+**Exit:** a public URL works and every view loads in under 3 seconds. Refreshes are manual; no multi-day refresh streak is required.
 
 ## M6: Presentation
 - [ ] Narrative and demo script ([11_presentation.md](11_presentation.md))

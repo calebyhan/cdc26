@@ -6,7 +6,7 @@ There are four layers: **raw → staging → entities → marts**. All tables ar
 
 | Table | Grain | Notes |
 |---|---|---|
-| `stg_complaints` | complaint | Mortgage only for MVP 1. Bulk load plus daily API upserts on `complaint_id`. Adds `issue_std`, `response_std`, `severity_tier`, `ingested_at` |
+| `stg_complaints` | complaint | Mortgage only for MVP 1. Bulk load plus on-demand API upserts on `complaint_id`. Adds `issue_std`, `response_std`, `severity_tier`, `ingested_at` |
 | `stg_enforcement` | action × party | Scraped listing and detail pages, joined to the hand-labeled `enforcement_labels.csv` |
 | `stg_hmda_lender_year` | lender × year | Aggregated from LAR, keyed by LEI or legacy respondent ID |
 | `stg_fdic_institutions` | cert | Roster, including inactive banks (`ACTIVE:0`) |
