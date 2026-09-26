@@ -1,0 +1,2 @@
+# Preserve PDF bytes and avoid whitespace checks on PDF cross-reference tables.
+*.pdf binary
