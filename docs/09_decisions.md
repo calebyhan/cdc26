@@ -15,6 +15,14 @@ Format: context, decision, consequences. Add a new entry for any decision made a
 ## ADR-003: Transparent score always ships; discrete-time hazard is the planned primary model
 - **Context:** the event count will be small.
 - **Decision:** Model A always ships and drives the live ranking. Model B is the primary statistical model, and Model C (Cox) is reported alongside. Which one leads is final after M4.
+- **M4 outcome (2026-09-26):** retain B as the primary statistical output and C
+  as the comparison. Both fit successfully wherever the event budget permits,
+  but neither establishes improvement over raw count in the primary 12-month
+  test. B's constant monthly hazard avoids C's additional baseline-tail
+  extrapolation assumption. This is an operational choice, not an accuracy-win
+  claim. Model A remains the live ranking; its own comparison also does not
+  establish predictive improvement. See the
+  [backtest report](../reports/backtest_2026-09-26.md).
 
 ## ADR-004: Evaluation windows *(amended after the data spike)*
 - **Context:** 386 CFPB actions exist from 2012-07-17 to 2025-08-21. 2025 had 9 actions, several later dismissed, and none have been filed since.
@@ -117,3 +125,76 @@ Format: context, decision, consequences. Add a new entry for any decision made a
   supply. Nonbank RSSD absence is not itself a reason to add NIC or infer bank
   denominators. Independent human identity adjudication remains outstanding.
   See [M2 report](12_entity_resolution_report.md).
+
+## ADR-013: M4 protocol fixed before viewing backtest results (2026-09-26)
+
+- **Model A:** equal weights on self-z, acceleration, appropriate exposure rate,
+  tier-3 share, untimely rate, issue-mix divergence, and bank financial stress.
+  Financial stress averages standardized noncurrent/provision ratios and negative
+  equity-to-assets. Structurally unavailable components are omitted; no surrogate
+  exposure denominator is invented. Historical peer transforms use training rows
+  only, frozen at each cutoff. Live A uses the current public cross-section and
+  remains the live ranking regardless of B/C performance.
+- **Statistical budget:** reserve one degree of freedom for the baseline, permit
+  at most one substantive predictor when a fold has at least 20 first-company
+  events, and use baseline-only models otherwise. Candidate predictors are the
+  predeclared Model A composite and log(1 + trailing-12m count). No test-period
+  feature selection. B uses a constant time baseline because spline/time dummies
+  would violate ADR-008's budget. C is a genuine null Cox fit in baseline-only folds.
+- **Validation:** expanding time folds entirely inside each outer training
+  window, with horizon embargoes. Choose predictor and L2 penalty by mean Brier
+  loss, using only observed validation labels. If inner folds cannot identify a
+  covariate/penalty, retain the declared anomaly predictor and middle penalty.
+  Grids: B ridge total penalties 0.1/1/10; C penalizers 0.001/0.01/0.1.
+- **B alignment:** labels are events in the following calendar month. At scoring
+  cutoff T, the first forecast month uses the previous month's feature snapshot;
+  subsequent months hold the current T snapshot fixed. C uses frozen current
+  covariates and conditional baseline increments. Beyond training follow-up, C
+  extrapolates the training baseline's average hazard; this assumption is reported.
+- **PH diagnostics:** training-only, Efron risk-set Schoenfeld residuals versus
+  log duration. If p < .05, replace the linear covariate with a median-split
+  stratum and separate baseline hazards, within the two-degree budget. Do not
+  change a model after looking at outer outcomes.
+- **Windows:** annual January cutoffs 2016–2023 for primary outcomes through
+  2024-12; secondary additionally permits 2024/2025 cutoffs whose full horizons
+  end by 2025-08. Horizons are 6/12/18 months; outcomes are (T,T+h]. Partial
+  horizons after corporate censoring are excluded unless a qualifying event is
+  observed. Same eligible population for all available models at a cutoff.
+- **Dismissals:** separate evidence-reviewed file, frozen before results. Remove
+  only documented complete-case dismissals for the requested sensitivity; do
+  not interpret order expiry/termination as dismissal. Unresolved status is
+  disclosed. Reconstruct the at-risk panel so dropping a first event does not
+  censor the company at that dropped filing. Later-dismissal filtering is a
+  retrospective outcome sensitivity, not information known at historic cutoffs.
+- **Metrics/uncertainty:** top-10/top-20 precision and recall, average precision
+  (stepwise PR-AUC), median lead time, concordance, and probability calibration.
+  Company-cluster bootstrap 95% intervals, fixed seed and 400 draws; pooled
+  scores are macro averages across cutoffs per horizon. Lead time deduplicates
+  events and measures the first annual top-20 alert whose horizon covers the
+  event; annual monitoring makes timing coarse. Metric intervals condition on
+  the fitted models and do not include training/identity uncertainty. A metric
+  with no positives/comparable pairs is undefined, not zero.
+- **Baselines:** seeded random ranking, raw 12m count, verified size-normalized
+  count, and prior-action flag with raw-count tie-breaking. Size normalization
+  is unavailable at historical cutoffs under M3's version policy; report N/A
+  and source coverage, never substitute a fictitious denominator. A separately
+  named self-normalized-count reference is included for an available comparison.
+- **Event chart:** match peers at event month −48 by group and baseline log count,
+  plus size where publicly available then; use never-filed peers within the
+  evaluation window. Plot complaints relative to each company's pre-event
+  baseline (a self-normalized series), retaining +12 months from the unrestricted
+  feature grid. This is descriptive; never use post-event values in prediction.
+- **Limits:** mappings were retrospectively curated in 2026; validity dates are
+  enforced, but historical availability of the mapping versions cannot be
+  proven. Current complaint-response versions retain the M3 caveat. No accuracy
+  claims or evaluated outcome windows extend beyond 2025-08.
+
+### M4 implementation corrections after the 40-draw smoke run
+
+The initial end-to-end run used 40 draws to verify artifact generation. Before
+the final 400-draw run, corrected even-sample median arithmetic, rendered
+non-estimable values as N/A, identified baseline-only errors explicitly, and
+expanded explanations to frozen training peer-median component contributions.
+Compressed prediction output and added measured comparison/error summaries to
+the report. These corrections do not change predictors, penalties, weights,
+ranking thresholds, outcome labels, or cutoff choices. All cutoffs are rerun.

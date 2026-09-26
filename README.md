@@ -139,8 +139,8 @@ merger/rename decisions live in `data/reference/`; see the
 [resolution report](docs/12_entity_resolution_report.md) for source gaps and
 identifier/ownership limits. GLEIF and NIC remain deferred under ADR-012.
 
-Features, models, backtesting, and the app are later milestones;
-the corresponding package directories are scaffolded, not yet implemented.
+Ingestion, resolution, features, models, and backtesting are implemented.
+The dashboard remains a later milestone.
 See [FINDINGS §9](FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26)
 for measured M0 results and HMDA constraints.
 
@@ -156,3 +156,29 @@ The initial HMDA ingestion needs about 8 GB for compressed archives plus up to
 limitations](docs/13_panel_features.md) before interpreting historical exposure
 coverage. Current revised datasets are never backdated to their original releases.
 Nonbank servicers use structured complaint features only (ADR-007 option a).
+
+### Models and backtesting (M4)
+
+After M3, `make backtest` rebuilds the unrestricted complaint-feature grid, fits
+Models A/B/C, runs annual rolling tests at 6/12/18-month horizons, and generates
+[the backtest report](reports/backtest_2026-09-26.md). Primary outcomes end in
+December 2024; secondary outcomes end in August 2025. Each window includes a
+confirmed-dismissal exclusion sensitivity. Training transforms and expanding
+validation folds respect horizon embargoes. Statistical fits obey ADR-008's
+event-based parameter budget; sparse early folds are explicitly unavailable.
+
+Reports contain per-cutoff and pooled metrics with 400-draw company-cluster
+bootstrap intervals, paired baseline comparisons, calibration, matched-peer
+trajectories, company-level errors, and fitted-model artifacts. Machine-readable
+results and predictions also populate the `backtest_results` and `score_snapshot`
+Parquet marts. Model A always supplies the [live ranking](reports/live_model_a.csv),
+with three component explanations and no post-August-2025 accuracy claim.
+
+Historical revised FDIC/HMDA snapshots are unavailable at the evaluated cutoffs,
+so the verified size-normalized baseline is reported as N/A. The separately
+named self-normalized reference does not substitute for that missing exposure
+comparison. All three models underperform raw count by point-estimate PR-AUC in
+the primary 12-month paired comparison; see the report's intervals and limits.
+`make test lint` verifies the implementation; `BACKTEST_ARGS=--reuse-grid` reuses
+the feature grid for a rerun. The original M3 panel and enforcement labels are
+checksum-protected during backtesting.

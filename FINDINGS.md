@@ -816,3 +816,57 @@ Pre-2018 legacy HMDA exposure links remain unverified.
 
 See [M3 conventions](docs/13_panel_features.md) and
 [recorded build counts](docs/panel_probe_2026-09-26.json).
+
+
+## 13. M4 modeling and rolling backtest (2026-09-26)
+
+`make backtest` fits the transparent anomaly score, next-month logistic hazard,
+and time-varying Cox model and generates
+[the report](reports/backtest_2026-09-26.md). Model A supplies the live ranking
+regardless of statistical performance. Expanding temporal validation, frozen
+training peer transforms, horizon embargoes, and ADR-008's event-based degree
+budget are implemented and checked. Statistical folds below ten training events
+are unavailable; most remaining early folds are baseline-only. B remains the
+primary statistical output; C is the comparison, with its extrapolation
+assumption disclosed.
+
+- Annual January cutoffs: eight per 6/12/18-month horizon in the primary window;
+  ten at six months and nine at twelve/eighteen months in the secondary window.
+  Every evaluated endpoint is at or before August 2025.
+- With/without confirmed dismissals: primary **25/23** first-company events;
+  secondary **26/23**. Eight of 102 mortgage-action dispositions have documented
+  complete-case dismissals; order expiry/termination alone is retained. The
+  unresolved Borders status is disclosed and contributes no model-universe
+  event. Dropping a first filing extends follow-up to the next retained filing
+  or censor date, without editing the original labels.
+- Outputs: **928 metric rows**, **74,912 predictions**, **162 successful B/C
+  fits**, 11 observable matched event-study pairs, and 126 live anomaly rankings.
+  Rankings retain plain-language component explanations. The report includes
+  top-10/top-20 precision and recall, PR-AUC, lead time, concordance, Brier loss,
+  paired comparisons, calibration, and company-level error categories.
+- **98 tests pass**, including 17 M4 tests, plus Ruff and Black. Runtime audits
+  verify same eligible populations across available models, training and inner
+  validation chronology, parameter caps, feature source availability, and
+  unchanged hashes for enforcement labels, reviewed identities, and the M3
+  panel. No complaint narrative or contemporary peer-z feature enters modeling.
+
+**Negative result:** in the primary all-filings twelve-month comparison, PR-AUC
+differences versus raw count on shared cutoffs are A **−0.103 [−0.344, 0.055]**,
+B **−0.138 [−0.500, −0.050]**, and C **−0.166 [−0.497, −0.115]**. These are
+95% company-cluster bootstrap intervals with 400 draws, conditional on the fitted
+models; there is no established predictive improvement. Cutoff counts differ
+because of early statistical-model event budgets, so comparisons are paired
+before pooling. Complaint surges without filings, sparse signals, stable/declining
+counts before filings, and baseline-only ranking effects appear in the error
+review. These descriptions do not infer the agency's reasons for acting.
+
+**Remaining exposure gap:** verified size-normalized counts cannot be evaluated
+at any historical cutoff because archived revised FDIC/HMDA values are not
+backdated. Their metrics/intervals are N/A; the separately named self-normalized
+reference is not a substitute. The event chart is self-normalized and excludes
+14 first-event companies without an eligible −48-month baseline or peer.
+Mappings were curated retrospectively in 2026, historical mapping/response
+versions are unverified, and bootstrap intervals omit training-estimation,
+identity/source-version uncertainty, and shared action/calendar shocks. Live
+anomalies and post-filing descriptive trajectories carry no accuracy claims
+after August 2025.

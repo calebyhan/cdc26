@@ -1,0 +1,159 @@
+{
+  "max_training_month": "2023-07-01T00:00:00",
+  "model": {
+    "model": "A",
+    "weight_policy": "equal across available components",
+    "components": [
+      "self_history",
+      "acceleration",
+      "normalized_rate",
+      "severity",
+      "untimely",
+      "issue_mix",
+      "financial_stress"
+    ],
+    "transform": {
+      "features": [
+        "c_selfz_12m",
+        "c_accel",
+        "normalized_rate",
+        "sev3_share_12m",
+        "untimely_rate_12m",
+        "issue_mix_jsd",
+        "noncurrent_ratio_lag",
+        "provision_ratio_lag",
+        "negative_equity"
+      ],
+      "peer_statistics": {
+        "bank": {
+          "c_selfz_12m": [
+            -0.3944867805888926,
+            -0.16116338908533304,
+            1.448351665583319
+          ],
+          "c_accel": [
+            0.0,
+            -0.0015077239254394216,
+            0.5476935245283758
+          ],
+          "normalized_rate": null,
+          "sev3_share_12m": [
+            0.23529411764705882,
+            0.25531658256590495,
+            0.16551263903476127
+          ],
+          "untimely_rate_12m": [
+            0.0,
+            1.0799735817009921,
+            4.085904171762261
+          ],
+          "issue_mix_jsd": [
+            0.07135391699472524,
+            0.11023982538472431,
+            0.12661142971614747
+          ],
+          "noncurrent_ratio_lag": null,
+          "provision_ratio_lag": null,
+          "negative_equity": null
+        },
+        "credit_union": {
+          "c_selfz_12m": [
+            0.18248221707643572,
+            0.3577784262770356,
+            1.4583073866851732
+          ],
+          "c_accel": [
+            -0.010993006653468883,
+            -0.013277213469368707,
+            0.3903737853563845
+          ],
+          "normalized_rate": null,
+          "sev3_share_12m": [
+            0.1,
+            0.14040283543641077,
+            0.1029970986857561
+          ],
+          "untimely_rate_12m": [
+            0.0,
+            0.43811993890803186,
+            1.3216098535216598
+          ],
+          "issue_mix_jsd": [
+            0.05605666561364685,
+            0.08224923462380204,
+            0.07119087244800044
+          ],
+          "noncurrent_ratio_lag": null,
+          "provision_ratio_lag": null,
+          "negative_equity": null
+        },
+        "nonbank_originator": {
+          "c_selfz_12m": [
+            0.2911323095749686,
+            0.46926277799476607,
+            1.3845225275582662
+          ],
+          "c_accel": [
+            0.0,
+            -0.012353994608810644,
+            0.6442064832854297
+          ],
+          "normalized_rate": null,
+          "sev3_share_12m": [
+            0.10714285714285714,
+            0.14918581602710076,
+            0.1519657383023282
+          ],
+          "untimely_rate_12m": [
+            0.0,
+            5.413673060559389,
+            13.75833095954452
+          ],
+          "issue_mix_jsd": [
+            0.11101176919203383,
+            0.17477889711188146,
+            0.18954907245456215
+          ],
+          "noncurrent_ratio_lag": null,
+          "provision_ratio_lag": null,
+          "negative_equity": null
+        },
+        "nonbank_servicer": {
+          "c_selfz_12m": [
+            0.3093414472055416,
+            0.40953487758844254,
+            1.508429701938052
+          ],
+          "c_accel": [
+            0.0,
+            -0.01123018510850051,
+            0.5356419385417969
+          ],
+          "normalized_rate": null,
+          "sev3_share_12m": [
+            0.39052425007008695,
+            0.37908963420541797,
+            0.175101532493095
+          ],
+          "untimely_rate_12m": [
+            0.28964533652131963,
+            4.213187253902098,
+            12.45648971900976
+          ],
+          "issue_mix_jsd": [
+            0.034201034699209494,
+            0.0672450631879644,
+            0.11371431535975988
+          ],
+          "noncurrent_ratio_lag": null,
+          "provision_ratio_lag": null,
+          "negative_equity": null
+        }
+      },
+      "clip_z": [
+        -5,
+        5
+      ]
+    }
+  }
+}

@@ -1,0 +1,360 @@
+{
+  "training": {
+    "window": "secondary",
+    "policy": "exclude_confirmed",
+    "horizon": 12,
+    "cutoff": "2021-01-01T00:00:00",
+    "model": "C",
+    "training_rows": 8324,
+    "training_events": 17,
+    "budget": 1,
+    "max_training_month": "2020-01-01T00:00:00",
+    "training_outcome_end": "2020-02-01T00:00:00",
+    "validation": {
+      "status": "insufficient covariate-capable inner folds; predeclared defaults",
+      "folds": [
+        {
+          "cutoff": "2018-02-01T00:00:00",
+          "max_training_month": "2017-02-01T00:00:00",
+          "validation_end": "2019-02-01T00:00:00",
+          "events": 12,
+          "validation_events": 1,
+          "budget": 1
+        },
+        {
+          "cutoff": "2019-02-01T00:00:00",
+          "max_training_month": "2018-02-01T00:00:00",
+          "validation_end": "2020-02-01T00:00:00",
+          "events": 14,
+          "validation_events": 2,
+          "budget": 1
+        }
+      ],
+      "losses": []
+    },
+    "status": "fitted",
+    "predictor": null,
+    "degrees_of_freedom": 1,
+    "ph": {
+      "status": "not applicable: no covariate",
+      "p_value": null
+    }
+  },
+  "model": {
+    "model": "C",
+    "predictor": null,
+    "penalty": 0.01,
+    "coefficient": 0.0,
+    "degrees_of_freedom": 1,
+    "stratified": false,
+    "baseline": {
+      "0": {
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            168.0,
+            0.0078125
+          ],
+          [
+            224.0,
+            0.015749007936507936
+          ],
+          [
+            272.0,
+            0.023749007936507936
+          ],
+          [
+            387.0,
+            0.03987804019457245
+          ],
+          [
+            476.0,
+            0.04814250300448981
+          ],
+          [
+            513.0,
+            0.05647583633782314
+          ],
+          [
+            574.0,
+            0.06487919768236096
+          ],
+          [
+            576.0,
+            0.0733537739535474
+          ],
+          [
+            1072.0,
+            0.09044779104756451
+          ],
+          [
+            1127.0,
+            0.09914344322147756
+          ],
+          [
+            1170.0,
+            0.10791537304603896
+          ],
+          [
+            1254.0,
+            0.11676493056816285
+          ],
+          [
+            1799.0,
+            0.1261988928323138
+          ],
+          [
+            1975.0,
+            0.13590763069639147
+          ],
+          [
+            1982.0,
+            0.14571155226501892
+          ]
+        ],
+        "followup": 2222.0,
+        "tail_hazard": 6.557675619487801e-05
+      }
+    },
+    "ph": {
+      "status": "not applicable: no covariate",
+      "p_value": null
+    },
+    "warnings": [],
+    "transform": {
+      "anomaly": {
+        "model": "A",
+        "weight_policy": "equal across available components",
+        "components": [
+          "self_history",
+          "acceleration",
+          "normalized_rate",
+          "severity",
+          "untimely",
+          "issue_mix",
+          "financial_stress"
+        ],
+        "transform": {
+          "features": [
+            "c_selfz_12m",
+            "c_accel",
+            "normalized_rate",
+            "sev3_share_12m",
+            "untimely_rate_12m",
+            "issue_mix_jsd",
+            "noncurrent_ratio_lag",
+            "provision_ratio_lag",
+            "negative_equity"
+          ],
+          "peer_statistics": {
+            "bank": {
+              "c_selfz_12m": [
+                -0.5424372295543396,
+                -0.3402331255501925,
+                1.1502579698558257
+              ],
+              "c_accel": [
+                0.0,
+                0.0009857704692482617,
+                0.5282594713784592
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.297029702970297,
+                0.2990959441036102,
+                0.1651037793093637
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                1.0329642629118505,
+                3.583370872224305
+              ],
+              "issue_mix_jsd": [
+                0.07383636629018536,
+                0.11185680847119839,
+                0.12763492483930738
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "credit_union": {
+              "c_selfz_12m": [
+                -0.07210282252948376,
+                0.09123000252370297,
+                1.1820131206869002
+              ],
+              "c_accel": [
+                0.03031231090821744,
+                0.017901301990154123,
+                0.4268332023016321
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.16666666666666666,
+                0.1838604676198604,
+                0.10502840339481848
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                0.5010352514492361,
+                1.4906645425211835
+              ],
+              "issue_mix_jsd": [
+                0.08333374170870764,
+                0.10213188332604436,
+                0.07529931266037118
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "nonbank_originator": {
+              "c_selfz_12m": [
+                0.2620135738829202,
+                0.4272874517460488,
+                1.3363632069131526
+              ],
+              "c_accel": [
+                0.0,
+                -0.012717730726451599,
+                0.659413975401755
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.1111111111111111,
+                0.15658461777591073,
+                0.16305722689317315
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                5.764299499729268,
+                14.782425896753423
+              ],
+              "issue_mix_jsd": [
+                0.14394420585507434,
+                0.20944328726265524,
+                0.20914746736215803
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "nonbank_servicer": {
+              "c_selfz_12m": [
+                0.7310217916281785,
+                0.6817563978141744,
+                1.5272030884281416
+              ],
+              "c_accel": [
+                0.0,
+                -0.01800336260547435,
+                0.4801778631302053
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.4222733665771641,
+                0.40537349449721055,
+                0.17404380667544142
+              ],
+              "untimely_rate_12m": [
+                0.38197119312743655,
+                5.28080238274225,
+                14.089082072046189
+              ],
+              "issue_mix_jsd": [
+                0.037988144361242426,
+                0.07826079829028862,
+                0.13275792866700703
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            }
+          },
+          "clip_z": [
+            -5,
+            5
+          ]
+        }
+      },
+      "log_count": {
+        "features": [
+          "log_count"
+        ],
+        "peer_statistics": {
+          "bank": {
+            "log_count": [
+              4.02535169073515,
+              4.07040624124925,
+              1.6062149734686115
+            ]
+          },
+          "credit_union": {
+            "log_count": [
+              3.990524879832978,
+              3.9666119918007676,
+              0.642988455051755
+            ]
+          },
+          "nonbank_originator": {
+            "log_count": [
+              2.833213344056216,
+              2.8733446559337343,
+              1.2896369388528695
+            ]
+          },
+          "nonbank_servicer": {
+            "log_count": [
+              4.962844630259907,
+              4.8648302523410285,
+              1.6666511376994035
+            ]
+          }
+        },
+        "clip_z": [
+          -5,
+          5
+        ]
+      },
+      "explanation_peer_medians": {
+        "bank": {
+          "self_history": -0.175790222109473,
+          "acceleration": -0.0018660724940263863,
+          "severity": -0.012514802156294295,
+          "untimely": -0.2882660767599137,
+          "issue_mix": -0.2978843151972772,
+          "log_count": -0.02805013728442926
+        },
+        "credit_union": {
+          "self_history": -0.13818190525522217,
+          "acceleration": 0.02907695289667924,
+          "severity": -0.16370620134593042,
+          "untimely": -0.33611536140909853,
+          "issue_mix": -0.2496455937403249,
+          "log_count": 0.037190229224700166
+        },
+        "nonbank_originator": {
+          "self_history": -0.12367437011745673,
+          "acceleration": 0.01928641369589291,
+          "severity": -0.2788806576147132,
+          "untimely": -0.3899427292914925,
+          "issue_mix": -0.31317176456248086,
+          "log_count": -0.031118302111612067
+        },
+        "nonbank_servicer": {
+          "self_history": 0.03225857398226584,
+          "acceleration": 0.03749311242320338,
+          "severity": 0.09710125515393128,
+          "untimely": -0.3477040707523783,
+          "issue_mix": -0.303354039441674,
+          "log_count": 0.05880917469877628
+        }
+      }
+    },
+    "tail_policy": "constant mean training baseline hazard beyond observed follow-up"
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "training": {
+    "window": "secondary",
+    "policy": "exclude_confirmed",
+    "horizon": 12,
+    "cutoff": "2018-01-01T00:00:00",
+    "model": "B",
+    "training_rows": 4280,
+    "training_events": 12,
+    "budget": 1,
+    "max_training_month": "2017-01-01T00:00:00",
+    "training_outcome_end": "2017-03-01T00:00:00",
+    "validation": {
+      "status": "insufficient covariate-capable inner folds; predeclared defaults",
+      "folds": [
+        {
+          "cutoff": "2016-02-01T00:00:00",
+          "max_training_month": "2015-02-01T00:00:00",
+          "validation_end": "2017-02-01T00:00:00",
+          "events": 5,
+          "validation_events": 3,
+          "budget": 0
+        }
+      ],
+      "losses": []
+    },
+    "status": "fitted",
+    "predictor": null,
+    "degrees_of_freedom": 1
+  },
+  "model": {
+    "model": "B",
+    "predictor": null,
+    "penalty": 1.0,
+    "coefficients": {
+      "baseline": -5.872665280404447
+    },
+    "cluster_robust_se": {
+      "baseline": 0.2901156130676895
+    },
+    "degrees_of_freedom": 1,
+    "warnings": [],
+    "transform": {
+      "anomaly": {
+        "model": "A",
+        "weight_policy": "equal across available components",
+        "components": [
+          "self_history",
+          "acceleration",
+          "normalized_rate",
+          "severity",
+          "untimely",
+          "issue_mix",
+          "financial_stress"
+        ],
+        "transform": {
+          "features": [
+            "c_selfz_12m",
+            "c_accel",
+            "normalized_rate",
+            "sev3_share_12m",
+            "untimely_rate_12m",
+            "issue_mix_jsd",
+            "noncurrent_ratio_lag",
+            "provision_ratio_lag",
+            "negative_equity"
+          ],
+          "peer_statistics": {
+            "bank": {
+              "c_selfz_12m": [
+                -0.4222406537641551,
+                -0.1710111415484209,
+                1.1483898368042114
+              ],
+              "c_accel": [
+                0.0,
+                -0.0014759429757215503,
+                0.5119762449911536
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.3516232625821667,
+                0.3482758193714757,
+                0.16455979547604824
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                1.2478073559674903,
+                3.86119624472782
+              ],
+              "issue_mix_jsd": [
+                0.04401130566555317,
+                0.09192336283005743,
+                0.128357717407734
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "credit_union": {
+              "c_selfz_12m": [
+                0.15922742343822238,
+                0.18040475039833664,
+                1.212240581070659
+              ],
+              "c_accel": [
+                0.024057092932735738,
+                0.013744286473060516,
+                0.4204148420644784
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.23593609360936096,
+                0.22085645575223228,
+                0.12378133556059055
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                0.48185808228849836,
+                1.0836964407732441
+              ],
+              "issue_mix_jsd": [
+                0.048111930996870736,
+                0.07223485040559766,
+                0.05474276018761232
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "nonbank_originator": {
+              "c_selfz_12m": [
+                0.6765942345185436,
+                0.7725199387359829,
+                1.2990980995140156
+              ],
+              "c_accel": [
+                0.0,
+                -0.02535967102178608,
+                0.6872869724207957
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.1,
+                0.15229110016535333,
+                0.174779537103544
+              ],
+              "untimely_rate_12m": [
+                0.0,
+                6.7927767609552525,
+                16.78911854013635
+              ],
+              "issue_mix_jsd": [
+                0.13731659930519108,
+                0.21233132354174564,
+                0.225923157657278
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            },
+            "nonbank_servicer": {
+              "c_selfz_12m": [
+                1.2370239647639156,
+                1.2577204077520756,
+                1.3224314815816485
+              ],
+              "c_accel": [
+                -0.012831490353905212,
+                -0.02506019997109961,
+                0.507167999616464
+              ],
+              "normalized_rate": null,
+              "sev3_share_12m": [
+                0.45206778138738357,
+                0.43058915248122975,
+                0.1736862038796452
+              ],
+              "untimely_rate_12m": [
+                0.6810451453308596,
+                6.444339180500749,
+                14.324908178799273
+              ],
+              "issue_mix_jsd": [
+                0.026672458745554684,
+                0.0770618963887218,
+                0.14108177268616418
+              ],
+              "noncurrent_ratio_lag": null,
+              "provision_ratio_lag": null,
+              "negative_equity": null
+            }
+          },
+          "clip_z": [
+            -5,
+            5
+          ]
+        }
+      },
+      "log_count": {
+        "features": [
+          "log_count"
+        ],
+        "peer_statistics": {
+          "bank": {
+            "log_count": [
+              4.127134385045092,
+              4.251008535313965,
+              1.745637104240021
+            ]
+          },
+          "credit_union": {
+            "log_count": [
+              3.990524879832978,
+              3.964509258412344,
+              0.4730267739916619
+            ]
+          },
+          "nonbank_originator": {
+            "log_count": [
+              2.6390573296152584,
+              2.707073812691252,
+              1.2893683098697306
+            ]
+          },
+          "nonbank_servicer": {
+            "log_count": [
+              4.770684624465665,
+              4.819813446649783,
+              1.7894413031770668
+            ]
+          }
+        },
+        "clip_z": [
+          -5,
+          5
+        ]
+      },
+      "explanation_peer_medians": {
+        "bank": {
+          "self_history": -0.21876674989990028,
+          "acceleration": 0.0028828348779093315,
+          "severity": 0.020341804637076084,
+          "untimely": -0.32316600267890544,
+          "issue_mix": -0.3732697817639549,
+          "log_count": -0.07096214325875214
+        },
+        "credit_union": {
+          "self_history": -0.017469574349185966,
+          "acceleration": 0.024530072271077348,
+          "severity": 0.12182481138076938,
+          "untimely": -0.4446430422385449,
+          "issue_mix": -0.4406595379197863,
+          "log_count": 0.05499820063270408
+        },
+        "nonbank_originator": {
+          "self_history": -0.07384023135229317,
+          "acceleration": 0.036898227435423384,
+          "severity": -0.2991831940507698,
+          "untimely": -0.4045940080008564,
+          "issue_mix": -0.33203645440522195,
+          "log_count": -0.052751787487987395
+        },
+        "nonbank_servicer": {
+          "self_history": -0.01565029513922847,
+          "acceleration": 0.024111753159588387,
+          "severity": 0.12366341382552931,
+          "untimely": -0.40232676979385523,
+          "issue_mix": -0.3571647611435831,
+          "log_count": -0.027454838611857164
+        }
+      }
+    },
+    "target": "event in following calendar month"
+  }
+}

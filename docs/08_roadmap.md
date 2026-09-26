@@ -69,14 +69,32 @@ secondary historical windows. [Conventions and limitations](13_panel_features.md
 [recorded build counts](panel_probe_2026-09-26.json).
 
 ## M4: Models and backtest
-- [ ] Model A (transparent anomaly score)
-- [ ] Model B (discrete-time hazard) and Model C (Cox), time-ordered cross-validation
-- [ ] Rolling-cutoff backtest: primary window (≤ 2024-12), secondary window (≤ 2025-08), with and without dismissed actions
-- [ ] Event-aligned chart with matched peers
-- [ ] Error review
-- [ ] Auto-generated backtest report
+- [x] Model A (transparent anomaly score)
+- [x] Model B (discrete-time hazard) and Model C (Cox), time-ordered cross-validation
+- [x] Rolling-cutoff backtest: primary window (≤ 2024-12), secondary window (≤ 2025-08), with and without dismissed actions
+- [x] Event-aligned chart with matched peers
+- [x] Error review
+- [x] Auto-generated backtest report
 
 **Exit:** `reports/backtest_*.md` exists with metrics and confidence intervals for every model and baseline.
+
+**Verified 2026-09-26:** `make backtest` produced
+[the report](../reports/backtest_2026-09-26.md), 928 metric rows and 74,912
+predictions with 400-draw company-cluster bootstrap intervals. Primary: eight
+cutoffs per horizon; secondary: ten/six-month and nine/twelve- or eighteen-month
+cutoffs. Both windows include and exclude confirmed complete-case dismissals;
+first-event counts are 25/23 and 26/23 respectively. There are 11 matched chart
+pairs and 126 live Model A rankings. All 98 tests pass, including 17 M4 tests,
+plus Ruff and Black. Protected labels and the original M3 panel are unchanged.
+
+The size-normalized baseline and its intervals are explicitly **N/A** because
+historical exposure vintages are unavailable under M3's version policy. This is
+a remaining data limitation, not a completed exposure-normalization comparison.
+All three models have lower point-estimate PR-AUC than raw count in the primary
+12-month paired comparison; the report makes no improvement claim. Early B/C
+folds with fewer than ten training events are unavailable under ADR-008. Model A
+always drives live ranking; B remains the primary statistical output. No
+accuracy claims extend beyond 2025-08.
 
 ## M5: Dashboard
 - [ ] Four views, banners (screening tool; historical-regime estimates; enforcement dormant), limitations page

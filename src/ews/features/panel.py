@@ -411,7 +411,14 @@ def standardize_peers(rows):
                 )
 
 
-def build(data_dir=Path("data"), start=date(2014, 1, 1), end=None, reference=REFERENCE):
+def build(
+    data_dir=Path("data"),
+    start=date(2014, 1, 1),
+    end=None,
+    reference=REFERENCE,
+    truncate_at_event=True,
+    output_name="company_month",
+):
     data_dir, reference = Path(data_dir), Path(reference)
     end = end or date.today()
     if end > date.today():
@@ -506,7 +513,12 @@ def build(data_dir=Path("data"), start=date(2014, 1, 1), end=None, reference=REF
             if event_date and event_date >= censor:
                 event_date = None
             exit_date = min(
-                censor, event_date + timedelta(days=1) if event_date else date.max
+                censor,
+                (
+                    event_date + timedelta(days=1)
+                    if event_date and truncate_at_event
+                    else date.max
+                ),
             )
             for mi in range(
                 month_index(entry), month_index(exit_date - timedelta(days=1)) + 1
@@ -599,7 +611,7 @@ def build(data_dir=Path("data"), start=date(2014, 1, 1), end=None, reference=REF
                 "entity_id,month"
             ).write_parquet(str(Path(tmp) / "company_month.parquet"))
             (Path(tmp) / "company_month.parquet").replace(
-                marts / "company_month.parquet"
+                marts / f"{output_name}.parquet"
             )
         result = {
             "rows": len(rows),
@@ -613,7 +625,14 @@ def build(data_dir=Path("data"), start=date(2014, 1, 1), end=None, reference=REF
             "availability_policy": "strict < scoring month; complaints one full calendar-month buffer; financial/HMDA current versions never backdated",
             "servicer_policy": "ADR-007 option (a); all servicing exposure rates remain structural nulls",
         }
-        (marts / "panel_report.json").write_text(json.dumps(result, indent=2) + "\n")
+        (
+            marts
+            / (
+                "panel_report.json"
+                if output_name == "company_month"
+                else f"{output_name}_report.json"
+            )
+        ).write_text(json.dumps(result, indent=2) + "\n")
         return result
     finally:
         con.close()

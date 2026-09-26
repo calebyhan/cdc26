@@ -2,11 +2,12 @@ PYTHON ?= .venv/bin/python
 CSV ?= data/raw/complaints.csv
 DATA_DIR ?= data
 ENFORCEMENT_ARGS ?=
+BACKTEST_ARGS ?=
 PIPELINE_ARGS ?=
 RESOLVE_ARGS ?=
 export PYTHONPATH := src
 
-.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike resolve pipeline
+.PHONY: setup ingest delta test lint format fdic enforcement hmda-spike resolve pipeline backtest
 setup:
 	uv venv --allow-existing .venv
 	uv pip install --python $(PYTHON) -e '.[dev]'
@@ -33,3 +34,6 @@ resolve:
 
 pipeline:
 	$(PYTHON) -m ews.pipeline --data-dir "$(DATA_DIR)" $(PIPELINE_ARGS)
+
+backtest:
+	$(PYTHON) -m ews.backtest.pipeline --data-dir "$(DATA_DIR)" $(BACKTEST_ARGS)
