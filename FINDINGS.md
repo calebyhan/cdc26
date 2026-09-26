@@ -9,7 +9,7 @@ Every number below comes from live calls made on this date unless marked *(from 
 
 1. **Complaint narratives are gone from the live API and the bulk file.** On **2026-08-14** the CFPB stopped publishing narratives. The API code that served them was deleted on 2026-08-18 ([ccdb5-api PR #256](https://github.com/cfpb/ccdb5-api/pull/256), "Remove narratives"). **0/1,000 sampled API rows** have a narrative, and `has_narrative=true` is **silently ignored**. Older narratives survive only in a **frozen FOIA archive** (21 zip files, 1.43 GB, Dec 2011 → Aug 14 2026). There, 32.7% of Jan–Feb 2025 complaints have text. **Any live early-warning signal must use structured fields only.** NLP is limited to historical backtesting.
 2. **The `/geo/states` and `/trends` endpoints were removed** in the same commit series. They now return the HTML search page with **HTTP 200**. Replace them with aggregations (`size=0`) sliced by date. That works, and the request shape is shown below.
-3. **Three credit bureaus account for 84–88% of all complaints**, and volume has exploded: 2.73M in 2024, 5.44M in 2025, and 5.34M already in 2026 YTD. Raw complaint counts are dominated by bureau noise. Model bureaus separately or exclude them.
+3. **Three credit bureaus account for 84–88% of complaints in 2024–2026** (78% all-time), and volume has exploded: 2.73M in 2024, 5.44M in 2025, and 5.34M already in 2026 YTD. Raw complaint counts are dominated by bureau noise. Model bureaus separately or exclude them.
 4. **CFPB enforcement has gone quiet.** The newest action was filed **2025-08-21**, with **zero filings in the last 13 months** and 9 in all of 2025. There is no JSON API, so the data has to be scraped (386 actions total). As a supervised label, enforcement is sparse and the regime has shifted. Use it for **historical backtesting (2012–2025)**, not as a live target.
 5. **FDIC BankFind works with no API key.** It returns all 4,231 active banks in one call. It covers **banks only**: no credit unions, nonbanks, or bureaus. CERT is the stable key.
 6. **Entity resolution is tractable because the universe is small.** The **top 200 CCDB companies cover 96.3% of complaints.** The core mismatch is that CCDB names **holding companies**, while FDIC and enforcement name **bank charters**. Naive fuzzy matching produced **7 false positives among the top 40 companies**. Recommendation: normalization plus blocked `rapidfuzz` scoring as candidate generation, and a **hand-curated alias table for about the top 150 companies**.
@@ -178,9 +178,9 @@ Note the **double nesting**: `aggregations[field][field]["buckets"]`. A full mon
 
 | Period | Complaints | Bureau share (Equifax + TransUnion + Experian) |
 |---|---|---|
-| All-time (Dec 2011 → 2026-09-26) | 18,023,390 | — |
+| All-time (Dec 2011 → 2026-09-26) | 18,023,390 | 77.9% |
 | 2024 | 2,734,269 | 84.1% |
-| 2025 | 5,442,963 | ~86% |
+| 2025 | 5,442,963 | 85.8% |
 | 2026 YTD (to 09-26) | 5,341,003 | 88.2% |
 
 **Updated daily.** `_meta.last_indexed` was today, and the bulk file was regenerated today. `_meta.is_data_stale` flags loads more than 5 business days old.
@@ -441,7 +441,7 @@ CCDB complaints ──(company raw string)──► alias ──► entity ◄�
 
 - **Analysis grain:** `entity × month` (or week). Complaint features: volume, growth vs. the entity's own baseline, product/issue mix shift, `Untimely response` count, `Closed with monetary relief` share, `Servicemember`/`Older American` share, and state concentration.
 - **Normalization:** for banks, complaints per $B of deposits (`DEP` from FDIC, as-of the latest `REPDTE` ≤ month). Nonbanks and credit unions have no FDIC denominator, so use z-scores against their own history.
-- **Credit bureaus:** model separately or exclude. They are 84–88% of volume and would swamp every ranking.
+- **Credit bureaus:** model separately or exclude. They are 84–88% of recent volume (2024–2026) and would swamp every ranking.
 - **Enforcement as the outcome:** events are `(entity, date_filed, products[], forum, status)`. Enforcement uses a different product taxonomy (e.g. `Deposits` vs CCDB `Checking or savings account`, `Consumer Reporting Agencies` vs `Credit reporting or other personal consumer reports`), so build a crosswalk of about 20 rows. With 8–55 actions a year historically and **0 since Aug 2025**, the recommended framing is: *"complaint anomalies that preceded historical enforcement (2012–2025)"* as the backtest, and a live anomaly ranking as the product.
 - **Narratives:** only for historical features or backtest NLP, from the FOIA archive. Join on `Complaint ID`. The live pipeline has no text.
 - **Point-in-time correctness:** CCDB `company_response` updates after ingestion, and FDIC financials are quarterly with a lag. When backtesting, use only data available as of each month.
@@ -457,7 +457,20 @@ CCDB complaints ──(company raw string)──► alias ──► entity ◄�
 - The reason for the 2025 complaint-volume doubling and for the dismissed 2025 enforcement actions was not investigated.
 - Enforcement "category" is interpreted as **Forum** (Administrative Proceeding / Civil Action), per the listing's "Category" filter.
 
-## 7. Reproduce
+## 7. Addendum: mortgage subset (MVP 1 scope)
+
+*Added 2026-09-26 from the bulk file (`Product = Mortgage`, 461,350 rows). These numbers differ from the all-product sample in §1.3 and should be used for MVP 1.*
+
+| Field | All-product sample (§1.3) | Mortgage, all-time |
+|---|---|---|
+| `Timely response? = No` | 0.3–0.6% | **1.9%** (8,656). Still rare, but usable as a count or rate feature |
+| `tags` present | 2.4% | **19.6%** |
+| Substantive (non-boilerplate) `company_public_response` | ~1% of rows | **10.0%** |
+| Top-N company coverage | top 200 = 96.3% | **top 150 = 94.1%, top 290 = 97.0%** |
+
+`company_response` in the mortgage data mixes the current values with **pre-2017 labels** (`Closed with relief` 1,397, `Closed without relief` 10,630, `Closed` 5,686). The relief-share features need a response crosswalk as well as the issue crosswalk.
+
+## 8. Reproduce
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r spike/requirements.txt
