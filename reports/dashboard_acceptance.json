@@ -6,29 +6,51 @@
     "scope": "Local Streamlit AppTest; imports excluded; network/browser/deployed cold start unverified",
     "views": {
       "Risk leaderboard": {
-        "script_seconds": 0.10832379199564457,
-        "apptest_seconds": 0.19163004201254807
+        "script_seconds": 0.2696763120000014,
+        "apptest_seconds": 0.37763891400000205
       },
       "Company detail": {
-        "script_seconds": 0.19792904201312922,
-        "apptest_seconds": 0.29811633299686946
+        "script_seconds": 0.2955948219999982,
+        "apptest_seconds": 0.41227738000000613
       },
       "Enforcement timeline": {
-        "script_seconds": 0.08761250000679865,
-        "apptest_seconds": 0.15075958298984915
+        "script_seconds": 0.14583695899999327,
+        "apptest_seconds": 0.24986539600000413
       },
       "Backtest results": {
-        "script_seconds": 0.35122700000647455,
-        "apptest_seconds": 0.4158244999998715
+        "script_seconds": 0.8218004550000018,
+        "apptest_seconds": 0.9219212859999999
       },
       "Limitations": {
-        "script_seconds": 0.0011750419798772782,
-        "apptest_seconds": 0.06309929100098088
+        "script_seconds": 0.002041219000005867,
+        "apptest_seconds": 0.1015246200000064
       }
     }
   },
   "deployed_browser_performance_verified": false,
-  "browser_performance": null,
+  "browser_performance": {
+    "scope": "Browser view switching after initial assets load; includes CDP/CLI overhead, chart rendering and 150ms stability window",
+    "public_url": "http://127.0.0.1:8501",
+    "measured_at": "2026-09-26T19:51:19.627777+00:00",
+    "initial_page_load_verified": false,
+    "views": {
+      "Risk leaderboard": {
+        "seconds": 0.6280999999940395
+      },
+      "Company detail": {
+        "seconds": 1.0588000000119209
+      },
+      "Enforcement timeline": {
+        "seconds": 0.7965
+      },
+      "Backtest results": {
+        "seconds": 0.927
+      },
+      "Limitations": {
+        "seconds": 0.6705
+      }
+    }
+  },
   "exit_criteria_met": false,
   "remaining": [
     "Public deployment not verified",
@@ -36,6 +58,11 @@
     "Measure every view in the deployed browser under three seconds"
   ],
   "runs": [
+    {
+      "url": "https://github.com/calebyhan/cdc26/actions/runs/36267511990",
+      "created_at": "2026-09-26T19:51:48Z",
+      "conclusion": "success"
+    },
     {
       "url": "https://github.com/calebyhan/cdc26/actions/runs/36267055274",
       "created_at": "2026-09-26T19:43:51Z",
