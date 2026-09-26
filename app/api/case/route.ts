@@ -5,12 +5,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store, private" };
 const MAX_BYTES = 14 * 1024 * 1024;
+// Allow the supported 300-second Codex call, its 10-second auth check, and cleanup.
+const ENGINE_TIMEOUT_MS = 330_000;
 
 function runEngine(body: string): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     const python =
       process.env.NMD_PYTHON ||
       path.join(process.cwd(), ".venv", "bin", "python");
+    const processGroup = process.platform !== "win32";
     const child = spawn(
       /* turbopackIgnore: true */ python,
       ["-m", "not_my_debt.web_bridge"],
@@ -18,28 +21,47 @@ function runEngine(body: string): Promise<Record<string, unknown>> {
         cwd: process.cwd(),
         env: { ...process.env, PYTHONPATH: path.join(process.cwd(), "src") },
         stdio: ["pipe", "pipe", "ignore"],
+        // On POSIX, keep Python and any Codex subprocess in one killable group.
+        detached: processGroup,
       },
     );
     let output = "";
-    const timer = setTimeout(() => {
-      child.kill();
-      reject(new Error("timeout"));
-    }, 150_000);
-    child.on("error", () => {
+    let finished = false;
+    const timer = setTimeout(() => fail("timeout", true), ENGINE_TIMEOUT_MS);
+
+    function fail(message: string, terminate = false) {
+      if (finished) return;
+      finished = true;
       clearTimeout(timer);
-      reject(new Error("engine unavailable"));
+      output = "";
+      if (terminate) {
+        try {
+          if (processGroup && child.pid) process.kill(-child.pid, "SIGKILL");
+          else child.kill("SIGKILL");
+        } catch {
+          // The process may already have exited between the event and cleanup.
+          child.kill("SIGKILL");
+        }
+      }
+      reject(new Error(message));
+    }
+
+    child.on("error", () => {
+      fail("engine unavailable", true);
     });
     child.stdin.on("error", () => {
       /* close/error handlers report a generic failure */
     });
     child.stdout.on("data", (chunk: Buffer) => {
+      if (finished) return;
       output += chunk.toString();
       if (Buffer.byteLength(output) > MAX_BYTES) {
-        child.kill();
-        reject(new Error("too much output"));
+        fail("too much output", true);
       }
     });
     child.on("close", (code) => {
+      if (finished) return;
+      finished = true;
       clearTimeout(timer);
       if (code !== 0) return reject(new Error("engine failed"));
       try {
@@ -80,10 +102,15 @@ export async function POST(request: Request) {
       );
     const result = await runEngine(body);
     return Response.json(result, { status: result.error ? 400 : 200, headers });
-  } catch {
+  } catch (error) {
+    const timedOut = error instanceof Error && error.message === "timeout";
     return Response.json(
-      { error: "The evidence engine is unavailable. Run uv sync and retry." },
-      { status: 503, headers },
+      {
+        error: timedOut
+          ? "The evidence engine timed out. Retry or explicitly choose Local parser."
+          : "The evidence engine is unavailable. Run uv sync and retry.",
+      },
+      { status: timedOut ? 504 : 503, headers },
     );
   }
 }
