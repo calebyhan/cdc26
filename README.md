@@ -18,15 +18,20 @@ uv sync --extra dev
 uv run streamlit run streamlit_app.py
 ```
 
-The app opens with Maya's fictional paid-bill case. Switch off the receipt to see
-the payment finding disappear. Other examples cover partial payment, wrong account,
-duplicate payment evidence, missing receipt, and records that agree.
+The app opens with Maya's preconfirmed fictional paid-bill case and a three-step
+presentation flow: **The case → Connect the records → Prepare a response**.
+Inspect the four documents, follow the source-linked ledger, and switch off
+**Include payment receipt** to see the payment finding disappear. Restore it,
+review the provider inquiry, and download a printable HTML evidence packet.
+**Reset demo** restores the original case and recipient and clears draft edits
+and review approval. Nothing is sent to providers, collectors, or regulators.
 
-Use **Evidence** to paste text or upload a text-based PDF, review extracted facts,
-and make corrections. Source passages remain visible beside corrected values.
-Use **Findings** to inspect the ledger and supporting evidence. **Response packet**
-produces a reviewed HTML download that can be printed to PDF from a browser.
-Nothing is sent to providers, collectors, or regulators.
+The sidebar's **Workspace** selector opens **Evidence & uploads** for pasted text,
+text-based PDFs, extracted-field review, corrections, and document inclusion.
+Original source passages remain visible beside corrected values. **Research**
+shows real public complaint aggregates separately from the fictional case.
+**More cases & tools** includes partial payment, wrong account, duplicate payment
+evidence, missing receipt, and records that agree, plus an empty-case option.
 
 ## Extraction and data handling
 
