@@ -36,8 +36,49 @@ Format: context, decision, consequences. Add a new entry for any decision made a
 - **Leaning toward:** (a) for MVP 1, with (b) as a stretch goal. (d) is rejected.
 - **Owner / due:** _TBD_ · before M3.
 
-## ADR-008 (OPEN): Event count and fallback
-- **To fill after M1:** number of mortgage-related events resolving to panel entities, both through 2024-12 and through 2025-08, and which fallback from [08_roadmap.md](08_roadmap.md), if any, was applied.
+## ADR-008: M1 event count and fallback (panel eligibility pending M2/M3)
+- **Context / evidence (2026-09-26, before any backtest):** the live CFPB listing
+  advertised **386 filtered results**. The scraper retrieved 386 unique action
+  slugs over 16 listing pages and archived all 386 detail pages. Every action has
+  a reviewed boolean `mortgage_related`, a summary-specific rationale, source-text
+  fingerprint, and review provenance in
+  [`enforcement_labels.csv`](../data/reference/enforcement_labels.csv). Review was
+  performed by Codex reading product tags and summary text; this is not an
+  independent human adjudication. Across the full 2012–2025 archive, 102 actions
+  are mortgage-related. The table grain is one public action, not one party.
+
+| Inclusive filing-date window | Mortgage-related actions | With ≥1 named company | Individual / unspecified-party only |
+|---|---:|---:|---:|
+| **Primary:** 2014-01-01 → 2024-12-31 | **86** | 84 | 2 |
+| **Secondary:** 2014-01-01 → 2025-08-31 | **88** | 86 | 2 |
+
+- **Decision / fallback:** retain ADR-004's primary window through 2024-12.
+  **No fallback applied:** 86 exceeds the approximately 20-action M1 threshold.
+  The two added secondary-window actions are Vanderbilt (2025-01-06) and
+  Draper & Kramer (2025-01-17). All filing events count regardless of later
+  status, as specified in §05; these labels do not assert that the agency prevailed.
+- **Initial feature budget:** cap fitted models at **two substantive predictor
+  degrees of freedom** until panel event counts are verified. In each training
+  cutoff, total fitted degrees of freedom (including baseline/time terms) must
+  also be ≤ `floor(eligible first-company events / 10)`. This is a conservative
+  project constraint, not a statistical guarantee. No model has been built or fit.
+- **Consequences / remaining gate:** **86/88 are action counts, not counts of
+  events resolving to panel entities.** Company IDs, holding-company rollups,
+  alias/merger validity, complaint-panel entry dates, and first-event eligibility
+  are not available until M2/M3. Multi-party actions and repeat actions cannot be
+  counted as independent model observations. Record those eligible counts here
+  before fitting and reduce the budget as needed. If the eligible primary count
+  falls below ~20, evaluate the [fallbacks](08_roadmap.md#fallbacks-if-m1-finds-too-few-events)
+  in order: secondary window, any-action target, state regulators, federal banking
+  regulators, then descriptive event study; record the first adequate choice.
+- **Reproduction:** `make enforcement ENFORCEMENT_ARGS=--offline` writes
+  `data/staging/enforcement_events.parquet` (386 actions),
+  `stg_enforcement.parquet` (742 action-party rows), CSV review copies, and
+  `enforcement_counts.json`, with DuckDB views in `ews.duckdb`. References and
+  methodology are documented in [`data/reference/README.md`](../data/reference/README.md).
+  The source combines expiry, termination and dismissal in one status label;
+  do not treat all 53 secondary-window `Expired/Terminated/Dismissed` actions as
+  dismissed in a later sensitivity analysis.
 
 ## ADR-009: rapidfuzz + curated alias table instead of Splink *(new, from the data spike)*
 - **Context:** naive fuzzy matching produced 7 false positives among the top 40 names. The improved approach still missed about 15 enforcement matches. The top 150 mortgage names cover 94.1% of complaints.

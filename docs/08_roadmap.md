@@ -16,13 +16,21 @@ Each milestone ends with a demoable artifact. If time runs out, the project is c
 **Verified 2026-09-26:** full CSV rebuild 6.57 s; two live deltas 13.95 s / 10.21 s, each 1,810 rows fetched and 461,350 staged. See [FINDINGS §9](../FINDINGS.md#9-hmda-spike-and-m0-ingestion-validation-2026-09-26).
 
 ## M1: Labels (the riskiest step, so do it first)
-- [ ] Productionize the enforcement scraper: stop-on-no-new-slugs, check against the 386 total, save raw HTML
-- [ ] Split captions into parties. Tag individuals and non-entities
-- [ ] Hand-label `mortgage_related` for every action (product tags, confirmed by reading the summary)
-- [ ] Build the enforcement ↔ CCDB product crosswalk (about 20 rows)
-- [ ] **Count mortgage-related events in 2014-01 → 2025-08**, and separately through 2024-12. Record both in ADR-008 and set the feature budget
+- [x] Productionize the enforcement scraper: stop-on-no-new-slugs, check against the 386 total, save raw HTML
+- [x] Split captions into parties. Tag individuals and non-entities
+- [x] Hand-label `mortgage_related` for every action (product tags, confirmed by reading the summary)
+- [x] Build the enforcement ↔ CCDB product crosswalk (about 20 rows)
+- [x] **Count mortgage-related events in 2014-01 → 2025-08**, and separately through 2024-12. Record both in ADR-008 and set the feature budget
 
 **Exit:** a labeled event table with event counts. If the primary count is below about 20, choose a fallback immediately (see below).
+
+**Verified 2026-09-26:** 386 archived actions, 386 reviewed labels, 742 reviewed
+party rows, and 21 product mappings. Mortgage-related action counts: **86** through
+2024-12 and **88** through 2025-08, both starting 2014-01. No M1 fallback applied.
+`make enforcement` builds the labeled Parquet tables; use
+`ENFORCEMENT_ARGS=--offline` to replay the archive. The initial feature cap and the
+required distinction between action counts and eligible company first events are
+recorded in ADR-008. Entity resolution and panel eligibility remain M2/M3 work.
 
 ## M2: Entity resolution
 - [ ] `normalize()` from the spike, plus exact-key matching and first-token-blocked `token_sort_ratio`

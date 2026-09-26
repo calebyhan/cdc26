@@ -6,6 +6,8 @@ from pathlib import Path
 
 from rapidfuzz import fuzz, process
 
+from ews.resolve.parties import split_parties  # noqa: F401
+
 DATA = Path("data/raw")
 
 # FDIC NAMEHCR uses Fed-style abbreviations ("U S BCORP", "PNC FINL SERVICES GROUP INC").
@@ -66,17 +68,6 @@ def normalize(name: str) -> str:
     while len(toks) > 1 and toks[-1] in LEGAL | GENERIC:
         toks.pop()
     return " ".join(toks)
-
-
-def split_parties(caption: str) -> list[str]:
-    """Enforcement captions bundle respondents: 'A, Inc.; B, LLC; and Jane Doe'."""
-    out = []
-    for p in re.split(r";\s*(?:and\s+)?", caption):
-        # Split on "and" only after a legal suffix so "Bank and Trust Company" stays intact.
-        out += re.split(
-            r"(?:(?<=Inc\.)|(?<=LLC)|(?<=Corp\.)|(?<=N\.A\.)|(?<=tion)),?\s+and\s+", p
-        )
-    return [p.strip(" ,") for p in out if p.strip(" ,")]
 
 
 def build_index(names):

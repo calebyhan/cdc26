@@ -77,7 +77,7 @@ cfpb-ews/
 
 Python 3.11+ · DuckDB + Parquet · Polars · requests + BeautifulSoup · rapidfuzz + a hand-curated alias table · statsmodels · lifelines · scikit-survival · Streamlit + Plotly · GitHub Actions (daily refresh)
 
-## Quickstart (M0 implemented)
+## Quickstart (M0 and M1 implemented)
 
 Requires Python 3.11+, `uv`, and `make` (macOS/Linux).
 
@@ -85,6 +85,7 @@ Requires Python 3.11+, `uv`, and `make` (macOS/Linux).
 make setup      # create .venv and install the editable package + dev tools
 make ingest     # download CSV if absent; rebuild all-product Parquet and mortgage staging
 make delta      # new complaints + 30-day overlap, upsert by complaint_id
+make enforcement # archive CFPB actions, validate reviewed labels, stage events + parties
 make test
 make lint       # ruff + black
 ```
@@ -111,8 +112,19 @@ JSONL is retained under `data/raw/deltas/`. A file lock prevents concurrent writ
 validation precedes atomic staging-file replacement. Failed pulls leave staging
 unchanged; repeated unchanged payloads preserve ingestion timestamps.
 
-Additional source tools: `make fdic`, `make enforcement`, `make hmda-spike`.
-FDIC/enforcement ports retain the spike behavior; further productionization is M1.
+Additional source tools: `make fdic`, `make hmda-spike`.
+`make enforcement` caches raw HTML and SHA-256/URL/retrieval-time sidecars under
+`data/raw/enforcement/`. It requires exactly 386 unique slugs matching the listing
+count, stops repeated pagination, and validates every action label, party review,
+and product mapping before staging. Missing or changed labels fail the build.
+`make enforcement ENFORCEMENT_ARGS=--offline` rebuilds from that archive;
+`ENFORCEMENT_ARGS=--refresh` fetches a new live snapshot that may require reference
+reviews. `DATA_DIR` also applies to enforcement. Raw HTML and staging are ignored
+by Git; the reviewed references are committed source data.
+The action-grain `enforcement_events` and party-grain `stg_enforcement` are Parquet
+files with DuckDB views, accompanied by CSVs and `enforcement_counts.json`.
+See [ADR-008](docs/09_decisions.md#adr-008-m1-event-count-and-fallback-panel-eligibility-pending-m2m3)
+for the 86/88 window counts and the remaining panel-eligibility gate.
 Normalization and blocked candidate matching are in `ews.resolve.matching`.
 `make format` applies formatting. To enable Git hooks, run
 `.venv/bin/pre-commit install`. The original `spike/` remains unchanged.

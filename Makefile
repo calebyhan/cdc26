@@ -1,6 +1,7 @@
 PYTHON ?= .venv/bin/python
 CSV ?= data/raw/complaints.csv
 DATA_DIR ?= data
+ENFORCEMENT_ARGS ?=
 export PYTHONPATH := src
 
 .PHONY: setup ingest delta test lint format fdic enforcement hmda-spike
@@ -22,6 +23,6 @@ format:
 fdic:
 	$(PYTHON) -m ews.ingest.fdic
 enforcement:
-	$(PYTHON) -m ews.ingest.enforcement
+	$(PYTHON) -m ews.ingest.enforcement --data-dir "$(DATA_DIR)" $(ENFORCEMENT_ARGS)
 hmda-spike:
 	$(PYTHON) -m ews.ingest.hmda

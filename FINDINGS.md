@@ -631,3 +631,97 @@ Daily deltas cannot discover revisions to complaints older than the overlap or
 historical removals/product reclassifications. A fresh bulk download and rebuild
 is the reconciliation mechanism. Today's response values are not historical
 point-in-time response snapshots; this remains a backtest limitation.
+
+## 10. M1 enforcement labels and feasibility (2026-09-26)
+
+### 10.1 Archived source and production scrape
+
+The live [CFPB enforcement listing](https://www.consumerfinance.gov/enforcement/actions/)
+still advertises **386 filtered results**. The production scraper retrieved
+**386 unique slugs in 16 pages**, and all 386 action detail pages. Filing dates
+span **2012-07-17–2025-08-21**. Raw HTML is saved byte-for-byte in
+`data/raw/enforcement/{listing,details}/`, with URL, retrieval timestamp,
+HTTP content type/status, Last-Modified and SHA-256 sidecars. The 402 HTML files
+total **58,519,606 bytes**. Offline replay verifies these checksums.
+
+Pagination stops on no new slugs or the advertised count, with a 100-page safety
+bound. A repeated populated page cannot produce an endless loop or a successful
+partial scrape: distinct-slug totals must equal both the advertised total and the
+expected 386-action snapshot. A changed count requires deliberate snapshot review.
+HTTP requests use retries/backoff and one-second pacing. Detail parsing retains
+the summary, product tags, forum, docket, status, filing date and PDF links;
+related-news widgets and document-link text are excluded from the summary.
+Listing/detail filing dates must agree.
+
+### 10.2 Reviewed labels, captions and product crosswalk
+
+There are **386 action labels**, **742 party rows** (560 company, 159 individual,
+23 non-entity), and **21 product-crosswalk rows** in `data/reference/`.
+Review was performed by Codex reading tags and summary text for each action;
+the CSVs name that reviewer explicitly and do not claim independent human review.
+Each action has a rationale and source-summary hash. Party rows identify the
+source caption/summary and hash the fuller listing/detail caption. A changed
+summary, caption, date or product tag requires re-review; new actions cannot
+default to a negative label. All 21 observed enforcement tags are covered, and
+every mapped CCDB product string was checked against the all-product export.
+
+The caption splitter supports semicolons, `; and` and `, and`, preserves suffix
+commas, parenthetical alias lists and “Bank and Trust,” and generates review
+proposals. Reviewed party CSVs are authoritative. Trade names are retained within
+one party rather than inflated into independent respondents. Ambiguous bare-comma
+lists and personal names were reviewed explicitly. For long captions, the fuller
+detail heading can restore names omitted on listing cards. Individuals, unnamed
+affiliates/`et al.`, government plaintiffs and non-operating relief trusts do not
+enter company matching. These captions do not enumerate unnamed docket defendants.
+
+Mortgage relevance is action-specific. ACI's Payments-only action concerns
+unauthorized mortgage-payment withdrawals and is included. Harbour Portfolio's
+Furnishing-only action concerns home purchases financed through contracts for
+deed and is included. International Land Consultants and 3D Resorts Bluegrass
+concern land-development/sale disclosure obligations without identified mortgage
+credit conduct and are excluded. Monster Loans concerns student-debt relief;
+its later mortgage-industry ban is not a mortgage-product event. Unrelated
+deposit/card/auto actions against banks are excluded. Full definitions and
+additional examples are in [`data/reference/README.md`](data/reference/README.md).
+
+### 10.3 Window counts and model gate
+
+| Inclusive filing window | Distinct mortgage actions | With named company | No named company |
+|---|---:|---:|---:|
+| 2014-01-01–2024-12-31 (primary) | **86** | 84 | 2 |
+| 2014-01-01–2025-08-31 (secondary) | **88** | 86 | 2 |
+
+Across the entire archive, **102/386 actions** are mortgage-related, including
+14 before 2014. Mortgage-action counts by filing year are:
+2012: 2; 2013: 12; 2014: 13; 2015: 18; 2016: 5; 2017: 10; 2018: 2;
+2019: 3; 2020: 15; 2021: 4; 2022: 3; 2023: 7; 2024: 6; 2025: 2.
+The 2025 additions are Vanderbilt and Draper & Kramer. The two actions without
+a named company in the reviewed captions are David Eghbali and the Hoffman Law
+Group principals / `et al.`; they remain filing events but are not mapped to
+companies by inference from the caption.
+
+**No M1 fallback is applied**, because the primary action count exceeds ~20.
+[ADR-008](docs/09_decisions.md#adr-008-m1-event-count-and-fallback-panel-eligibility-pending-m2m3)
+records both counts, a provisional cap of two substantive predictor degrees of
+freedom, and the remaining M2/M3 gate. Action counts are not eligible first-company
+events: repeat filings, multiple parties, alias/holding-company rollups and panel
+entry still need resolution. No fitted model should use 86 or 88 as its effective
+event sample size. Re-evaluate fallbacks if the eligible primary count falls below
+~20. Current combined `Expired/Terminated/Dismissed` status is not a precise
+dismissal indicator; a dismissal-only sensitivity needs separate review.
+
+### 10.4 Reproduction and verification
+
+`make enforcement` stages **386 rows / distinct action IDs** in
+`enforcement_events.parquet` and **742 rows covering all 386 actions** in
+`stg_enforcement.parquet`, plus CSVs, DuckDB views and `enforcement_counts.json`.
+Filing dates are DATE and mortgage/company flags BOOLEAN. First use retrieves
+raw HTML; later runs replay the cache. Use `ENFORCEMENT_ARGS=--refresh` to refetch
+or `ENFORCEMENT_ARGS=--offline` to require the local archive. The original
+`spike/` was left unchanged.
+
+Two consecutive complete offline scrape/validate/stage runs took **3.96 s** and
+**3.85 s**, with identical counts. Tests cover repeated-page termination, count
+drift, archive tampering, summary extraction, caption delimiters/aliases, typed
+staging and action-level counting, missing reviews, and changed-source rejection
+before staging replacement. Ruff and Black checks pass.

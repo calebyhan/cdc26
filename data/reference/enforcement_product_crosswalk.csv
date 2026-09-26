@@ -1,0 +1,22 @@
+enforcement_product,ccdb_products_json,mapping_type,note
+Auto Finance Origination,"[""Vehicle loan or lease"", ""Consumer Loan""]",product_family,Auto origination; Consumer Loan is a historical broader family.
+Auto Finance Servicing,"[""Vehicle loan or lease"", ""Consumer Loan""]",product_family,Auto servicing; exclude non-auto Consumer Loan rows.
+Consumer Reporting - User,"[""Credit reporting or other personal consumer reports"", ""Credit reporting, credit repair services, or other personal consumer reports"", ""Credit reporting""]",contextual,Use of reports can concern any underlying loan or account; confirm the action summary.
+Consumer Reporting Agencies,"[""Credit reporting or other personal consumer reports"", ""Credit reporting, credit repair services, or other personal consumer reports"", ""Credit reporting""]",product_family,Reporting agency conduct; tenant/employment reports are included in the modern family.
+Credit Cards,"[""Credit card"", ""Credit card or prepaid card""]",product_family,Combined historical card/prepaid family requires sub-product review.
+Credit Repair,"[""Credit reporting, credit repair services, or other personal consumer reports"", ""Debt or credit management"", ""Other financial service""]",contextual,Credit repair taxonomy spans legacy and current complaint families.
+Debt Collection,"[""Debt collection""]",product_family,The debt may be mortgage-related only when the summary identifies mortgage debt.
+Debt Relief,"[""Debt or credit management"", ""Other financial service"", ""Mortgage"", ""Student loan""]",contextual,Unsecured debt settlement versus mortgage assistance or student relief must be read in the summary.
+Deposits,"[""Checking or savings account"", ""Bank account or service""]",product_family,Legacy Bank account or service corresponds to current checking/savings.
+Fair Lending,[],context_only,"A legal theme, not a CCDB product; use underlying mortgage/auto/card context."
+Furnishing,"[""Credit reporting or other personal consumer reports"", ""Credit reporting, credit repair services, or other personal consumer reports"", ""Credit reporting""]",contextual,Credit furnishing can concern mortgage/auto/student/account conduct; summary controls.
+Mortgage Origination,"[""Mortgage""]",product_family,Mortgage lending/settlement/insurance; exclude pure land-sales cases without mortgage-credit conduct.
+Mortgage Servicing,"[""Mortgage""]",product_family,"Mortgage and reverse-mortgage servicing, foreclosure and payment programs."
+Other Consumer Lending,"[""Payday loan, title loan, personal loan, or advance loan"", ""Payday loan, title loan, or personal loan"", ""Consumer Loan""]",contextual,Broad non-mortgage personal/advance lending; summary identifies the product.
+Other Consumer Product (not lending),"[""Other financial service"", ""Money transfer, virtual currency, or money service""]",contextual,Broad service category with no deterministic CCDB counterpart.
+Payments,"[""Money transfer, virtual currency, or money service"", ""Money transfers"", ""Checking or savings account"", ""Bank account or service"", ""Prepaid card"", ""Mortgage""]",contextual,Payment mechanism rather than loan product; ACI mortgage debits require Mortgage context.
+Prepaid,"[""Prepaid card"", ""Credit card or prepaid card""]",product_family,Combined historical card/prepaid family requires sub-product review.
+Remittances,"[""Money transfer, virtual currency, or money service"", ""Money transfers""]",product_family,International money transfers; broader family includes unrelated money services.
+"Short Term, Small Dollar","[""Payday loan"", ""Payday loan, title loan, or personal loan"", ""Payday loan, title loan, personal loan, or advance loan"", ""Consumer Loan""]",product_family,Payday/title/short-term installment products; Consumer Loan is historical and broader.
+Student Loan Origination,"[""Student loan""]",product_family,"Education/student financing, including income-share agreements."
+Student Loan Servicing,"[""Student loan""]",product_family,Student-loan servicing and rehabilitation; no mortgage denominator.
