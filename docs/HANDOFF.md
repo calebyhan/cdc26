@@ -10,12 +10,16 @@ npm ci
 npm run dev
 ```
 
-The demo starts with fictional documents for Maya. Turn off the receipt in Overview
-and inspect the changed finding and Recharts balance comparison. Open
-http://127.0.0.1:3000; the Node route requires the Python environment at runtime.
-Documents & review supports field review/correction. Select Prepare a response to
-open the Prepare your response view and export reviewed printable HTML. Complaint
-research uses real CFPB aggregate data.
+The app starts with an empty upload case. Add the documents, check their roles,
+extract fields, and review each record before selecting **Create timeline &
+explanation**. The combined timeline and AI explanation open only after that
+explicit request succeeds. **View timeline only** is an explicit local-only path.
+Maya's preloaded case remains a secondary option. **Start over** empties an uploaded
+case and queue; **Reset case** restores the selected preloaded scenario.
+Open http://127.0.0.1:3000; the Node route requires the Python environment at runtime.
+**Check what we read.** leads to each document's review. Documents & review also
+supports field correction. Prepare a response exports reviewed
+printable HTML. Complaint research uses real CFPB aggregate data.
 
 ## What is implemented
 
@@ -27,7 +31,8 @@ research uses real CFPB aggregate data.
 - Next.js/TypeScript UI, Recharts visualizations, source drawer, review gates, and responsive layouts.
 - Stateless Node-to-Python bridge retaining the existing reconciliation and local extraction.
 - Synthetic regression checks for reconciliation, extraction, source references, and the bridge.
-- A timeline from reviewed facts and optional, explicit Codex/API case analysis.
+- An upload-first entrypoint, per-document review, and an explicit request for the
+  combined timeline and Codex/API explanation.
 
 The [Codex extraction check](demo.md#recorded-live-check) and
 [separate case-analysis check](demo.md#recorded-case-analysis-check) are recorded in
@@ -36,8 +41,12 @@ using existing ChatGPT sign-in and the CLI's default model: paid, missing receip
 wrong account, and partial payment. All passed structural/citation checks; inspected
 explanations agreed with the deterministic $0, $150, unknown, and $100 balances,
 respectively. Runs took 14.2–15.3 seconds and changed no records or arithmetic.
-These synthetic checks are not a real-document accuracy estimate. Neither OpenAI
-API path has been live-tested.
+These synthetic checks are not a real-document accuracy estimate. A separate
+[upload-to-analysis integration check](demo.md#recorded-upload-to-analysis-check)
+took 57.21 seconds: 40 returned facts matched, the receipt document date remained
+missing, review was required, and the reviewed case produced a $0 balance with four
+analysis events. This is not complete field recall or measured browser review time.
+Neither OpenAI API path has been live-tested.
 The local parser requires explicit labels; arbitrary layouts and OCR are unfinished.
 The legacy UI retains its Streamlit AppTest coverage. Check the primary UI with
 `npm run typecheck`, `npm run lint`, and `npm run build`, and rehearse in a browser.
@@ -48,7 +57,7 @@ In **Connect the records**, **Your case, in order** is built from reviewed field
 Its dates and amounts are deterministic. A displayed record may be **Not used in
 balance**; preserve that distinction for mismatches, duplicates, and payment-status
 questions. The analysis provider is chosen under **Analysis method**, and
-**Explain this case** is the explicit network action.
+**Create timeline & explanation** is the explicit network action after review.
 
 All included fields must be reviewed and valid before analysis. Only those facts,
 their original source passages and correction provenance, and the authoritative
@@ -58,7 +67,9 @@ against the current result. Reject numeric prose and unknown
 references; these checks do not establish semantic correctness. Preserve user
 correction provenance. The model cannot change numerical/date cards or arithmetic.
 Changing the evidence or provider must clear the explanation, including a stale
-response that arrives after the change. Do not automatically run AI or fall back
+response that arrives after the change. Batch extraction must not append late
+results into a reset or replaced case; every upload starts unconfirmed. Uploaded
+PDF previews use transient browser URLs, revoked on reset, replacement, and unmount. Do not automatically run AI or fall back
 to another provider. Analysis text stays separate from the response letter and
 export in this iteration.
 

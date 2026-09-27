@@ -53,9 +53,13 @@ import {
   ResponseOutcomes,
 } from "@/app/components/research-evidence";
 import { CaseTimeline } from "@/app/components/case-timeline";
+import { UploadCase, type UploadedRecord } from "@/app/components/upload-case";
 
 const demoPdfUrl = (file: string) =>
   `/api/demo-document?file=${encodeURIComponent(file)}`;
+
+const sourceUrl = (source: string) =>
+  source.startsWith("blob:") ? source : demoPdfUrl(source);
 
 const steps = ["Your case", "Connect the records", "Prepare a response"];
 const names: Record<string, string> = {
@@ -100,9 +104,13 @@ export default function Home() {
   >({});
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [step, setStep] = useState(0);
-  const [workspace, setWorkspace] = useState("demo");
+  const [workspace, setWorkspace] = useState("upload");
+  const [uploadFlow, setUploadFlow] = useState(true);
+  const [uploadGeneration, setUploadGeneration] = useState(0);
+  const [basicTimelineKey, setBasicTimelineKey] = useState<string | null>(null);
+  const uploadUrls = useRef<string[]>([]);
   const [scenario, setScenario] = useState("paid");
-  const [fictional, setFictional] = useState(true);
+  const [fictional, setFictional] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [drawer, setDrawer] = useState<Drawer | null>(null);
@@ -143,8 +151,7 @@ export default function Home() {
         if (controller.signal.aborted) return;
         setBoot(data);
         setCaseAnalysisMethod(data.codex_available ? "codex" : "openai");
-        setDocuments(data.examples.paid);
-        setDocumentSources(data.document_sources.paid);
+        setDocuments([]);
       })
       .catch((e) => {
         if (e.name !== "AbortError") {
@@ -173,6 +180,54 @@ export default function Home() {
     return () => controller.abort();
   }, [documents]);
 
+  useEffect(() => {
+    const urls = uploadUrls.current;
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
+
+  function clearUploadedSources() {
+    uploadUrls.current.splice(0).forEach((url) => URL.revokeObjectURL(url));
+  }
+  function rememberPdf(id: string, file?: File) {
+    if (!file || !file.name.toLowerCase().endsWith(".pdf")) return null;
+    const url = URL.createObjectURL(
+      new Blob([file], { type: "application/pdf" }),
+    );
+    uploadUrls.current.push(url);
+    return { [id]: url };
+  }
+  function startUploadCase() {
+    clearUploadedSources();
+    replaceDocuments([]);
+    setDocumentSources({});
+    setUploadFlow(true);
+    setUploadGeneration((value) => value + 1);
+    setFictional(false);
+    setStep(0);
+    setWorkspace("upload");
+    setDrawer(null);
+    setRecipient("provider");
+  }
+  function receiveUploads(records: UploadedRecord[]) {
+    clearUploadedSources();
+    const sources: Record<string, string> = {};
+    const uploaded = records.map(({ document, file }) => {
+      const id = `${document.id}-${crypto.randomUUID().slice(0, 8)}`;
+      Object.assign(sources, rememberPdf(id, file));
+      return { ...document, id };
+    });
+    replaceDocuments(uploaded);
+    setDocumentSources(sources);
+    setUploadFlow(true);
+    setUploadGeneration((value) => value + 1);
+    setFictional(false);
+    setStep(0);
+    setWorkspace("evidence");
+    setDrawer(null);
+    setRecipient("provider");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function clearCaseExplanation() {
     const active = explanationRequest.current;
     active.controller?.abort();
@@ -185,8 +240,11 @@ export default function Home() {
     clearCaseExplanation();
     setCaseAnalysisMethod(method);
   }
-  function replaceDocuments(docs: Document[]) {
+  function replaceDocuments(
+    docs: Document[] | ((current: Document[] | null) => Document[]),
+  ) {
     clearCaseExplanation();
+    setBasicTimelineKey(null);
     setDocuments(docs);
     setAnalysis(null);
     setLoading(true);
@@ -197,6 +255,9 @@ export default function Home() {
   }
   function loadCase(key = "paid") {
     if (!boot) return;
+    clearUploadedSources();
+    setUploadFlow(false);
+    setUploadGeneration((value) => value + 1);
     replaceDocuments(structuredClone(boot.examples[key]));
     setScenario(key);
     setDocumentSources(boot.document_sources[key]);
@@ -243,7 +304,20 @@ export default function Home() {
       ? "She paid her bill.\nThen this arrived."
       : "Let’s check\nyour medical bill.";
 
-  async function explainCase() {
+  const includedDocuments = documents?.filter((doc) => doc.included) || [];
+  const factsReady =
+    !!analysis &&
+    !loading &&
+    !pending &&
+    includedDocuments.length > 0 &&
+    includedDocuments.every((doc) => Object.keys(doc.fields).length > 0) &&
+    !analysis.timeline.some((event) => event.status === "needs_review");
+  const analysisAvailable =
+    caseAnalysisMethod === "codex"
+      ? !!boot?.codex_available
+      : !!boot?.ai_available;
+
+  async function explainCase(openResult = false) {
     if (!documents?.length || !analysis || loading || pending) return;
     const needsReview =
       documents.some(
@@ -292,6 +366,10 @@ export default function Home() {
         status: "ready",
         explanation: response.explanation,
       });
+      if (openResult) {
+        setWorkspace("demo");
+        go(1);
+      }
     } catch (cause) {
       if (controller.signal.aborted || active.sequence !== sequence) return;
       setExplanationState({
@@ -305,6 +383,90 @@ export default function Home() {
     } finally {
       if (active.sequence === sequence) active.controller = null;
     }
+  }
+
+  function generationPanel() {
+    const explaining = currentExplanation?.status === "loading";
+    return (
+      <div className="panel upload-panel">
+        <div className="eyebrow">CONNECT YOUR RECORDS</div>
+        <h2>Create your timeline</h2>
+        <p className="muted">
+          Review the extracted facts, then see what happened, where the records
+          disagree, and what to ask billing.
+        </p>
+        <p className="small" role="status">
+          {loading
+            ? "Checking your reviewed facts…"
+            : pending
+              ? `${pending} facts still need your review.`
+              : factsReady
+                ? "Your included records are reviewed and ready."
+                : "Add and review facts for each included document."}
+        </p>
+        <label htmlFor="upload-analysis-method">Analysis method</label>
+        <select
+          id="upload-analysis-method"
+          value={caseAnalysisMethod}
+          onChange={(event) =>
+            changeCaseAnalysisMethod(event.target.value as CaseAnalysisMethod)
+          }
+        >
+          <option value="codex" disabled={!boot?.codex_available}>
+            Codex (ChatGPT sign-in)
+          </option>
+          <option value="openai" disabled={!boot?.ai_available}>
+            OpenAI API
+          </option>
+        </select>
+        <p className="footnote">
+          {caseAnalysisMethod === "codex"
+            ? "Sends reviewed facts and quotes to OpenAI through Codex using your ChatGPT usage."
+            : "Sends reviewed facts and quotes to OpenAI. API usage is billed separately."}
+        </p>
+        {!analysisAvailable && (
+          <p className="review-alert">
+            Connect an analysis method to get an explanation. You can still view
+            the timeline on its own.
+          </p>
+        )}
+        <button
+          className="button primary full"
+          disabled={!factsReady || !analysisAvailable || explaining}
+          onClick={() => void explainCase(true)}
+        >
+          {explaining ? (
+            <Loader2 size={16} className="spin" />
+          ) : (
+            <Layers size={16} />
+          )}
+          {explaining
+            ? "Creating your timeline & explanation…"
+            : "Create timeline & explanation"}
+        </button>
+        {explaining && (
+          <p className="footnote" role="status">
+            Connecting the reviewed records and checking the sources…
+          </p>
+        )}
+        {currentExplanation?.status === "error" && (
+          <p className="error" role="alert">
+            {currentExplanation.message}
+          </p>
+        )}
+        <button
+          className="text-button"
+          disabled={!factsReady || explaining}
+          onClick={() => {
+            setBasicTimelineKey(documentKey);
+            setWorkspace("demo");
+            go(1);
+          }}
+        >
+          View timeline only <ArrowRight size={14} />
+        </button>
+      </div>
+    );
   }
 
   async function download() {
@@ -354,6 +516,7 @@ export default function Home() {
         <div className="sidebar-section">WORKSPACE</div>
         <nav aria-label="Workspace">
           {[
+            { id: "upload", name: "Upload a case", icon: Upload },
             { id: "demo", name: "Case overview", icon: FolderOpen },
             { id: "evidence", name: "Documents & review", icon: FileCheck2 },
             { id: "research", name: "Complaint research", icon: BarChart3 },
@@ -388,35 +551,30 @@ export default function Home() {
             <label htmlFor="scenario">Choose a case</label>
             <select
               id="scenario"
-              value={scenario}
+              value={fictional ? scenario : ""}
               onChange={(e) => loadCase(e.target.value)}
               disabled={!boot}
             >
+              <option value="" disabled>
+                Choose an example case
+              </option>
               {Object.entries(boot?.scenarios || {}).map(([key, name]) => (
                 <option key={key} value={key}>
                   {name}
                 </option>
               ))}
             </select>
-            <button
-              className="text-button"
-              onClick={() => {
-                replaceDocuments([]);
-                setDocumentSources({});
-                setFictional(false);
-                setWorkspace("evidence");
-              }}
-            >
-              Start an empty case <ArrowRight size={14} />
+            <button className="text-button" onClick={startUploadCase}>
+              Start a new case <ArrowRight size={14} />
             </button>
           </details>
           <button
             className="reset-button"
-            onClick={() => loadCase()}
+            onClick={() => (fictional ? loadCase(scenario) : startUploadCase())}
             disabled={!boot}
           >
             <RotateCcw size={15} />
-            Reset case
+            {fictional ? "Reset case" : "Start over"}
           </button>
         </div>
       </aside>
@@ -442,6 +600,14 @@ export default function Home() {
           </div>
         ) : (
           <>
+            <div hidden={workspace !== "upload"}>
+              <UploadCase
+                key={uploadGeneration}
+                boot={boot}
+                onComplete={receiveUploads}
+                onExample={() => loadCase("paid")}
+              />
+            </div>
             {workspace === "demo" && (
               <>
                 <nav className="stepper" aria-label="Case steps">
@@ -563,268 +729,301 @@ export default function Home() {
                     </div>
                   </section>
                 )}
-                {step === 1 && (
-                  <section className="fade-in">
-                    <div className="page-heading">
-                      <div>
-                        <div className="eyebrow">FOLLOW THE MONEY</div>
-                        <h1>Check the balance</h1>
-                        <p>Click an amount to see where it came from.</p>
-                      </div>
-                    </div>
-                    <div className="receipt-controls">
-                      {documents
-                        ?.filter((doc) => doc.kind === "receipt")
-                        .map((doc) => (
-                          <label key={doc.id} className="switch-label">
-                            <input
-                              type="checkbox"
-                              role="switch"
-                              checked={doc.included}
-                              onChange={() => toggle(doc.id)}
-                              aria-label={
-                                documents.filter((d) => d.kind === "receipt")
-                                  .length === 1
-                                  ? "Include payment receipt"
-                                  : `Include ${doc.title}`
-                              }
-                            />
-                            <span className="switch-track" />
-                            <span>
-                              Include payment receipt
-                              {documents.filter((d) => d.kind === "receipt")
-                                .length > 1
-                                ? ` · ${doc.title}`
-                                : ""}
-                            </span>
-                          </label>
-                        ))}
-                      <span className="muted small">
-                        {loading
-                          ? "Updating…"
-                          : "Based on the included documents"}
-                      </span>
-                    </div>
-                    <CaseTimeline
-                      events={analysis?.timeline || []}
-                      documents={documents || []}
-                      loading={loading}
-                      pending={pending}
-                      method={caseAnalysisMethod}
-                      availability={{
-                        codex: boot.codex_available,
-                        openai: boot.ai_available,
-                      }}
-                      explanation={
-                        currentExplanation?.status === "ready"
-                          ? currentExplanation.explanation
-                          : null
-                      }
-                      explaining={currentExplanation?.status === "loading"}
-                      error={
-                        currentExplanation?.status === "error"
-                          ? currentExplanation.message
-                          : null
-                      }
-                      onMethodChange={changeCaseAnalysisMethod}
-                      onExplain={explainCase}
-                      onSource={source}
-                      onReview={() => setWorkspace("evidence")}
-                    />
-                    {loading ? (
-                      <div className="finding-banner loading">
-                        <Loader2 className="spin" />
-                        Checking your documents…
-                      </div>
-                    ) : (
-                      <div
-                        className={`finding-banner ${finding ? "discrepancy" : reconciled ? "reconciled" : "pending"}`}
-                        role="status"
-                      >
-                        <div className="finding-symbol">
-                          {finding ? (
-                            <TriangleAlert size={22} />
-                          ) : reconciled ? (
-                            <CheckCheck size={22} />
-                          ) : (
-                            <CircleHelp size={22} />
-                          )}
-                        </div>
+                {step === 1 &&
+                  (!uploadFlow ||
+                    currentExplanation?.status === "ready" ||
+                    basicTimelineKey === documentKey) && (
+                    <section className="fade-in">
+                      <div className="page-heading">
                         <div>
-                          <span className="eyebrow">
-                            {finding
-                              ? "POSSIBLE DISCREPANCY"
-                              : "EVIDENCE STATUS"}
-                          </span>
-                          <h2>
-                            {finding
-                              ? `A ${money(result?.applied_payments_cents)} payment may not have been credited.`
-                              : missing
-                                ? "We need a payment receipt."
-                                : result?.supported_balance_cents == null
-                                  ? "Some details still need review."
-                                  : "Here’s the balance from your records."}
-                          </h2>
-                          <p>
-                            {finding
-                              ? "The receipt matches this account and visit. It was paid after the bill and before the collection notice. Ask the provider to check how the payment was applied."
-                              : missing
-                                ? "The insurance explanation alone doesn’t show whether you paid this balance."
-                                : "Check the details below before contacting the billing office."}
-                          </p>
-                          {finding && (
-                            <button
-                              className="text-button"
-                              onClick={() =>
-                                source([
-                                  ...finding.refs,
-                                  ...(documents || [])
-                                    .filter((d) =>
-                                      result?.matched_document_ids.includes(
-                                        d.id,
-                                      ),
-                                    )
-                                    .flatMap((d) =>
-                                      [
-                                        "account",
-                                        "patient",
-                                        "provider",
-                                        "service_date",
-                                        "claim_id",
-                                      ]
-                                        .filter((k) => d.fields[k])
-                                        .map((k) => `${d.id}.${k}`),
-                                    ),
-                                ])
-                              }
-                            >
-                              Why this payment matches <ArrowRight size={14} />
-                            </button>
-                          )}
+                          <div className="eyebrow">FOLLOW THE MONEY</div>
+                          <h1>Check the balance</h1>
+                          <p>Click an amount to see where it came from.</p>
                         </div>
                       </div>
-                    )}
-                    <div className="analysis-grid money-grid">
-                      <div className="panel">
-                        <div className="panel-heading">
-                          <h2>The money trail</h2>
-                          <span>USD</span>
-                        </div>
-                        <p className="muted small">
-                          From the provider statement and matched receipts
-                        </p>
-                        <div className="ledger">
-                          {result?.ledger
-                            .filter(
-                              (row) =>
-                                row.label !==
-                                "Balance supported by supplied records",
-                            )
-                            .map((row) => (
-                              <button
-                                className="ledger-row"
-                                key={row.label}
-                                onClick={() => source(row.refs)}
-                              >
-                                <span>{row.label}</span>
-                                <strong>{money(row.cents)}</strong>
-                                <ExternalLink size={13} />
-                              </button>
-                            ))}
-                          <div className="ledger-total">
-                            <span>Balance from these records</span>
-                            <strong>
-                              {result?.supported_balance_cents == null
-                                ? "Withheld"
-                                : money(result.supported_balance_cents)}
-                            </strong>
-                          </div>
-                        </div>
-                        <p className="footnote">
-                          Later charges or payment reversals may change this
-                          amount. Ask the provider for the current balance.
-                        </p>
-                      </div>
-                      <div className="panel chart-panel">
-                        <div className="panel-heading">
-                          <h2>Where the money goes</h2>
-                          <BarChart3 size={17} />
-                        </div>
-                        <p className="muted small">
-                          How the bill reaches its balance, next to what the
-                          notice requests. Click a bar to see its source.
-                        </p>
-                        {result && (
-                          <div className="balance-chart">
-                            <MoneyWaterfall
-                              result={result}
-                              noticeRefs={
-                                notice ? [`${notice.id}.balance`] : []
-                              }
-                              onSelect={source}
-                            />
-                          </div>
-                        )}
-                        <div className="comparison-values">
-                          <div>
-                            <small>Your records show</small>
-                            <strong>
-                              {result?.supported_balance_cents == null
-                                ? "Withheld"
-                                : money(result.supported_balance_cents)}
-                            </strong>
-                          </div>
-                          <div>
-                            <small>Notice requests</small>
-                            <strong className="notice-value">
-                              {money(result?.collection_cents)}
-                            </strong>
-                          </div>
-                        </div>
-                        <p className="footnote">
-                          A missing balance is marked “Withheld,” not shown as
-                          $0.
-                        </p>
-                      </div>
-                    </div>
-                    <details className="findings-details">
-                      <summary>
-                        Details & questions to resolve{" "}
-                        <span>
-                          {result?.findings.length || 0}
-                          <ChevronDown size={15} />
+                      <div className="receipt-controls">
+                        {documents
+                          ?.filter((doc) => doc.kind === "receipt")
+                          .map((doc) => (
+                            <label key={doc.id} className="switch-label">
+                              <input
+                                type="checkbox"
+                                role="switch"
+                                checked={doc.included}
+                                onChange={() => toggle(doc.id)}
+                                aria-label={
+                                  documents.filter((d) => d.kind === "receipt")
+                                    .length === 1
+                                    ? "Include payment receipt"
+                                    : `Include ${doc.title}`
+                                }
+                              />
+                              <span className="switch-track" />
+                              <span>
+                                Include payment receipt
+                                {documents.filter((d) => d.kind === "receipt")
+                                  .length > 1
+                                  ? ` · ${doc.title}`
+                                  : ""}
+                              </span>
+                            </label>
+                          ))}
+                        <span className="muted small">
+                          {loading
+                            ? "Updating…"
+                            : "Based on the included documents"}
                         </span>
-                      </summary>
-                      {result?.findings.map((item) => (
-                        <div className="finding-item" key={item.code}>
-                          <h3>{item.title}</h3>
-                          <p>{item.detail}</p>
-                          {item.refs.length > 0 && (
-                            <button
-                              className="text-button"
-                              onClick={() => source(item.refs)}
-                            >
-                              View source <ArrowRight size={14} />
-                            </button>
-                          )}
+                      </div>
+                      <CaseTimeline
+                        events={analysis?.timeline || []}
+                        documents={documents || []}
+                        loading={loading}
+                        pending={pending}
+                        method={caseAnalysisMethod}
+                        availability={{
+                          codex: boot.codex_available,
+                          openai: boot.ai_available,
+                        }}
+                        explanation={
+                          currentExplanation?.status === "ready"
+                            ? currentExplanation.explanation
+                            : null
+                        }
+                        explaining={currentExplanation?.status === "loading"}
+                        error={
+                          currentExplanation?.status === "error"
+                            ? currentExplanation.message
+                            : null
+                        }
+                        onMethodChange={changeCaseAnalysisMethod}
+                        onExplain={() => void explainCase()}
+                        onSource={source}
+                        onReview={() => setWorkspace("evidence")}
+                      />
+                      {loading ? (
+                        <div className="finding-banner loading">
+                          <Loader2 className="spin" />
+                          Checking your documents…
                         </div>
-                      ))}
-                    </details>
-                    <div className="page-actions">
-                      <button className="text-button" onClick={() => go(0)}>
-                        <ArrowLeft size={15} />
-                        Back to the case
-                      </button>
+                      ) : (
+                        <div
+                          className={`finding-banner ${finding ? "discrepancy" : reconciled ? "reconciled" : "pending"}`}
+                          role="status"
+                        >
+                          <div className="finding-symbol">
+                            {finding ? (
+                              <TriangleAlert size={22} />
+                            ) : reconciled ? (
+                              <CheckCheck size={22} />
+                            ) : (
+                              <CircleHelp size={22} />
+                            )}
+                          </div>
+                          <div>
+                            <span className="eyebrow">
+                              {finding
+                                ? "POSSIBLE DISCREPANCY"
+                                : "EVIDENCE STATUS"}
+                            </span>
+                            <h2>
+                              {finding
+                                ? `A ${money(result?.applied_payments_cents)} payment may not have been credited.`
+                                : missing
+                                  ? "We need a payment receipt."
+                                  : result?.supported_balance_cents == null
+                                    ? "Some details still need review."
+                                    : "Here’s the balance from your records."}
+                            </h2>
+                            <p>
+                              {finding
+                                ? "The receipt matches this account and visit. It was paid after the bill and before the collection notice. Ask the provider to check how the payment was applied."
+                                : missing
+                                  ? "The insurance explanation alone doesn’t show whether you paid this balance."
+                                  : "Check the details below before contacting the billing office."}
+                            </p>
+                            {finding && (
+                              <button
+                                className="text-button"
+                                onClick={() =>
+                                  source([
+                                    ...finding.refs,
+                                    ...(documents || [])
+                                      .filter((d) =>
+                                        result?.matched_document_ids.includes(
+                                          d.id,
+                                        ),
+                                      )
+                                      .flatMap((d) =>
+                                        [
+                                          "account",
+                                          "patient",
+                                          "provider",
+                                          "service_date",
+                                          "claim_id",
+                                        ]
+                                          .filter((k) => d.fields[k])
+                                          .map((k) => `${d.id}.${k}`),
+                                      ),
+                                  ])
+                                }
+                              >
+                                Why this payment matches{" "}
+                                <ArrowRight size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <div className="analysis-grid money-grid">
+                        <div className="panel">
+                          <div className="panel-heading">
+                            <h2>The money trail</h2>
+                            <span>USD</span>
+                          </div>
+                          <p className="muted small">
+                            From the provider statement and matched receipts
+                          </p>
+                          <div className="ledger">
+                            {result?.ledger
+                              .filter(
+                                (row) =>
+                                  row.label !==
+                                  "Balance supported by supplied records",
+                              )
+                              .map((row) => (
+                                <button
+                                  className="ledger-row"
+                                  key={row.label}
+                                  onClick={() => source(row.refs)}
+                                >
+                                  <span>{row.label}</span>
+                                  <strong>{money(row.cents)}</strong>
+                                  <ExternalLink size={13} />
+                                </button>
+                              ))}
+                            <div className="ledger-total">
+                              <span>Balance from these records</span>
+                              <strong>
+                                {result?.supported_balance_cents == null
+                                  ? "Withheld"
+                                  : money(result.supported_balance_cents)}
+                              </strong>
+                            </div>
+                          </div>
+                          <p className="footnote">
+                            Later charges or payment reversals may change this
+                            amount. Ask the provider for the current balance.
+                          </p>
+                        </div>
+                        <div className="panel chart-panel">
+                          <div className="panel-heading">
+                            <h2>Where the money goes</h2>
+                            <BarChart3 size={17} />
+                          </div>
+                          <p className="muted small">
+                            How the bill reaches its balance, next to what the
+                            notice requests. Click a bar to see its source.
+                          </p>
+                          {result && (
+                            <div className="balance-chart">
+                              <MoneyWaterfall
+                                result={result}
+                                noticeRefs={
+                                  notice ? [`${notice.id}.balance`] : []
+                                }
+                                onSelect={source}
+                              />
+                            </div>
+                          )}
+                          <div className="comparison-values">
+                            <div>
+                              <small>Your records show</small>
+                              <strong>
+                                {result?.supported_balance_cents == null
+                                  ? "Withheld"
+                                  : money(result.supported_balance_cents)}
+                              </strong>
+                            </div>
+                            <div>
+                              <small>Notice requests</small>
+                              <strong className="notice-value">
+                                {money(result?.collection_cents)}
+                              </strong>
+                            </div>
+                          </div>
+                          <p className="footnote">
+                            A missing balance is marked “Withheld,” not shown as
+                            $0.
+                          </p>
+                        </div>
+                      </div>
+                      <details className="findings-details">
+                        <summary>
+                          Details & questions to resolve{" "}
+                          <span>
+                            {result?.findings.length || 0}
+                            <ChevronDown size={15} />
+                          </span>
+                        </summary>
+                        {result?.findings.map((item) => (
+                          <div className="finding-item" key={item.code}>
+                            <h3>{item.title}</h3>
+                            <p>{item.detail}</p>
+                            {item.refs.length > 0 && (
+                              <button
+                                className="text-button"
+                                onClick={() => source(item.refs)}
+                              >
+                                View source <ArrowRight size={14} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </details>
+                      <div className="page-actions">
+                        <button className="text-button" onClick={() => go(0)}>
+                          <ArrowLeft size={15} />
+                          Back to the case
+                        </button>
+                        <button
+                          className="button primary"
+                          onClick={() => go(2)}
+                          disabled={loading}
+                        >
+                          Prepare a response <ArrowRight size={17} />
+                        </button>
+                      </div>
+                    </section>
+                  )}
+                {step === 1 &&
+                  uploadFlow &&
+                  currentExplanation?.status !== "ready" &&
+                  basicTimelineKey !== documentKey && (
+                    <section className="fade-in">
+                      <div className="page-heading">
+                        <div className="eyebrow">YOUR RECORDS</div>
+                        <h1>Let’s connect the paperwork.</h1>
+                        <p>
+                          Start with your documents. The timeline and
+                          explanation will appear here when they’re ready.
+                        </p>
+                      </div>
+                      {generationPanel()}
                       <button
-                        className="button primary"
-                        onClick={() => go(2)}
-                        disabled={loading}
+                        className="text-button"
+                        onClick={() =>
+                          setWorkspace(
+                            documents?.length ? "evidence" : "upload",
+                          )
+                        }
                       >
-                        Prepare a response <ArrowRight size={17} />
+                        {documents?.length
+                          ? "Review documents"
+                          : "Upload documents"}{" "}
+                        <ArrowRight size={15} />
                       </button>
-                    </div>
-                  </section>
-                )}
+                    </section>
+                  )}
                 {step === 2 && (
                   <section className="fade-in">
                     <div className="page-heading">
@@ -1001,7 +1200,11 @@ export default function Home() {
               <section className="fade-in">
                 <div className="page-heading">
                   <div className="eyebrow">DOCUMENTS & REVIEW</div>
-                  <h1>Review your documents</h1>
+                  <h1>
+                    {uploadFlow
+                      ? "Check what we read."
+                      : "Review your documents"}
+                  </h1>
                   <p>
                     Check each value against the original and correct any
                     mistakes.
@@ -1043,6 +1246,7 @@ export default function Home() {
                         </label>
                         <button
                           className="button secondary compact"
+                          aria-label={`Review ${doc.title}`}
                           onClick={() =>
                             setDrawer({ docId: doc.id, edit: true })
                           }
@@ -1060,25 +1264,46 @@ export default function Home() {
                         </p>
                       </div>
                     )}
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        setWorkspace("demo");
-                        go(1);
-                      }}
-                    >
-                      Check the balance <ArrowRight size={15} />
-                    </button>
+                    {!uploadFlow && (
+                      <button
+                        className="text-button"
+                        onClick={() => {
+                          setWorkspace("demo");
+                          go(1);
+                        }}
+                      >
+                        Check the balance <ArrowRight size={15} />
+                      </button>
+                    )}
                   </div>
-                  <AddDocument
-                    boot={boot}
-                    onAdded={(doc) => {
-                      const id = `${doc.id}-${crypto.randomUUID().slice(0, 8)}`;
-                      replaceDocuments([...(documents || []), { ...doc, id }]);
-                      setFictional(false);
-                      setDrawer({ docId: id, edit: true });
-                    }}
-                  />
+                  <div>
+                    {uploadFlow && generationPanel()}
+                    <details open={!uploadFlow} className="findings-details">
+                      <summary>
+                        Add another document <Plus size={15} />
+                      </summary>
+                      <AddDocument
+                        key={uploadGeneration}
+                        boot={boot}
+                        onAdded={(doc, file) => {
+                          const id = `${doc.id}-${crypto.randomUUID().slice(0, 8)}`;
+                          replaceDocuments((current) => [
+                            ...(current || []),
+                            { ...doc, id },
+                          ]);
+                          const pdfSource = rememberPdf(id, file);
+                          if (pdfSource)
+                            setDocumentSources((sources) => ({
+                              ...sources,
+                              ...pdfSource,
+                            }));
+                          setUploadFlow(true);
+                          setFictional(false);
+                          setDrawer({ docId: id, edit: true });
+                        }}
+                      />
+                    </details>
+                  </div>
                 </div>
               </section>
             )}
@@ -1091,14 +1316,16 @@ export default function Home() {
       </main>
       {drawer && documents && boot && (
         <EvidenceDrawer
-          key={drawer.docId || drawer.refs?.join()}
+          key={`${uploadGeneration}:${drawer.docId || drawer.refs?.join()}`}
           drawer={drawer}
           documents={documents}
           labels={boot.field_labels}
           sources={documentSources}
           onClose={() => setDrawer(null)}
           onSave={(doc) =>
-            replaceDocuments(documents.map((d) => (d.id === doc.id ? doc : d)))
+            replaceDocuments((current) =>
+              (current || []).map((d) => (d.id === doc.id ? doc : d)),
+            )
           }
         />
       )}
@@ -1130,11 +1357,16 @@ function EvidenceDrawer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [newField, setNewField] = useState("");
+  const saveRequest = useRef<AbortController | null>(null);
   useEffect(() => {
     dialog.current?.showModal();
+    return () => saveRequest.current?.abort();
   }, []);
   async function save() {
     if (!doc) return;
+    saveRequest.current?.abort();
+    const controller = new AbortController();
+    saveRequest.current = controller;
     setSaving(true);
     setError("");
     const updated = {
@@ -1156,21 +1388,26 @@ function EvidenceDrawer({
       ),
     };
     try {
-      await api({
-        operation: "reconcile",
-        documents: documents.map((d) => (d.id === doc.id ? updated : d)),
-      });
+      await api(
+        {
+          operation: "reconcile",
+          documents: documents.map((d) => (d.id === doc.id ? updated : d)),
+        },
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
       onSave(updated);
       onClose();
     } catch {
+      if (controller.signal.aborted) return;
       setError(
         "Check the reviewed values. Use nonnegative dollar amounts with up to two decimal places and dates as YYYY-MM-DD.",
       );
     } finally {
-      setSaving(false);
+      if (!controller.signal.aborted) setSaving(false);
     }
   }
-  const pdf = doc && sources[doc.id] ? demoPdfUrl(sources[doc.id]) : undefined;
+  const pdf = doc && sources[doc.id] ? sourceUrl(sources[doc.id]) : undefined;
   const refs = [...new Set(drawer.refs || [])];
   const referenced = refs.map((ref) => {
     const document = documents.find(
@@ -1226,7 +1463,11 @@ function EvidenceDrawer({
                   </div>
                   <a
                     href={pdf}
-                    download={sources[doc.id]}
+                    download={
+                      sources[doc.id].startsWith("blob:")
+                        ? `${doc.title}.pdf`
+                        : sources[doc.id]
+                    }
                     className="text-button"
                   >
                     <Download size={14} />
@@ -1265,6 +1506,16 @@ function EvidenceDrawer({
         )}
         {doc && drawer.edit && (
           <>
+            {pdf && (
+              <a
+                href={pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="text-button"
+              >
+                Open original PDF <ExternalLink size={13} />
+              </a>
+            )}
             <p className="muted">
               Check each value against the quote below it. Your corrections keep
               the original text for reference.
@@ -1402,7 +1653,7 @@ function EvidenceDrawer({
               ].map((document) => (
                 <a
                   key={document.id}
-                  href={demoPdfUrl(sources[document.id])}
+                  href={sourceUrl(sources[document.id])}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -1441,7 +1692,7 @@ function AddDocument({
   onAdded,
 }: {
   boot: Bootstrap;
-  onAdded: (doc: Document) => void;
+  onAdded: (doc: Document, file?: File) => void;
 }) {
   const [kind, setKind] = useState("bill");
   const [title, setTitle] = useState("");
@@ -1450,6 +1701,8 @@ function AddDocument({
   const [method, setMethod] = useState<ExtractionMethod>("local");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const extractionRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => extractionRequest.current?.abort(), []);
   const methodAvailable =
     method === "local"
       ? true
@@ -1464,6 +1717,9 @@ function AddDocument({
       );
       return;
     }
+    extractionRequest.current?.abort();
+    const controller = new AbortController();
+    extractionRequest.current = controller;
     setBusy(true);
     setError("");
     try {
@@ -1487,23 +1743,28 @@ function AddDocument({
         body.file = data;
         body.filename = file.name;
       }
-      const result = await api<{ document: Document }>(body);
-      onAdded({
-        ...result.document,
-        fields: Object.fromEntries(
-          Object.entries(result.document.fields).map(([key, fact]) => [
-            key,
-            { ...fact, confirmed: false },
-          ]),
-        ),
-      });
+      if (controller.signal.aborted) return;
+      const result = await api<{ document: Document }>(body, controller.signal);
+      if (controller.signal.aborted) return;
+      onAdded(
+        {
+          ...result.document,
+          fields: Object.fromEntries(
+            Object.entries(result.document.fields).map(([key, fact]) => [
+              key,
+              { ...fact, confirmed: false },
+            ]),
+          ),
+        },
+        file || undefined,
+      );
       setText("");
       setTitle("");
       setFile(null);
     } catch (e) {
-      setError((e as Error).message);
+      if (!controller.signal.aborted) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) setBusy(false);
     }
   }
   return (

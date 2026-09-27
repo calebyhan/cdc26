@@ -2409,3 +2409,378 @@ footer {
     padding: 15px;
   }
 }
+/* Upload workspace. */
+.nmd-upload-case {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+}
+.nmd-upload-heading {
+  max-width: 730px;
+}
+.nmd-upload-eyebrow {
+  display: block;
+  margin-bottom: 17px;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+.nmd-upload-heading h1 {
+  font-size: clamp(34px, 3.7vw, 47px);
+}
+.nmd-upload-heading p {
+  margin-top: 16px;
+  color: var(--muted);
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.nmd-upload-steps {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin: 29px 0;
+  color: #90988f;
+  font-size: 11px;
+}
+.nmd-upload-steps span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nmd-upload-steps i {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  font-size: 10px;
+  font-style: normal;
+}
+.nmd-upload-steps .active {
+  color: var(--green);
+  font-weight: 600;
+}
+.nmd-upload-steps .active i {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.nmd-upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px dashed #bccdc0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #f3f7f1, #fafbf7);
+  padding: 35px 24px 29px;
+  transition:
+    border-color 150ms,
+    background 150ms;
+}
+.nmd-upload-dragging {
+  border-color: var(--green);
+  background: #eaf3e9;
+}
+.nmd-upload-disabled {
+  opacity: 0.65;
+}
+.nmd-upload-drop-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: white;
+  border: 1px solid #e2ebe0;
+  color: var(--green);
+  margin-bottom: 17px;
+}
+.nmd-upload-dropzone h2 {
+  font-size: 18px;
+}
+.nmd-upload-dropzone p {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.nmd-upload-dropzone .button {
+  margin: 19px 0 14px;
+  background: #fff;
+}
+.nmd-upload-dropzone small {
+  color: #6e7d70;
+  font-size: 10px;
+}
+.nmd-upload-scan-note {
+  display: block;
+  color: #859087;
+  font-size: 10px;
+  margin-top: 9px;
+}
+.nmd-upload-error {
+  margin-top: 13px;
+  color: #a34f34;
+  font-size: 12px;
+}
+.nmd-upload-queue {
+  margin-top: 27px;
+}
+.nmd-upload-queue-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.nmd-upload-queue-heading h2 {
+  font-size: 14px;
+}
+.nmd-upload-queue-heading span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.nmd-upload-queue ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+}
+.nmd-upload-item {
+  display: grid;
+  grid-template-columns: 37px minmax(0, 1fr) 185px 25px;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 19px;
+}
+.nmd-upload-item + .nmd-upload-item {
+  border-top: 1px solid var(--line);
+}
+.nmd-upload-file-icon {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 43px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: #849080;
+  background: #fcfcfa;
+}
+.nmd-upload-item-reading .nmd-upload-file-icon,
+.nmd-upload-item-done .nmd-upload-file-icon {
+  color: var(--green);
+  background: var(--green-light);
+  border-color: #e0ebdf;
+}
+.nmd-upload-item-error .nmd-upload-file-icon {
+  color: #ad6a42;
+  background: #fdf5ed;
+  border-color: #f0e4d9;
+}
+.nmd-upload-file-info {
+  min-width: 0;
+}
+.nmd-upload-file-info strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nmd-upload-file-info small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  font-size: 10px;
+}
+.nmd-upload-field-count {
+  display: block;
+  color: var(--green);
+  font-size: 10px;
+  margin-top: 5px;
+}
+.nmd-upload-file-error {
+  color: #a45d3c;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.nmd-upload-role label,
+.nmd-upload-method label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #697b6d;
+}
+.nmd-upload-role select {
+  font-size: 11px;
+  padding: 8px 9px;
+  background: #fdfefb;
+}
+.nmd-upload-remove {
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #9aa398;
+  padding: 5px;
+  border-radius: 5px;
+}
+.nmd-upload-remove:hover:not(:disabled) {
+  color: #aa664c;
+  background: #faf1e9;
+}
+.nmd-upload-read-panel {
+  display: grid;
+  grid-template-columns: 215px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 21px;
+  padding: 23px 0;
+  margin-top: 8px;
+}
+.nmd-upload-method select {
+  font-size: 12px;
+  padding: 11px 12px;
+}
+.nmd-upload-read-copy p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #6f7e72;
+}
+.nmd-upload-read-copy small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  color: #939a91;
+}
+.nmd-upload-read-panel > .button {
+  align-self: end;
+  min-height: 39px;
+  white-space: nowrap;
+}
+.nmd-upload-guidance,
+.nmd-upload-progress {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: -6px 0 18px;
+}
+.nmd-upload-progress {
+  color: var(--green);
+}
+.nmd-upload-partial {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #f5f8f1;
+  border: 1px solid #e0e9d9;
+  border-radius: 10px;
+  padding: 19px;
+  margin: 3px 0 22px;
+}
+.nmd-upload-partial strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.nmd-upload-partial p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.nmd-upload-partial .button {
+  white-space: nowrap;
+  background: white;
+}
+.nmd-upload-example {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+  color: #929c91;
+  font-size: 11px;
+}
+.nmd-upload-example .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+@media (max-width: 1100px) {
+  .nmd-upload-read-panel {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 15px 20px;
+  }
+  .nmd-upload-read-panel > .button {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+@media (max-width: 640px) {
+  .nmd-upload-case {
+    padding-top: 0;
+  }
+  .nmd-upload-steps {
+    gap: 9px;
+    font-size: 9px;
+    flex-wrap: wrap;
+  }
+  .nmd-upload-steps span {
+    gap: 5px;
+  }
+  .nmd-upload-steps i {
+    width: 18px;
+    height: 18px;
+  }
+  .nmd-upload-dropzone {
+    padding: 26px 15px;
+  }
+  .nmd-upload-item {
+    grid-template-columns: 32px minmax(0, 1fr) 24px;
+    gap: 12px;
+    padding: 16px 13px;
+  }
+  .nmd-upload-file-icon {
+    width: 32px;
+    height: 38px;
+  }
+  .nmd-upload-role {
+    grid-column: 2;
+  }
+  .nmd-upload-remove {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .nmd-upload-read-panel {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-top: 21px;
+  }
+  .nmd-upload-read-panel > .button {
+    justify-self: stretch;
+    justify-content: center;
+  }
+  .nmd-upload-partial {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .nmd-upload-partial .button {
+    justify-content: center;
+  }
+  .nmd-upload-example {
+    flex-wrap: wrap;
+    font-size: 10px;
+  }
+}

@@ -22,20 +22,31 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000**. No API key is needed. The app starts with Maya's
-preconfirmed fictional case: **Your case → Connect the records → Prepare a response**.
-Open a document to view its original fictional PDF, switch to extracted text, or
-download the file. Ledger sources link to the same PDFs. Demo facts are extracted
-locally from those files and preconfirmed only because these are known fixtures.
-Switch off **Include payment receipt** to see the finding and balance chart change; restore it, review the
-provider inquiry, and download the printable HTML evidence packet. Nothing is sent
-or filed. **Reset case** restores the documents and clears edits and review approval.
+Open **http://127.0.0.1:3000**. The app starts with an empty case. Under
+**Start with your documents**, select **Choose documents** to add text-based PDFs.
+Check each **Document type**, select an extractor under **Read with**, and select
+**Read documents**. Review the proposed fields and source passages for each record;
+uploads are never preconfirmed. Correct any values before saving the reviewed facts.
+For a partial extraction, retry the failed files or explicitly continue with the
+successful documents.
 
-**Documents & review** supports pasted text, text-based PDF/TXT upload, fact
-corrections with retained original quotes, review, and document exclusion.
-**Complaint research** uses real public aggregates, separately from the fictional
-case. The sidebar's **Explore another case** menu contains the alternate scenarios
-and an empty-case option. See [the rehearsal guide](docs/demo.md).
+The review screen is **Check what we read.** Open **Review** for each document,
+check **I checked every value above.**, and select **Save reviewed facts**.
+After review, choose an analysis method and select **Create timeline & explanation**.
+This explicitly requests an AI explanation; the combined results open after it
+succeeds. Amounts, dates, matching, and the balance calculation remain controlled
+by the deterministic engine. Inspect the timeline, source-linked waterfall, and
+questions for billing, then prepare and review a response. Choose **View timeline only** for the local results without AI. This is an explicit option, not an error
+fallback. Nothing is sent or filed.
+
+The supplied PDFs in [`sample_documents/`](sample_documents/README.md) are fictional.
+**Start over** clears an uploaded case, its upload queue, prior explanation, and
+review approval. **Open an example** loads Maya's preloaded case as a secondary
+option; **Reset case** restores that selected example. Its fixture facts are preconfirmed and link to the original PDFs; user uploads always require review.
+**Documents & review** also supports pasted text, individual PDF/TXT uploads,
+corrections with retained original quotes, and document exclusion.
+**Complaint research** uses real public aggregates, separately from case records.
+See [the rehearsal guide](docs/demo.md).
 
 For a local production run:
 
@@ -55,8 +66,7 @@ The legacy Streamlit UI is still available with
 
 ## Extraction and data handling
 
-In **Documents & review**, use **Extraction method** to choose an extractor for
-each document:
+Choose an extraction method when adding files or in **Documents & review**:
 
 | Choice | Setup | Where the document text goes |
 | --- | --- | --- |
@@ -82,8 +92,8 @@ codex login status
 npm run dev
 ```
 
-In **Documents & review**, select **Codex (ChatGPT sign-in)** for the document and
-run extraction. The adapter reuses the CLI's saved ChatGPT authentication; do not
+Select **Codex (ChatGPT sign-in)** when adding the files or an individual document
+and run extraction. The adapter reuses the CLI's saved ChatGPT authentication; do not
 copy login files into the project or enter an API key for this option. By default
 it lets the installed CLI select its model (no `--model` argument) and uses a
 120-second timeout. Optional server-side configuration:
@@ -128,7 +138,8 @@ Case data lives in React memory and is processed transiently by the local
 Node/Python server. The app does not persist it in a shared database, cache,
 application case log, browser storage, or committed file. Reloading the page clears
 the case. Processing may use temporary files, and downloaded packets contain case
-information. The legacy Streamlit app uses session memory.
+information. Uploaded PDF previews use temporary browser URLs that are released
+when the case is cleared or replaced. The legacy Streamlit app uses session memory.
 
 The public hackathon demo uses fictional documents. Credentials belong in the
 server process environment, a local ignored `.env`, or the CLI's own login storage,
@@ -155,19 +166,19 @@ deadlines. It surfaces the date printed on a collection notice.
 
 ## Case timeline and optional analysis
 
-In **Connect the records**, **Your case, in order** shows events from reviewed
-fields. Valid reviewed dates and amounts can still appear on an excluded record.
-A record on the timeline is not necessarily used in the balance: check its source
-and the reconciliation findings, especially for unmatched, duplicate, or unsettled
-payments.
-
 Review every field in the included records before requesting an explanation.
-Choose **Codex (ChatGPT sign-in)** or **OpenAI API** under
-**Analysis method**, then select **Explain this case**. This is a separate,
-explicit network request. It sends included, reviewed values and their source
-passages, plus the current reconciliation, to OpenAI using the selected connection.
-The setup and provider-data caveats above apply. The timeline works without AI;
-an analysis error does not switch methods or retry with a different provider.
+Choose **Codex (ChatGPT sign-in)** or **OpenAI API** under **Analysis method**, then
+select **Create timeline & explanation**. This is separate from extraction: it sends
+included, reviewed values and their source passages, plus the current reconciliation,
+to OpenAI using the selected connection. The setup and provider-data caveats above
+apply. **View timeline only** opens the local timeline without requesting AI. A
+failed request keeps the case available for review and does not switch methods or fall back to another provider.
+
+The combined results open after a successful request. **Your case, in order** shows
+events from reviewed fields. Valid reviewed dates and amounts can still appear on
+an excluded record. A record on the timeline is not necessarily used in the balance:
+check its source and the reconciliation findings, especially for unmatched,
+duplicate, or unsettled payments.
 
 The AI can suggest an overview, items to check, and questions for billing. It
 cannot edit timeline amounts, dates, or the balance calculation. Output checks

@@ -1,15 +1,53 @@
 # Presentation rehearsal
 
-All case records are fictional; the default facts are preconfirmed. No live model connection is needed.
-The document cards open the original fictional PDFs; **Extracted text** shows the
-local parser's source text, and **Download PDF** saves an attachment. Alternate
-cases use the matching receipt PDF. Documents without a matching PDF retain
-their explicit text fixture. Uploads still require user review.
+The app starts with an empty case. Use the four fictional PDFs at the top level
+of `sample_documents/` for the main story; they contain no real patient information.
+User uploads require field review, even when using these files. The secondary
+Maya example has preconfirmed fixture facts and remains available for rehearsal.
 
 Run `uv sync --extra dev` and `npm ci`. For rehearsal, `npm run dev` is fine. For the
 live presentation, use `npm run build && npm start` to avoid first-request compile
-delays. Open http://127.0.0.1:3000 and press **Reset case** right before presenting.
-The deck's slide 8 button opens this address. Record a backup video of this script.
+delays. Open http://127.0.0.1:3000 and select **Start over** for a fresh upload case.
+The presentation's app link opens this address.
+Record a backup video of the upload and review flow.
+
+## Upload and review
+
+1. Under **Start with your documents**, select **Choose documents** and add the
+   four main PDFs together. Check each **Document type**: insurance explanation,
+   provider bill, payment receipt, and collection notice. Filename guesses can be
+   changed; files without a guessed type need a selection.
+2. Choose an extractor under **Read with** and select **Read documents**.
+   **Local parser** works with these labeled PDFs without sending text to a model.
+   **Codex (ChatGPT sign-in)** and **OpenAI API** send the selected documents' text
+   to OpenAI. If only some files were extracted, use **Retry failed documents** or
+   explicitly **Continue with N documents** to keep the successful files. Do not
+   describe skipped files as evidence in the case.
+3. On **Check what we read.**, open **Review** for each extracted document. Compare
+   the values with their source passages, correct anything needed, select
+   **I checked every value above.**, and select **Save reviewed facts**.
+4. Choose **Codex (ChatGPT sign-in)** or **OpenAI API** under **Analysis method**,
+   then select **Create timeline & explanation**. This is a separate, explicit
+   network request using only the included, reviewed facts and reconciliation.
+5. After the request succeeds, walk through the timeline and explanation. Follow
+   the waterfall from charges to the supplied-record balance; click the receipt
+   bar or a source citation. Maya's records support $0 while the notice requests $150.
+6. Select **Prepare a response**, inspect the cited records, confirm review, and
+   download. Nothing is sent or filed.
+
+To show the deterministic results without a model call, select **View timeline only**
+after review. This is a deliberate local-only path, not an automatic fallback.
+
+Rehearse extraction and analysis with the chosen connection before presenting.
+A failed request stays visible and does not silently switch to a different method.
+If the evidence changes, review it again and explicitly regenerate the explanation.
+
+## Preloaded example walkthrough
+
+Select **Open an example** from **Upload a case** for a shorter Maya walkthrough. Its original PDFs and preconfirmed
+facts come from the same fictional records used in the upload flow. Alternate
+cases use their matching receipt PDF; documents without a matching PDF retain
+their text fixture. This path does not demonstrate live extraction or review.
 
 | Time | Action | Spoken point |
 | --- | --- | --- |
@@ -35,35 +73,43 @@ For questions about ambiguous evidence, open **Explore another case → Receipt 
 to another account**, then Connect the records: the receipt is not applied and the
 supported balance is withheld (dashed bar) rather than guessed.
 
-Reset restores the receipt, original draft, provider recipient, opening step,
-and unreviewed export state. Re-review the packet after changing the evidence.
+**Start over** clears an uploaded case and its queue. **Reset case** restores the
+selected preloaded example. Both clear the prior explanation and export approval.
+Re-review the packet after changing the evidence.
 
-## Optional case explanation
+## Case explanation and source checks
 
-The **Your case, in order** timeline in **Connect the records** uses reviewed
-facts without a model call, including reviewed values on excluded records. Click
-a source to compare it with the record. A card marked **Not used in balance** can still describe a supplied record; it does not
-establish an applied payment.
+The generated results combine **Your case, in order**, **AI analysis**, **What to
+check**, and **Questions for billing**. Timeline dates and amounts come from the
+reviewed records and deterministic engine, not the model. Valid reviewed values
+may still appear on excluded records. A card marked **Not used in balance** does
+not establish an applied payment.
 
-1. Review all fields in the included records. Choose **Codex (ChatGPT sign-in)**
-   or **OpenAI API** under **Analysis method**.
-2. Select **Explain this case**. Included, reviewed values, their source passages,
-   and the current reconciliation are sent to OpenAI through the selected method.
-3. Inspect **AI analysis**, **What to check**, and **Questions for billing** alongside
-   their citations. Timeline amounts and dates remain controlled by the evidence
-   engine, not the model.
-4. Remove the receipt or correct a field. The prior explanation should clear;
-   analysis runs again only when explicitly requested.
+**Create timeline & explanation** is the explicit AI action after review. It sends
+included, reviewed values, their source passages, and the current reconciliation
+to OpenAI through the selected analysis method. Removing the receipt or changing a
+field clears the prior explanation; analysis does not run again automatically.
 
 Source-reference and numeric checks do not establish that the AI's interpretation
 is correct. Review each claim, especially where the records disagree or remain
-incomplete. A failed request shows an error without a fallback. The timeline and
-local reconciliation remain available. This explanation is not automatically
-inserted into the response letter or exported packet.
+incomplete. A failed request shows an error without a fallback and leaves the
+records available for review. **View timeline only** remains an explicit local
+option. This explanation is not automatically inserted into the response letter
+or exported packet.
 
 Use the same connection setup and privacy considerations described below. The
 [recorded case-analysis check](#recorded-case-analysis-check) is separate from the
 extraction check later in this guide.
+
+## Recorded upload-to-analysis check
+
+A separate programmatic run processed the four main fictional PDFs through Codex
+extraction and case analysis in 57.21 seconds. Analysis was blocked before field
+review. All 40 returned facts matched the fixtures; the receipt's `statement_date`
+was omitted and left unfilled, while its `payment_date` was present. After review,
+the deterministic balance was $0 and the analysis contained four document events.
+This check covers the combined integration path, not complete field recall,
+real-document accuracy, or browser review time.
 
 ## Recorded case-analysis check
 
@@ -85,8 +131,7 @@ guarantee. The OpenAI API analysis path was not live-tested.
 
 ## Optional live Codex extraction
 
-The opening demo above uses preconfirmed fictional facts and needs no model call.
-To demonstrate live extraction separately, use the installed Codex CLI with your
+To extract the uploaded PDFs with Codex, use the installed CLI with your
 saved ChatGPT sign-in on the machine running the Next.js/Python server. Complete
 the local setup above, then run:
 
