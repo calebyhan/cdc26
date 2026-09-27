@@ -217,7 +217,7 @@ outcome has been measured.
 - `src/not_my_debt/`: Python evidence engine, stateless web bridge, and legacy UI.
 - `data/research/`: reproducible public aggregate data and source manifest.
 - `data/benchmark/`: seeded synthetic benchmark summary.
-- `presentation/`: self-contained twelve-slide deck; see its README.
+- `presentation/`: self-contained animated presentation; see its README.
 - `tests/`: synthetic regression cases and parser/aggregation checks.
 - [Scope and presentation storyboard](docs/scope.md).
 
