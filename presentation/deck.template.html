@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#102b27">
-<meta name="description" content="Not My Debt: a fictional medical-billing story, real CFPB complaint data, and how the evidence engine reaches its findings.">
+<meta name="description" content="Not My Debt: a community medical-debt map, a fictional billing story, real CFPB complaint data, and source-linked evidence navigation.">
 <title>Not My Debt · Presentation</title>
 <!-- Built by build_deck.py from deck.template.html. Edit the template, then rebuild. -->
 <style>
@@ -39,10 +39,13 @@
   #headline { margin: 1cqw 0 0; font-family: var(--serif); font-weight: 400; font-size: 3.6cqw; line-height: 1.05; letter-spacing: -.035em; text-wrap: balance; }
   #headline em { font-style: italic; color: var(--coral); }
   #head.xl #headline { font-size: 5cqw; }
+  #head.community { width: 28cqw; }
   #caption { position: absolute; margin: 0; font-size: 1.3cqw; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
   #caption.side { left: 6cqw; top: 23cqw; width: 42cqw; }
+  #caption.map-caption { top: 21cqw; width: 27cqw; }
   #caption.bottom { left: 6cqw; top: 44.6cqw; width: 70cqw; }
   #caption strong { font-weight: 650; }
+  #caption .map-action { display: inline-block; margin-top: 1.1cqw; padding: .55cqw .8cqw; border-radius: .3cqw; background: var(--lime); font-weight: 650; }
   #caption .c { color: var(--coral); font-weight: 650; }
   #caption .t { color: var(--teal); font-weight: 650; }
   #source { position: absolute; left: 6cqw; right: 6cqw; top: 51.3cqw; margin: 0; font-size: .74cqw; line-height: 1.4; color: var(--muted); }
@@ -81,6 +84,10 @@
   #counter { left: 6cqw; top: 13.2cqw; }
   #counter .num { font-family: var(--serif); font-size: 9cqw; line-height: 1; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
   #counter .lbl { font-size: 1.5cqw; margin-top: .6cqw; max-width: 60cqw; }
+
+  /* Captures from the working map stay inside the offline deck. */
+  #community-visual { left: 34cqw; top: 12cqw; width: 60cqw; height: 37cqw; margin: 0; }
+  #community-visual img { position: absolute; width: 100%; height: 100%; object-fit: contain; object-position: right center; filter: drop-shadow(0 .45cqw .9cqw #173c361a); }
 
   #packet { left: 0; top: 0; width: 29cqw; transform: translate(60cqw, 9.4cqw) rotate(1.5deg); background: var(--paper); border: 1px solid #173c3618; box-shadow: 0 1.1cqw 2.8cqw #173c3618; padding: 2.2cqw; }
   #packet .plabel { font-size: .8cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
@@ -168,8 +175,12 @@
   <p id="caption"></p>
   <div id="docs"></div>
   <div class="layer" id="counter"><div class="num" id="counter-num"></div><div class="lbl" id="counter-lbl"></div></div>
+  <figure class="layer" id="community-visual" aria-label="Community map views captured from the app">
+    <img id="community-national" alt="App view of 2025 reported medical-debt complaints per 100,000 residents by state, with uninsured-population circles">
+    <img id="community-georgia" alt="App view of Georgia county complaints, hospital locations, a selected hospital's filed assistance policy, and posted prices">
+  </figure>
   <article class="layer" id="packet" aria-label="Evidence summary for Maya's case"></article>
-  <a class="layer" id="demo-link" href="http://127.0.0.1:3000" target="_blank" rel="noopener noreferrer">Open Maya’s case ↗</a>
+  <a class="layer" id="demo-link" href="http://127.0.0.1:3000/?state=GA" target="_blank" rel="noopener noreferrer">Open the app ↗</a>
   <div class="layer" id="facts"></div>
   <div class="layer" id="finding"></div>
   <div class="layer" id="checks"></div>
@@ -259,7 +270,7 @@
     docsA: 0, lay: 0, eobIn: 0, billIn: 0, rcptIn: 0, noticeIn: 0, billT: 0, stampT: 0,
     tlA: 0, tlDay: 0, gapA: 0, linkT: 0,
     drillA: 0, fill: 0, zoom: 0, cmpA: 0,
-    packetA: 0, demoA: 0,
+    packetA: 0, demoA: 0, mapA: 0, mapT: 0,
     tableA: 0, tableT: 0, tableMode: 0, wfA: 0, wfT: 0, rcpt: 1, findA: 0, findMode: 0,
     heatA: 0, heatT: 0, checksA: 0, checkT: 0,
     benchA: 0, benchT: 0, benchDim: 0, talliesA: 0, failA: 0, failT: 0,
@@ -334,21 +345,35 @@
       clocks: [{ k: "cmpA", from: 0, to: 1, dur: 700, delay: 2200 }],
     },
     {
-      scene: 2, cap: "side", eyebrow: ["So we built", "Prototype"], headline: "Not My Debt<em>.</em>",
+      scene: 2, cap: "side map-caption", community: true, eyebrow: ["For advocates", "Community map"], headline: "Where people report <em>medical debt</em>",
+      caption: "The map starts with reported CFPB collection complaints. Census population turns counts into comparable rates; uninsured and poverty estimates add context. An advocate can select a state for local detail.",
+      source: `Public data: <a href="https://www.consumerfinance.gov/data-research/consumer-complaints/" target="_blank" rel="noopener noreferrer">CFPB complaints</a> (${D.community.rateYear}) and <a href="https://www.census.gov/programs-surveys/acs" target="_blank" rel="noopener noreferrer">Census ACS</a> (2020–2024). Complaints are consumer reports, not verified billing errors.`, timing: "About 20 seconds",
+      notes: "The app opens on this community map. State colors show reported medical-debt collection complaints per 100,000 residents in 2025. The circles show uninsured populations. We also use Census uninsured and poverty estimates to compare observed complaint counts with expected counts. Complaints reflect reporting and awareness, so the map helps advocates choose where to look more closely; it does not measure verified harm.",
+      to: { drillA: 0, cmpA: 0, mapA: 1, mapT: 0 }, dur: 1100,
+    },
+    {
+      scene: 2, cap: "side map-caption", community: true, eyebrow: ["Georgia", "Local context"], headline: "From the map to <em>local help</em>",
+      caption: `Georgia had <strong>${int(D.community.georgiaComplaints)}</strong> reported complaints in ${D.community.rateYear}, or <strong>${Number(D.community.georgiaRate).toFixed(1)}</strong> per 100k. Its county view adds CMS hospitals, linked IRS assistance policies, and sample posted prices.<br><span class="map-action">Open evidence navigator →</span>`,
+      source: `<a href="https://www.consumerfinance.gov/data-research/consumer-complaints/" target="_blank" rel="noopener noreferrer">CFPB</a> · <a href="https://data.cms.gov/provider-data/dataset/xubh-q36u" target="_blank" rel="noopener noreferrer">CMS hospitals</a> · <a href="https://www.irs.gov/charities-non-profits/form-990-series-downloads" target="_blank" rel="noopener noreferrer">IRS Schedule H</a> · <a href="https://www.cms.gov/priorities/key-initiatives/hospital-price-transparency/hospitals" target="_blank" rel="noopener noreferrer">posted prices</a>. Hospitals are local context; filed policies are self-reported and posted prices are not a patient bill.`, timing: "About 25 seconds",
+      notes: "Select Georgia to see complaints placed into counties by ZIP code and nearby CMS hospitals. The screenshot shows Hamilton Medical Center's linked Schedule H policy and a sample of posted prices. The hospital is context, not the subject of those complaints; most complaints name a collector. Schedule H is a filed policy, not a check of practice, and posted prices do not tell us what any patient owes. An advocate can open the evidence navigator with a selected state and hospital. Maya's case coming next is fictional and separate from this real Georgia hospital example.",
+      to: { mapT: 1 }, dur: 1500,
+    },
+    {
+      scene: 3, cap: "side", eyebrow: ["So we built", "Prototype"], headline: "Not My Debt<em>.</em>",
       caption: "Put the records together. Know what to ask. Prepare a response Maya can review.",
       source: "Illustrative summary of the fictional case; the live app is next.", timing: "About 12 seconds",
       notes: "We built Not My Debt to connect those records and prepare a factual response. It flags a possible uncredited payment, shows the evidence, and asks for an updated ledger. It does not declare the debt canceled or send anything automatically.",
-      to: { drillA: 0, cmpA: 0, docsA: 1, lay: 2, packetA: 1 }, dur: 1500,
+      to: { mapA: 0, docsA: 1, lay: 2, packetA: 1 }, dur: 1500,
     },
     {
-      scene: 2, xl: true, cap: "side", eyebrow: ["Live demo", "Maya Ellis / " + fv("bill", "account")], headline: "Let’s follow Maya’s <em>$150.</em>",
-      caption: "The same four documents, in the working app.",
-      source: "Start the app beforehand (npm run build && npm start), open it once, and press Reset case.", timing: "About 8 seconds, then about 2 minutes in the app",
-      notes: "Let's follow Maya's $150 through the app. In the app: open one document; Connect the records; click the Receipt bar; switch Include payment receipt off and on; Prepare a response; tick review; download the packet. Then return to this tab and press → for How it works.",
+      scene: 3, xl: true, cap: "side", eyebrow: ["Live demo", "Maya Ellis / " + fv("bill", "account")], headline: "Let’s follow Maya’s <em>$150.</em>",
+      caption: "Start on Community map, then open Maya’s fictional example case.",
+      source: "Start the app beforehand (npm run build && npm start). The link opens Georgia on the community map.", timing: "About 8 seconds, then about 2 minutes in the app",
+      notes: "Open the app on Community map. Show Georgia briefly, then choose Upload a case and Open an example to load Maya's fictional case. Maya and Maple Grove Medical are separate from the real Georgia hospital example. Open one document; Connect the records; click the Receipt bar; switch Include payment receipt off and on; Prepare a response; tick review; download the packet. Then return to this tab and press → for How it works.",
       to: { packetA: 0, docsA: 0, demoA: 1 }, dur: 700,
     },
     {
-      scene: 3, cap: "bottom", eyebrow: ["How it works", "1 · Extract"], headline: "Every fact keeps its <em>source.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "1 · Extract"], headline: "Every fact keeps its <em>source.</em>",
       caption: "The engine reads labeled fields into typed facts, each with the exact line it came from. Nothing counts until a person confirms it.",
       source: "Values and quotes are the fixture facts the engine uses for Maya’s case.", timing: "About 15 seconds",
       notes: "After the demo: how it works, in four steps. First, extract. Each amount, date, and identifier becomes a typed fact with the exact passage it came from, and nothing is used until a person confirms it.",
@@ -356,7 +381,7 @@
       clocks: [{ k: "tableT", from: 0, to: 1, dur: 2600, delay: 900 }],
     },
     {
-      scene: 3, cap: "bottom", eyebrow: ["How it works", "2 · Match"], headline: "Records link only on <em>identity.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "2 · Match"], headline: "Records link only on <em>identity.</em>",
       caption: `Provider, patient, account, and visit date must agree. A matching amount is never enough: a receipt for account <span class="c">${D.wrongAccount}</span> is not applied, and the balance is withheld.`,
       source: "The fifth row is the engine’s “receipt belongs to another account” case.", timing: "About 15 seconds",
       notes: `Second, match. Records are linked on provider, patient, account, and visit date. The same dollar amount is never enough. Here is a receipt for account ${D.wrongAccount}: same amount, same provider, but it is not applied, and the engine withholds a balance instead of guessing.`,
@@ -364,7 +389,7 @@
       clocks: [{ k: "tableT", from: 0, to: 1, dur: 3000, delay: 300 }],
     },
     {
-      scene: 3, cap: "bottom", eyebrow: ["How it works", "3 · Reconcile"], headline: "Follow the money, in <em>whole cents.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "3 · Reconcile"], headline: "Follow the money, in <em>whole cents.</em>",
       caption: `The bill’s own arithmetic reaches ${usd(W.ledger.find((r) => r.label === "Provider statement balance").cents)}. The matched receipt brings it to <strong>${usd(W.supported)}</strong>. The notice still asks for <span class="c">${usd(W.collection)}</span>: a possible uncredited payment.`,
       source: "Bars are the engine’s ledger for Maya’s case. Integer-cent arithmetic; the EOB is never subtracted as a payment.", timing: "About 20 seconds",
       notes: "Third, reconcile. This is the engine's actual ledger for Maya. Charges, minus the adjustment, minus the insurance payment gives the bill's $150. The matched receipt brings it to zero. The notice still asks for $150. That gap is the finding: a payment that may not have been credited.",
@@ -372,14 +397,14 @@
       clocks: [{ k: "wfT", from: 0, to: 1, dur: 3400, delay: 500 }],
     },
     {
-      scene: 3, cap: "bottom", eyebrow: ["How it works", "4 · Withdraw"], headline: "Remove the receipt, <em>lose the finding.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "4 · Withdraw"], headline: "Remove the receipt, <em>lose the finding.</em>",
       caption: `Without payment evidence the records support <strong>${usd(WO.supported)}</strong>, the same as the notice. The app doesn’t guess: it says payment evidence is missing. An EOB is not proof of payment.`,
       source: "Both states are engine output for the same case, with and without the receipt.", timing: "About 15 seconds",
       notes: "Fourth, the finding depends on the evidence. Take the receipt away and the supported balance goes back to $150, matching the notice. The finding is withdrawn and the app asks for payment evidence. It never treats the insurance explanation as proof that Maya paid.",
       to: { rcpt: 0, findMode: 1 }, dur: 1600,
     },
     {
-      scene: 4, cap: "bottom", eyebrow: ["Complaint narratives", D.archive.period], headline: "What people describe, and <em>which documents</em>",
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", D.archive.period], headline: "What people describe, and <em>which documents</em>",
       caption: `Keyword rules analyzed ${int(D.archive.unique)} unique medical-debt complaint narratives. Each cell counts narratives matching both a complaint theme and a document type. Bills and verification requests dominate.`,
       source: "Transparent keyword rules; categories overlap and are not validated classifiers. Narratives from the CFPB historical archive.", timing: "About 12 seconds",
       notes: `We read the complaint narratives to decide what the engine should check. ${int(D.archive.unique)} unique narratives from early 2025. The heatmap counts narratives that match both a theme and a document type. Bills and verification requests come up most.`,
@@ -387,7 +412,7 @@
       clocks: [{ k: "heatT", from: 0, to: 1, dur: 2200, delay: 500 }],
     },
     {
-      scene: 4, cap: "bottom", eyebrow: ["Complaint narratives", "What they shaped"], headline: "The complaints decided <em>what we check.</em>",
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", "What they shaped"], headline: "The complaints decided <em>what we check.</em>",
       caption: "Each recurring theme became an evidence check you saw in the demo.",
       source: "Counts are narratives matching each rule, among " + int(D.archive.unique) + " unique narratives. Rules overlap.", timing: "About 18 seconds",
       notes: "Each theme became a check. People mention bills, so the statement is rebuilt line by line. They ask for proof, so every amount opens its source. They question whose debt it is, so identity must match exactly. They mention receipts, so only a completed receipt counts as payment.",
@@ -395,7 +420,7 @@
       clocks: [{ k: "checkT", from: 0, to: 1, dur: 4400, delay: 300 }],
     },
     {
-      scene: 5, cap: "bottom", eyebrow: ["Synthetic benchmark", `${D.bench.families.length} scenario families`], headline: "Tested on the ways it could <em>go wrong.</em>",
+      scene: 6, cap: "bottom", eyebrow: ["Synthetic benchmark", `${D.bench.families.length} scenario families`], headline: "Tested on the ways it could <em>go wrong.</em>",
       caption: `${D.bench.bundles} generated cases, each run through the parser and the engine. <span class="c">Coral</span> cases should flag a payment; dashed cases should withhold a balance; teal cases should compute one.`,
       source: "Seeded synthetic documents in the parser’s labeled-text format; expected outcomes follow the product rules. Not an accuracy estimate for real paperwork; no real-user validation yet.", timing: "About 22 seconds",
       notes: `We generated ${D.bench.bundles} cases across ${D.bench.families.length} families: partial payments, duplicate receipts, wrong and masked accounts, pending and reversed payments, payments after the notice, bills that don't add up. Watch the tallies: all ${D.bench.passed} reach the expected outcome, zero false payment flags, and every ambiguous case withholds a balance. This is a synthetic regression check, not real-world accuracy.`,
@@ -403,7 +428,7 @@
       clocks: [{ k: "benchT", from: 0, to: 1, dur: 4200, delay: 600 }],
     },
     {
-      scene: 5, cap: "bottom", eyebrow: ["Where it breaks", "Unrecognized label"], headline: "When it can’t read, it <em>doesn’t guess.</em>",
+      scene: 6, cap: "bottom", eyebrow: ["Where it breaks", "Unrecognized label"], headline: "When it can’t read, it <em>doesn’t guess.</em>",
       caption: "The local parser only reads labels it knows. A bill that says “Billed By” loses its provider, so the bill can’t be linked to the notice, and the balance is withheld. A deliberately broken rule (treating “Pending” as paid) fails the benchmark.",
       source: "The parser output shown is the real local parser on this text.", timing: "About 18 seconds",
       notes: "Where it breaks. The local parser only reads labels it knows. On a bill that says Billed By instead of Provider, the provider is missing, so the engine can't link the bill to the notice. It withholds the balance rather than guessing. And when we deliberately broke a rule, treating Pending as paid, the benchmark caught it.",
@@ -411,14 +436,14 @@
       clocks: [{ k: "failT", from: 0, to: 1, dur: 3600, delay: 500 }],
     },
     {
-      scene: 6, xl: true, cap: "side", eyebrow: ["Back to Maya", "Next"], headline: "Four documents.<br>One clear <em>question.</em>",
+      scene: 7, xl: true, cap: "side", eyebrow: ["Back to Maya", "Next"], headline: "Four documents.<br>One clear <em>question.</em>",
       caption: "Maya can ask her provider how the payment was applied, with the records attached. Nothing is sent or filed for her.<br><br><strong>Next:</strong> pilot with patient advocates and financial counselors, add OCR for scanned bills, and measure preparation time with real people.",
       source: fictional + " The packet does not establish legal liability.", timing: "About 20 seconds",
       notes: "Back to Maya. She started with four documents from three organizations. She now has one clear question for her provider, backed by the records that support it. Next, we want to pilot with patient advocates and financial counselors, add OCR for scanned bills, and measure how much preparation time this saves real people. Thank you.",
       to: { benchA: 0, failA: 0, benchDim: 0, docsA: 1, lay: 2, packetA: 1 }, dur: 1500,
     },
   ];
-  const SCENES = ["Maya", "The data", "Not My Debt", "How it works", "What shaped it", "Results", "Close"];
+  const SCENES = ["Maya", "The data", "Community map", "Not My Debt", "How it works", "What shaped it", "Results", "Close"];
 
   function stateAt(i) {
     const p = { ...DEFAULTS };
@@ -471,6 +496,7 @@
     $("eyebrow").innerHTML = `<b>${b.eyebrow[0]}</b><span>${b.eyebrow[1]}</span>`;
     $("headline").innerHTML = b.headline;
     $("head").classList.toggle("xl", !!b.xl);
+    $("head").classList.toggle("community", !!b.community);
     const cap = $("caption");
     cap.innerHTML = b.caption;
     cap.className = b.cap;
@@ -903,6 +929,13 @@
     show($("packet"), P.packetA * clamp01(P.lay - 1));
     show($("demo-link"), P.demoA);
   }
+  $("community-national").src = D.community.nationalImage;
+  $("community-georgia").src = D.community.georgiaImage;
+  function updateCommunity() {
+    show($("community-visual"), P.mapA);
+    show($("community-national"), 1 - P.mapT);
+    show($("community-georgia"), P.mapT);
+  }
   const rc = F.receipt, nc = F.collection;
   $("packet").innerHTML = `<p class="plabel">Evidence summary · ${fv("bill", "patient")}</p><h3>Possible uncredited<br>payment</h3>
     <p class="finding">A <strong>${usd(W.applied)} payment</strong> may not have been credited to the balance now being collected.</p>
@@ -942,6 +975,7 @@
     drawHeat();
     drawBench();
     updatePacket();
+    updateCommunity();
     requestAnimationFrame(frame);
   }
 

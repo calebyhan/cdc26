@@ -1,14 +1,15 @@
 # Presentation rehearsal
 
-The app starts with an empty case. Use the four fictional PDFs at the top level
+The app starts on **Community map**, not on a case. For the upload path, use the four fictional PDFs at the top level
 of `sample_documents/` for the main story; they contain no real patient information.
 User uploads require field review, even when using these files. The secondary
 Maya example has preconfirmed fixture facts and remains available for rehearsal.
 
 Run `uv sync --extra dev` and `npm ci`. For rehearsal, `npm run dev` is fine. For the
 live presentation, use `npm run build && npm start` to avoid first-request compile
-delays. Open http://127.0.0.1:3000 and select **Start over** for a fresh upload case.
-The presentation's app link opens this address.
+delays. The presentation link opens http://127.0.0.1:3000/?state=GA on **Community map**.
+After showing the map, select **Upload a case → Open an example** for the short
+fictional Maya walkthrough. Use **Start over** only when demonstrating a fresh upload.
 Record a backup video of the upload and review flow.
 
 ## Community map (opening)

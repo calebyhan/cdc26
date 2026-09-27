@@ -1,12 +1,14 @@
 """Build presentation/index.html from deck.template.html and committed data.
 
-Every number on the slides comes from here: the CFPB research snapshot, the
-synthetic benchmark summary, and the evidence engine's own output for Maya's
-fictional case. Rebuild after refreshing any of them:
+Slide figures come from the CFPB research and atlas snapshots, the synthetic
+benchmark summary, and the evidence engine's output for Maya's fictional case.
+Two app captures are embedded for the community-map beats. Rebuild after
+refreshing any of them:
 
     uv run python presentation/build_deck.py
 """
 
+import base64
 import json
 import sys
 from pathlib import Path
@@ -47,7 +49,15 @@ def _case(documents) -> dict:
 def deck_data() -> dict:
     research = json.loads((ROOT / "data/research/research.json").read_text(encoding="utf-8"))
     bench = json.loads((ROOT / "data/benchmark/results.json").read_text(encoding="utf-8"))
+    atlas = json.loads((ROOT / "public/atlas/states.json").read_text(encoding="utf-8"))
     api, archive = research["api"], research["archive"]
+    assert atlas["rate_year"] == research["scope"]["year"]
+    assert atlas["national"]["count"] == api["total_complaints"]
+    georgia = next(row for row in atlas["states"] if row["state_abbr"] == "GA")
+
+    def screenshot(name: str) -> str:
+        data = (ROOT / "presentation/assets" / name).read_bytes()
+        return "data:image/png;base64," + base64.b64encode(data).decode("ascii")
 
     paid = example_documents("paid")
     without_receipt = example_documents("paid")
@@ -84,6 +94,13 @@ def deck_data() -> dict:
         "allResponses": outcomes[0],
         "responseCaveat": api["response_outcomes"]["caveat"],
         "retrieved": research["retrieved_at"][:10],
+        "community": {
+            "rateYear": atlas["rate_year"],
+            "georgiaComplaints": georgia["complaints"],
+            "georgiaRate": georgia["rate_per_100k"],
+            "nationalImage": screenshot("community-national.png"),
+            "georgiaImage": screenshot("community-georgia.png"),
+        },
         "archive": {
             "period": archive["period"],
             "unique": archive["unique_narratives"],
