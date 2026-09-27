@@ -231,6 +231,7 @@ def layout_data(layouts: dict) -> dict:
 def deck_data() -> dict:
     research = json.loads((ROOT / "data/research/research.json").read_text(encoding="utf-8"))
     bench = json.loads((ROOT / "data/benchmark/results.json").read_text(encoding="utf-8"))
+    layouts = json.loads((ROOT / "data/benchmark/layouts.json").read_text(encoding="utf-8"))
     atlas = json.loads((ROOT / "public/atlas/states.json").read_text(encoding="utf-8"))
     api, archive = research["api"], research["archive"]
     assert atlas["rate_year"] == research["scope"]["year"]
