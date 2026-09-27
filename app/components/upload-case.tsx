@@ -51,8 +51,8 @@ function fileSize(bytes: number) {
 }
 
 function fileError(file: File) {
-  if (!/\.(pdf|txt|md)$/i.test(file.name))
-    return "Choose a PDF, TXT, or MD file.";
+  if (!/\.(pdf|png|jpe?g|webp|txt|md)$/i.test(file.name))
+    return "Choose a PDF, a photo (PNG or JPG), or a TXT file.";
   if (file.size === 0)
     return "This file is empty. Choose a file with document text.";
   if (file.size > MAX_BYTES)
@@ -108,15 +108,8 @@ export function UploadCase({
   onExample: () => void;
 }) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [method, setMethod] = useState<ExtractionMethod>(
-    boot.gemini_available
-      ? "gemini"
-      : boot.codex_available
-        ? "codex"
-        : boot.ai_available
-          ? "openai"
-          : "local",
-  );
+  // The local reader is the default; AI extraction must be chosen explicitly.
+  const [method, setMethod] = useState<ExtractionMethod>("local");
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [message, setMessage] = useState("");
@@ -349,7 +342,7 @@ export function UploadCase({
           type="file"
           multiple
           hidden
-          accept=".pdf,.txt,.md"
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md"
           disabled={busy}
           aria-label="Choose medical billing documents"
           onChange={(event) => {
@@ -357,10 +350,10 @@ export function UploadCase({
             event.target.value = "";
           }}
         />
-        <small>PDF, TXT, or MD · Up to 16 files · 8 MB each</small>
+        <small>PDF, photo, or TXT · Up to 16 files · 8 MB each</small>
         <span className="nmd-upload-scan-note">
-          PDFs need selectable text. For scans or photos, upload a
-          transcription.
+          Scans and phone photos are read on this computer with OCR. Check
+          every value afterward.
         </span>
       </div>
       {message && (
@@ -468,6 +461,7 @@ export function UploadCase({
             }
             aria-describedby="upload-extraction-disclosure"
           >
+            <option value="local">This computer (no AI)</option>
             <option value="gemini" disabled={!availability.gemini}>
               Google Gemini
             </option>
@@ -477,7 +471,6 @@ export function UploadCase({
             <option value="openai" disabled={!availability.openai}>
               OpenAI API
             </option>
-            <option value="local">Local parser</option>
           </select>
         </div>
         <div className="nmd-upload-read-copy">
@@ -488,7 +481,7 @@ export function UploadCase({
               ? "Sends document text to OpenAI using your ChatGPT sign-in and usage allowance."
               : method === "openai"
                 ? "Sends document text to OpenAI. API usage is billed separately."
-                : "Reads fields in “Label: value” format, such as “Balance: 150.00.”"}
+                : "Reads PDFs, scans, and photos on this computer. Nothing is sent anywhere."}
           </p>
           <small>You’ll check the values before creating your timeline.</small>
         </div>

@@ -53,7 +53,19 @@ took 57.21 seconds: 40 returned facts matched, the receipt document date remaine
 missing, review was required, and the reviewed case produced a $0 balance with four
 analysis events. This is not complete field recall or measured browser review time.
 Neither OpenAI API path has been live-tested.
-The local parser requires explicit labels; arbitrary layouts and OCR are unfinished.
+The local parser reads known labels in colon, table-row, leader-dot, and stacked layouts;
+scans and photos go through local RapidOCR (see README for the measured layout results).
+Unknown labels such as "Billed By" are still not guessed.
+
+End-to-end browser QA (September 27, 2026, headless Chrome through the DevTools protocol)
+passed 46 scripted steps with no console errors or failed requests: every Community map
+control, the advocate briefing download, navigator hand-off, upload of four PDFs and of a
+scanned bill plus a receipt photo, review and save, timeline, finding, example case, source
+drawers, waterfall click, field correction, add-document, exclusion, recipient switch, letter
+edit and packet export, scenario picker, reset/start over, and research. Gemini extraction of
+the four PDFs (36–44 s), Gemini case explanation (8 s), and one guide question (2 s) also
+passed. That check found and fixed two Gemini schema bugs (a property named "title" was
+stripped; length keywords were rejected).
 The legacy UI retains its Streamlit AppTest coverage. Check the primary UI with
 `npm run typecheck`, `npm run lint`, and `npm run build`, and rehearse in a browser.
 
@@ -132,3 +144,7 @@ presenter notes; this copy preference does not change the evidence or its limits
 CFPB supplies complaints, not EOB/bill/receipt bundles. Keyword research is descriptive.
 Do not claim real patient-document accuracy, verified debt invalidity, savings,
 or successful dispute outcomes. The original project remains on `main` / `mortgage-v1`.
+
+Licensing note: PyMuPDF is AGPL-3.0 (or commercial); RapidOCR and its ONNX models are
+Apache-2.0. Both are fine for this open hackathon repository; revisit PyMuPDF before any
+closed-source distribution (pypdf remains as a permissive fallback reader).

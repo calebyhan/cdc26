@@ -22,6 +22,15 @@ def test_inline_schema_resolves_refs_and_drops_unsupported_keywords():
     assert inlined["properties"]["fields"]["items"]["required"] == ["key", "value", "quote", "page"]
 
 
+def test_inline_schema_keeps_fields_named_title():
+    from not_my_debt.case_analysis import CaseExplanation
+
+    inlined = gemini_adapter.inline_schema(CaseExplanation.model_json_schema())
+    issue = inlined["properties"]["issues"]["items"]
+    assert "title" in issue["properties"]
+    assert set(issue["required"]) <= set(issue["properties"])
+
+
 def test_quota_errors_move_through_the_model_chain(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setenv("GEMINI_MODELS", "first,second")

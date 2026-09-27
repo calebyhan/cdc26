@@ -1,0 +1,103 @@
+{
+ "description": "Local extraction on Maya's four fictional documents drawn in six layouts.",
+ "baseline_ref": "HEAD",
+ "seconds": 6.2,
+ "layouts": {
+  "table": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 41,
+    "fields_extracted": 41,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 0,
+    "fields_extracted": 0,
+    "recall": 0.0,
+    "precision": null
+   }
+  },
+  "stacked": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 41,
+    "fields_extracted": 41,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 0,
+    "fields_extracted": 0,
+    "recall": 0.0,
+    "precision": null
+   }
+  },
+  "leaders": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 41,
+    "fields_extracted": 41,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 0,
+    "fields_extracted": 0,
+    "recall": 0.0,
+    "precision": null
+   }
+  },
+  "grid": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 41,
+    "fields_extracted": 41,
+    "recall": 1.0,
+    "precision": 1.0
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 1,
+    "fields_extracted": 6,
+    "recall": 0.024,
+    "precision": 0.167
+   }
+  },
+  "scan": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 38,
+    "fields_extracted": 41,
+    "recall": 0.927,
+    "precision": 0.927
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 0,
+    "fields_extracted": 0,
+    "recall": 0.0,
+    "precision": null
+   }
+  },
+  "photo": {
+   "current": {
+    "fields_expected": 41,
+    "fields_correct": 39,
+    "fields_extracted": 41,
+    "recall": 0.951,
+    "precision": 0.951
+   },
+   "baseline": {
+    "fields_expected": 41,
+    "fields_correct": 0,
+    "fields_extracted": 0,
+    "recall": 0.0,
+    "precision": null
+   }
+  }
+ }
+}

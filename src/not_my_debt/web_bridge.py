@@ -16,9 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from not_my_debt.case_analysis import analyze_case, build_timeline
 from not_my_debt.codex_adapter import codex_available
 from not_my_debt.demo_documents import demo_cases
+from not_my_debt.document_text import read_document
 from not_my_debt.domain import FIELD_LABELS, KINDS, Document, Fact
 from not_my_debt.examples import SCENARIOS
-from not_my_debt.extract import extract_document, normalize_value, read_upload
+from not_my_debt.extract import extract_document, normalize_value
 from not_my_debt.gemini_adapter import GeminiError, gemini_available
 from not_my_debt.packet import draft_letter, render_packet
 from not_my_debt.reconcile import reconcile
@@ -89,15 +90,18 @@ def handle_request(request: dict) -> dict:
         }
     if operation == "extract":
         text = request.get("text", "")
+        notes: list[str] = []
         if "file" in request:
             content = base64.b64decode(request["file"], validate=True)
-            text = read_upload(content, request.get("filename", ""))
+            read = read_document(content, request.get("filename", ""))
+            text, notes = read.text, read.notes
         doc = extract_document(
             text,
             request.get("kind", ""),
             request.get("title", "Document"),
             method=request.get("method", "local"),
         )
+        doc.warnings = [*notes, *doc.warnings]
         # No extraction is automatically approved for the user's packet.
         for fact in doc.fields.values():
             fact.confirmed = False

@@ -1,9 +1,14 @@
 # Not My Debt — animated presentation
 
 Open `index.html` directly in a modern browser. The deck is self-contained,
+<<<<<<< HEAD
 uses system fonts, and works offline, including embedded captures of the working
 community map. Source links and the live app require their respective connections.
 It has **20 beats across 8 scenes**, advanced manually.
+=======
+uses system fonts, and works offline. Source links and the live app require their
+respective connections. It has **25 beats across 8 scenes**, advanced manually.
+>>>>>>> 3ba31f3b6880c0d2c1d9eea08c2d2c5dc7c2763c
 
 ## Present
 
@@ -33,12 +38,21 @@ They do not represent a timed recording of model processing or benchmark executi
 | --- | --- | --- |
 | Maya | 1–4 | 1 minute |
 | The data | 5–7 | 50 seconds |
+<<<<<<< HEAD
 | Community map | 8–9 | 30–45 seconds |
 | Not My Debt | 10–11 | 20 seconds, then about 2 minutes in the app |
 | How it works | 12–15 | 1 minute |
 | What shaped it | 16–17 | 30 seconds |
 | Results | 18–19 | 40 seconds |
 | Close | 20 | 20 seconds |
+=======
+| Where it happens | 8–11 | 70 seconds |
+| Not My Debt | 12–14 | 35 seconds, then about 2 minutes in the app |
+| How it works | 15–18 | 1 minute |
+| What shaped it | 19–20 | 30 seconds |
+| Results | 21–24 | 80 seconds |
+| Close | 25 | 20 seconds |
+>>>>>>> 3ba31f3b6880c0d2c1d9eea08c2d2c5dc7c2763c
 
 These are rehearsal targets, not measured results. Start the app beforehand:
 
@@ -49,12 +63,18 @@ npm run build
 npm start
 ```
 
+<<<<<<< HEAD
 The app opens on **Community map**. Beat 11 opens
 <http://127.0.0.1:3000/?state=GA> in a new tab. Show Georgia briefly, then
 choose **Upload a case → Open an example** to load Maya’s fictional records.
 The selected Georgia hospital is real public-data context, not a provider in
 Maya’s case. Follow [the demo script](../docs/demo.md), then return to the
 presentation and advance to the method scene.
+=======
+Open the app once; it opens on the Community map. Beat 14 opens
+<http://127.0.0.1:3000> in a new tab. Follow [the demo script](../docs/demo.md),
+then return to the presentation and advance to the method scene.
+>>>>>>> 3ba31f3b6880c0d2c1d9eea08c2d2c5dc7c2763c
 
 ## Sources and boundaries
 
@@ -83,6 +103,16 @@ if its expected findings no longer hold.
   synthetic bundles in the local parser's labeled-text format. This is a
   regression check, not accuracy on real paperwork. Animated tally order is
   illustrative; summary results are from the committed measured run.
+- The layout beat uses [`layouts.json`](../data/benchmark/layouts.json) from
+  `scripts/measure_layouts.py`: Maya's fictional documents drawn in six layouts
+  (41 fields), scored for the current reader and the previous parser. The build
+  fails unless every text layout still reads all fields with none wrong. These are
+  synthetic layouts, not accuracy on real paperwork.
+- The "Where it happens" scene, the hospital card, and the coverage tallies come from
+  the public atlas artifacts in [`public/atlas/`](../public/atlas/) (CFPB, ACS 2020–2024,
+  CMS, IRS Schedule H); see [the atlas guide](../docs/atlas.md). State outlines are the
+  us-atlas Albers file; hospital points use the same projection as the app. The guide
+  exchange is a recorded response from the app's Gemini guide, quoted verbatim.
 - Official queries, archive URLs, and retrieval times are recorded in
   [`source_manifest.json`](../data/research/source_manifest.json).
 
@@ -102,7 +132,8 @@ atlas, screenshot, or benchmark inputs, rebuild and review every beat.
 
 ## AI attribution
 
-Claude assisted with the initial animated deck and builder. OpenAI Codex assisted
+Claude assisted with the initial animated deck and builder, and with the
+community-map, guide, and coverage beats. OpenAI Codex assisted
 with completion, review, navigation and replay fixes, layout, and documentation.
 Research figures and regression results come from the linked project artifacts;
 AI assistance is not an additional validation result.

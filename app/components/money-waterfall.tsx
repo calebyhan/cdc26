@@ -161,9 +161,9 @@ export function MoneyWaterfall({
             if (refs?.length) onSelect(refs);
           }}
         >
-          {data.map((step) => (
+          {data.map((step, index) => (
             <Cell
-              key={step.label}
+              key={`${step.label}-${index}`}
               fill={step.cents === null ? "transparent" : step.color}
               stroke={step.cents === null ? step.color : undefined}
               strokeDasharray={step.cents === null ? "3 3" : undefined}
