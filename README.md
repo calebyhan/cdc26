@@ -80,13 +80,16 @@ Choose an extraction method when adding files or in **Documents & review**:
 
 | Choice | Setup | Where the document text goes |
 | --- | --- | --- |
-| **Local parser** | None | No network request; recognizes explicit `Label: value` fields in the local app |
+| **Local parser** | None | No network request; reads known labels in `Label: value`, table-row, leader-dot, and stacked layouts, including scans and photos via local OCR |
 | **Google Gemini** | `GEMINI_API_KEY` in `.env.local` | Sent to the Google Gemini API |
 | **Codex (ChatGPT sign-in)** | Installed Codex CLI and saved ChatGPT sign-in | Sent to OpenAI through the CLI; no API key required |
 | **OpenAI API** | `OPENAI_API_KEY` | Sent to the OpenAI Responses API |
 
 The local parser remains available without a model connection and makes no network
-requests. None of these paths adds OCR: scanned PDFs need transcription. AI proposals must pass schema and source
+requests. Every path first reads the file on this machine: PyMuPDF rebuilds each visual line from word
+positions, so table rows keep their label and amount together, and pages without a text layer
+(scans) or photos (PNG/JPG) are read with RapidOCR, a free local OCR model. OCR adds a review
+warning on the document. AI proposals must pass schema and source
 quotation checks and then user review. Original source passages are preserved.
 An extraction error is shown; the app does not silently switch to another extractor.
 Choose **Local parser** and retry explicitly if you want the local path.
@@ -198,6 +201,26 @@ in explanatory prose. These checks do not prove that a sentence correctly
 interprets its sources: review the explanation and citations.
 Changing the case or analysis method clears the explanation; run it again when
 ready. In this version, AI analysis is not added to the response letter or export.
+
+### Measured reading of real-world layouts
+
+`scripts/measure_layouts.py` draws Maya's four fictional documents in six layouts and scores
+local extraction against the fixture values (41 fields). The previous parser is the baseline
+(`--baseline-ref`); results are in `data/benchmark/layouts.json`.
+
+| Layout | Previous parser | Current | Precision |
+| --- | --- | --- | --- |
+| Table rows, no colons | 0/41 | 41/41 | 1.00 |
+| Label above value | 0/41 | 41/41 | 1.00 |
+| Leader dots | 0/41 | 41/41 | 1.00 |
+| Two pairs per line | 1/41 | 41/41 | 1.00 |
+| Image-only scanned PDF (OCR) | 0/41 | 38/41 | 0.93 |
+| Phone-style photo, PNG (OCR) | 0/41 | 39/41 | 0.95 |
+
+OCR misses are names read without spaces ("MapleGroveMedical"); identity matching ignores
+spacing, so these still link, but users should correct them during review. These are
+synthetic layouts of fictional documents: a regression check, not accuracy on real paperwork.
+The 70-bundle synthetic benchmark is unchanged (70/70, no false payment findings).
 
 ## Guide (AI assistant)
 

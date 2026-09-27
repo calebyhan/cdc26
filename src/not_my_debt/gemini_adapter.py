@@ -41,19 +41,29 @@ def models() -> list[str]:
     return configured or list(DEFAULT_MODELS)
 
 
+# Keywords Gemini's schema subset rejects or that make constrained decoding fail.
+# Pydantic re-validates every response, so length/count limits are still enforced.
+DROPPED_KEYWORDS = {
+    "title", "additionalProperties", "default",
+    "minLength", "maxLength", "minItems", "maxItems", "pattern",
+}
+
+
 def inline_schema(schema: dict) -> dict:
     """Resolve local ``$ref``s and drop keywords Gemini's schema subset rejects."""
     schema = copy.deepcopy(schema)
     defs = schema.pop("$defs", {})
 
-    def walk(node):
+    def walk(node, names: bool = False):
+        # ``names`` marks a ``properties`` map: its keys are field names (a field may
+        # itself be called "title"), not schema keywords, so none are dropped.
         if isinstance(node, dict):
-            if "$ref" in node:
+            if not names and "$ref" in node:
                 return walk(copy.deepcopy(defs[node["$ref"].split("/")[-1]]))
             return {
-                key: walk(value)
+                key: walk(value, names=(key == "properties" and not names))
                 for key, value in node.items()
-                if key not in {"title", "additionalProperties", "default"}
+                if names or key not in DROPPED_KEYWORDS
             }
         if isinstance(node, list):
             return [walk(item) for item in node]

@@ -7,7 +7,7 @@ name = "not-my-debt"
 version = "0.1.0"
 description = "Source-linked medical billing evidence reconciliation"
 requires-python = ">=3.11"
-dependencies = ["streamlit>=1.50,<2", "plotly>=6,<7", "pandas>=2.2,<3", "pydantic>=2,<3", "pypdf>=6,<7", "requests>=2.32,<3", "openai>=2,<3"]
+dependencies = ["streamlit>=1.50,<2", "plotly>=6,<7", "pandas>=2.2,<3", "pydantic>=2,<3", "pypdf>=6,<7", "pymupdf>=1.26,<2", "rapidocr-onnxruntime>=1.4,<2", "requests>=2.32,<3", "openai>=2,<3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.15,<0.16"]

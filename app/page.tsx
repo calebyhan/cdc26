@@ -337,6 +337,7 @@ export default function Home() {
       : "Let’s check\nyour medical bill.";
 
   const includedDocuments = documents?.filter((doc) => doc.included) || [];
+  const toReview = includedDocuments.filter(awaitingReview);
   const factsReady =
     !!analysis &&
     !loading &&
@@ -440,6 +441,22 @@ export default function Home() {
                 ? "Your included records are reviewed and ready."
                 : "Add and review facts for each included document."}
         </p>
+        {toReview.length > 0 && (
+          <>
+            <button
+              className="button primary full"
+              onClick={() => setDrawer({ docId: toReview[0].id, edit: true })}
+            >
+              <FileCheck2 size={16} />
+              Review {toReview[0].title}
+            </button>
+            <p className="footnote">
+              {includedDocuments.length - toReview.length} of{" "}
+              {includedDocuments.length} documents reviewed. The timeline opens
+              once each one is checked.
+            </p>
+          </>
+        )}
         <label htmlFor="upload-analysis-method">Analysis method</label>
         <select
           id="upload-analysis-method"
@@ -472,7 +489,7 @@ export default function Home() {
           </p>
         )}
         <button
-          className="button primary full"
+          className={`button ${toReview.length ? "secondary" : "primary"} full`}
           disabled={!factsReady || !analysisAvailable || explaining}
           onClick={() => void explainCase(true)}
         >
@@ -1001,10 +1018,10 @@ export default function Home() {
                                   row.label !==
                                   "Balance supported by supplied records",
                               )
-                              .map((row) => (
+                              .map((row, index) => (
                                 <button
                                   className="ledger-row"
-                                  key={row.label}
+                                  key={`${row.label}-${index}`}
                                   onClick={() => source(row.refs)}
                                 >
                                   <span>{row.label}</span>
@@ -1076,8 +1093,12 @@ export default function Home() {
                             <ChevronDown size={15} />
                           </span>
                         </summary>
-                        {result?.findings.map((item) => (
-                          <div className="finding-item" key={item.code}>
+                        {/* Codes are categories: one code can appear for several records. */}
+                        {result?.findings.map((item, index) => (
+                          <div
+                            className="finding-item"
+                            key={`${item.code}-${index}`}
+                          >
                             <h3>{item.title}</h3>
                             <p>{item.detail}</p>
                             {item.refs.length > 0 && (
@@ -1371,7 +1392,7 @@ export default function Home() {
                         <Upload />
                         <h3>Add your first document</h3>
                         <p>
-                          Paste the text or upload a PDF with selectable text.
+                          Paste the text, or upload a PDF or photo of the bill.
                         </p>
                       </div>
                     )}
@@ -1432,12 +1453,24 @@ export default function Home() {
           documents={documents}
           labels={boot.field_labels}
           sources={documentSources}
+          nextTitle={
+            drawer.edit
+              ? documents.find((d) => d.id !== drawer.docId && awaitingReview(d))
+                  ?.title
+              : undefined
+          }
           onClose={() => setDrawer(null)}
-          onSave={(doc) =>
+          onSave={(doc) => {
             replaceDocuments((current) =>
               (current || []).map((d) => (d.id === doc.id ? doc : d)),
-            )
-          }
+            );
+            // Move straight on to the next document that still needs review.
+            const next =
+              drawer.edit && !awaitingReview(doc)
+                ? documents.find((d) => d.id !== doc.id && awaitingReview(d))
+                : undefined;
+            setDrawer(next ? { docId: next.id, edit: true } : null);
+          }}
         />
       )}
       {boot && (
@@ -1459,11 +1492,21 @@ export default function Home() {
   );
 }
 
+// A document needs review until it has facts and every one is confirmed.
+function awaitingReview(doc: Document) {
+  return (
+    doc.included &&
+    (Object.keys(doc.fields).length === 0 ||
+      Object.values(doc.fields).some((fact) => !fact.confirmed))
+  );
+}
+
 function EvidenceDrawer({
   drawer,
   documents,
   labels,
   sources,
+  nextTitle,
   onClose,
   onSave,
 }: {
@@ -1471,6 +1514,7 @@ function EvidenceDrawer({
   documents: Document[];
   labels: Record<string, string>;
   sources: Record<string, string>;
+  nextTitle?: string;
   onClose: () => void;
   onSave: (doc: Document) => void;
 }) {
@@ -1523,7 +1567,6 @@ function EvidenceDrawer({
       );
       if (controller.signal.aborted) return;
       onSave(updated);
-      onClose();
     } catch {
       if (controller.signal.aborted) return;
       setError(
@@ -1533,6 +1576,9 @@ function EvidenceDrawer({
       if (!controller.signal.aborted) setSaving(false);
     }
   }
+  const allChecked =
+    Object.values(fields).length > 0 &&
+    Object.values(fields).every((f) => f.confirmed);
   const pdf = doc && sources[doc.id] ? sourceUrl(sources[doc.id]) : undefined;
   const refs = [...new Set(drawer.refs || [])];
   const referenced = refs.map((ref) => {
@@ -1730,10 +1776,7 @@ function EvidenceDrawer({
             <label className="review-checkbox">
               <input
                 type="checkbox"
-                checked={
-                  Object.values(fields).length > 0 &&
-                  Object.values(fields).every((f) => f.confirmed)
-                }
+                checked={allChecked}
                 onChange={(e) =>
                   setFields(
                     Object.fromEntries(
@@ -1762,8 +1805,17 @@ function EvidenceDrawer({
               ) : (
                 <Check size={16} />
               )}
-              Save reviewed facts
+              {allChecked && nextTitle
+                ? "Save reviewed facts & open next"
+                : "Save reviewed facts"}
             </button>
+            <p className="footnote" role="status">
+              {!allChecked
+                ? "Tick “I checked every value above” to mark this document reviewed."
+                : nextTitle
+                  ? `Next: ${nextTitle}`
+                  : "This is the last document to review."}
+            </p>
           </>
         )}
         {!doc &&
@@ -1937,13 +1989,13 @@ function AddDocument({
         }
         disabled={!!file}
       />
-      <div className="upload-divider">or upload a text PDF / TXT</div>
+      <div className="upload-divider">or upload a PDF, photo, or TXT</div>
       <label className="file-upload">
         <Upload size={18} />
         <span>{file?.name || "Choose a document"}</span>
         <input
           type="file"
-          accept=".pdf,.txt,.md"
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md"
           aria-label="Upload a text document"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
         />
@@ -1958,7 +2010,7 @@ function AddDocument({
         </button>
       )}
       <p className="footnote">
-        Up to 8 MB. For scans or photos, paste a transcription instead.
+        Up to 8 MB. Scans and photos are read locally with OCR; check each value.
       </p>
       <label htmlFor="doc-extractor">Extraction method</label>
       <select
@@ -1971,7 +2023,7 @@ function AddDocument({
           setError("");
         }}
       >
-        <option value="local">Local parser</option>
+        <option value="local">This computer (no AI)</option>
         <option value="gemini" disabled={!boot.gemini_available}>
           Google Gemini
         </option>
@@ -1985,7 +2037,7 @@ function AddDocument({
       <div id="extraction-help">
         {method === "local" && (
           <p className="footnote">
-            Reads fields in “Label: value” format, such as “Balance: 150.00.”
+            Reads the text, PDF, scan, or photo on this computer. Nothing is sent anywhere.
           </p>
         )}
         {method === "gemini" && (

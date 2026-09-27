@@ -2,7 +2,7 @@
 
 Open `index.html` directly in a modern browser. The deck is self-contained,
 uses system fonts, and works offline. Source links and the live app require their
-respective connections. It has **18 beats across 7 scenes**, advanced manually.
+respective connections. It has **25 beats across 8 scenes**, advanced manually.
 
 ## Present
 
@@ -11,7 +11,7 @@ respective connections. It has **18 beats across 7 scenes**, advanced manually.
 | Right / Space / Page Down / stage click | Finish an animation, then advance on the next press |
 | Left / Page Up | Previous beat, immediately settled |
 | Home / End | First / last beat |
-| 1–7 / scene buttons | Jump to a scene |
+| 1–8 / scene buttons | Jump to a scene |
 | R | Replay the current beat from its preceding state |
 | S / speed button | Cycle 0.5×, 1×, 2×, 4× |
 | F | Fullscreen |
@@ -31,11 +31,12 @@ They do not represent a timed recording of model processing or benchmark executi
 | --- | --- | --- |
 | Maya | 1–4 | 1 minute |
 | The data | 5–7 | 50 seconds |
-| Not My Debt | 8–9 | 20 seconds, then about 2 minutes in the app |
-| How it works | 10–13 | 1 minute |
-| What shaped it | 14–15 | 30 seconds |
-| Results | 16–17 | 40 seconds |
-| Close | 18 | 20 seconds |
+| Where it happens | 8–11 | 70 seconds |
+| Not My Debt | 12–14 | 35 seconds, then about 2 minutes in the app |
+| How it works | 15–18 | 1 minute |
+| What shaped it | 19–20 | 30 seconds |
+| Results | 21–24 | 80 seconds |
+| Close | 25 | 20 seconds |
 
 These are rehearsal targets, not measured results. Start the app beforehand:
 
@@ -46,7 +47,7 @@ npm run build
 npm start
 ```
 
-Open the app once and press **Reset case**. Beat 9 opens
+Open the app once; it opens on the Community map. Beat 14 opens
 <http://127.0.0.1:3000> in a new tab. Follow [the demo script](../docs/demo.md),
 then return to the presentation and advance to the method scene.
 
@@ -70,6 +71,16 @@ if its expected findings no longer hold.
   synthetic bundles in the local parser's labeled-text format. This is a
   regression check, not accuracy on real paperwork. Animated tally order is
   illustrative; summary results are from the committed measured run.
+- The layout beat uses [`layouts.json`](../data/benchmark/layouts.json) from
+  `scripts/measure_layouts.py`: Maya's fictional documents drawn in six layouts
+  (41 fields), scored for the current reader and the previous parser. The build
+  fails unless every text layout still reads all fields with none wrong. These are
+  synthetic layouts, not accuracy on real paperwork.
+- The "Where it happens" scene, the hospital card, and the coverage tallies come from
+  the public atlas artifacts in [`public/atlas/`](../public/atlas/) (CFPB, ACS 2020–2024,
+  CMS, IRS Schedule H); see [the atlas guide](../docs/atlas.md). State outlines are the
+  us-atlas Albers file; hospital points use the same projection as the app. The guide
+  exchange is a recorded response from the app's Gemini guide, quoted verbatim.
 - Official queries, archive URLs, and retrieval times are recorded in
   [`source_manifest.json`](../data/research/source_manifest.json).
 
@@ -87,7 +98,8 @@ After refreshing research or benchmark inputs, rebuild and review every beat.
 
 ## AI attribution
 
-Claude assisted with the initial animated deck and builder. OpenAI Codex assisted
+Claude assisted with the initial animated deck and builder, and with the
+community-map, guide, and coverage beats. OpenAI Codex assisted
 with completion, review, navigation and replay fixes, layout, and documentation.
 Research figures and regression results come from the linked project artifacts;
 AI assistance is not an additional validation result.
