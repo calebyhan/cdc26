@@ -1,59 +1,166 @@
 # Not My Debt
 
-A medical-billing evidence workspace: connect a provider bill, insurance explanation,
-payment receipt, and collection notice; inspect discrepancies; prepare a factual
+A medical-debt **community priority map** and **evidence navigator** for patient
+advocates. The map shows where reported medical-debt collection pressure is high
+after accounting for population and insurance coverage, which hospitals serve the
+area, and what financial-assistance policies nonprofit hospitals reported to the
+IRS. The navigator turns one person's provider bill, insurance explanation, payment
+receipt, and collection notice into a source-linked explanation and a factual
 response packet for review.
 
-**Data boundary:** CFPB supplies complaint records and archived consumer narratives,
-not the underlying bills or receipts. The Research view uses real public data.
-The document scenarios are fictional, and document-reconciliation tests are synthetic.
-This prototype has not been validated on real patient paperwork or legal outcomes.
+**Data boundary:** The community map uses real public data: CFPB complaints, Census
+ACS estimates, CMS hospital data, IRS Form 990 Schedule H filings, and a sample of
+hospital price-transparency files. It describes reported complaints and community
+context, not verified harm, and it does not rank or blame hospitals. CFPB supplies
+complaint records and archived consumer narratives, not the underlying bills or
+receipts. The document scenarios are fictional, and document-reconciliation tests
+are synthetic. This prototype has not been validated on real patient paperwork or
+legal outcomes.
 
 ## Run locally
 
-Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required.
+The primary interface uses **Next.js, React, TypeScript, Recharts, and Lucide**.
+The existing Python extraction, reconciliation, and packet engine runs through a
+stateless Next.js route handler. Node.js 20.9+, Python 3.11+, npm, and
+[uv](https://docs.astral.sh/uv/) are required.
 
 ```sh
 uv sync --extra dev
-uv run streamlit run streamlit_app.py
+npm ci
+npm run dev
 ```
 
-The app opens with Maya's fictional paid-bill case. Switch off the receipt to see
-the payment finding disappear. Other examples cover partial payment, wrong account,
-duplicate payment evidence, missing receipt, and records that agree.
+Open **http://127.0.0.1:3000**. The app opens on **Community map**; see
+[Community map](#community-map) below. Choose **Upload a case** for the document
+workflow. The upload workspace starts with an empty case. Under
+**Start with your documents**, select **Choose documents** to add text-based PDFs.
+Check each **Document type**, select an extractor under **Read with**, and select
+**Read documents**. Review the proposed fields and source passages for each record;
+uploads are never preconfirmed. Correct any values before saving the reviewed facts.
+For a partial extraction, retry the failed files or explicitly continue with the
+successful documents.
 
-Use **Evidence** to paste text or upload a text-based PDF, review extracted facts,
-and make corrections. Source passages remain visible beside corrected values.
-Use **Findings** to inspect the ledger and supporting evidence. **Response packet**
-produces a reviewed HTML download that can be printed to PDF from a browser.
-Nothing is sent to providers, collectors, or regulators.
+The review screen is **Check what we read.** Open **Review** for each document,
+check **I checked every value above.**, and select **Save reviewed facts**.
+After review, choose an analysis method and select **Create timeline & explanation**.
+This explicitly requests an AI explanation; the combined results open after it
+succeeds. Amounts, dates, matching, and the balance calculation remain controlled
+by the deterministic engine. Inspect the timeline, source-linked waterfall, and
+questions for billing, then prepare and review a response. Choose **View timeline only** for the local results without AI. This is an explicit option, not an error
+fallback. Nothing is sent or filed.
+
+The supplied PDFs in [`sample_documents/`](sample_documents/README.md) are fictional.
+**Start over** clears an uploaded case, its upload queue, prior explanation, and
+review approval. **Open an example** loads Maya's preloaded case as a secondary
+option; **Reset case** restores that selected example. Its fixture facts are preconfirmed and link to the original PDFs; user uploads always require review.
+**Documents & review** also supports pasted text, individual PDF/TXT uploads,
+corrections with retained original quotes, and document exclusion.
+**Complaint research** uses real public aggregates, separately from case records.
+See [the rehearsal guide](docs/demo.md).
+
+For a local production run:
+
+```sh
+npm run build
+npm start
+```
+
+The Node server needs the Python package, `src/`, `sample_documents/`, public research aggregates,
+and a Python environment at runtime. By default it uses `.venv/bin/python`;
+set `NMD_PYTHON` to a different interpreter if needed. This is a Node + Python
+application, not a static export or a deploy-ready Node-only serverless app.
+
+The legacy Streamlit UI is still available with
+`uv run streamlit run streamlit_app.py` on port 8501. Its opening workspace is
+**Case overview**; choose a scenario and select **Load case** to replace the records.
 
 ## Extraction and data handling
 
-The local parser recognizes explicit `Label: value` fields. It does not perform
-general OCR or understand arbitrary document layouts. Scanned PDFs need transcription.
-Confirmed user corrections remain labeled and the original source is preserved.
+Choose an extraction method when adding files or in **Documents & review**:
 
-Optional AI extraction uses the OpenAI Responses API and a structured schema:
+| Choice | Setup | Where the document text goes |
+| --- | --- | --- |
+| **Local parser** | None | No network request; reads known labels in `Label: value`, table-row, leader-dot, and stacked layouts, including scans and photos via local OCR |
+| **Google Gemini** | `GEMINI_API_KEY` in `.env.local` | Sent to the Google Gemini API |
+| **Codex (ChatGPT sign-in)** | Installed Codex CLI and saved ChatGPT sign-in | Sent to OpenAI through the CLI; no API key required |
+| **OpenAI API** | `OPENAI_API_KEY` | Sent to the OpenAI Responses API |
+
+The local parser remains available without a model connection and makes no network
+requests. Every path first reads the file on this machine: PyMuPDF rebuilds each visual line from word
+positions, so table rows keep their label and amount together, and pages without a text layer
+(scans) or photos (PNG/JPG) are read with RapidOCR, a free local OCR model. OCR adds a review
+warning on the document. AI proposals must pass schema and source
+quotation checks and then user review. Original source passages are preserved.
+An extraction error is shown; the app does not silently switch to another extractor.
+Choose **Local parser** and retry explicitly if you want the local path.
+
+### Codex with your ChatGPT sign-in
+
+For the local fictional demo, install the Codex CLI on the machine running the
+Next.js/Python server if needed. Sign in and launch the app from a terminal where
+`codex` is on `PATH`, after completing the setup above:
+
+```sh
+codex login
+codex login status
+npm run dev
+```
+
+Select **Codex (ChatGPT sign-in)** when adding the files or an individual document
+and run extraction. The adapter reuses the CLI's saved ChatGPT authentication; do not
+copy login files into the project or enter an API key for this option. By default
+it lets the installed CLI select its model (no `--model` argument) and uses a
+120-second timeout. Optional server-side configuration:
+
+```sh
+export NMD_CODEX_MODEL='' # Leave empty to use the installed CLI's default model
+export NMD_CODEX_TIMEOUT_SECONDS='120'
+```
+
+The timeout must be between 10 and 300 seconds. Set `NMD_CODEX_MODEL` only if you
+have confirmed that the model identifier works with your ChatGPT CLI account.
+Model access and available usage depend on your account. CLI requests consume
+your ChatGPT/Codex usage allowance; this is an online service, not offline extraction.
+See [OpenAI usage and pricing](https://learn.chatgpt.com/docs/pricing).
+This saved-login setup is intended for a demo on your own machine with fictional
+records; it is not a public multiuser deployment recipe.
+
+The adapter starts a separate invocation in a temporary working directory, passes
+the document text through standard input, and uses `--ephemeral` to avoid saving
+Codex session rollout files. It ignores user configuration and captures the result
+for validation. The app does not deliberately keep an input log or a persistent
+Codex session. Ephemeral mode does not override provider data policies or promise
+zero provider retention. See [OpenAI non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode).
+
+### OpenAI API
+
+The separate API option remains available:
 
 ```sh
 export OPENAI_API_KEY='your-key'
 export OPENAI_MODEL='gpt-6-astra'
-uv run streamlit run streamlit_app.py
+npm run dev
 ```
 
-Then select **Use OpenAI** for a document. The app explicitly sends that document's
-text to the configured API. Requests use `store=False`; provider retention policies
-still apply. Values and exact source quotations are checked before human review.
-The app works without a key. Live AI extraction was not exercised during this
-implementation because no API key was configured; local extraction and model-output
-validation are covered by tests.
+Choose **OpenAI API** for the document. Requests use a structured schema and
+`store=False`; provider retention policies still apply. This path requires an
+API key and uses API billing separately from the saved ChatGPT CLI login. The
+separate API path has not been live-checked; the [demo guide](docs/demo.md#recorded-live-check)
+records the bounded synthetic Codex check.
 
-Private case data stays in session memory and is not written to a shared application
-database/cache or committed files. Downloaded packets contain case information.
-The public hackathon demo uses fictional documents. API keys belong in environment
-variables, never in Git. `.env.example` documents configuration; `.env` is not
-automatically loaded by the app.
+Case data lives in React memory and is processed transiently by the local
+Node/Python server. The app does not persist it in a shared database, cache,
+application case log, browser storage, or committed file. Reloading the page clears
+the case. Processing may use temporary files, and downloaded packets contain case
+information. Uploaded PDF previews use temporary browser URLs that are released
+when the case is cleared or replaced. The legacy Streamlit app uses session memory.
+
+The public hackathon demo uses fictional documents. Credentials belong in the
+server process environment, a local ignored `.env`, or the CLI's own login storage,
+never in Git. `.env.example` documents configuration. Next.js loads local `.env`
+files on the server; the legacy Streamlit app requires exported process variables
+and does not load `.env` automatically. Keep these settings server-side: never add
+`NEXT_PUBLIC_` prefixes or copy authentication files into the project.
 
 ## How the evidence engine works
 
@@ -71,6 +178,108 @@ identifiers and missing facts require review. It does not adjudicate insurance
 coverage, diagnose billing-code errors, decide legal liability, or calculate legal
 deadlines. It surfaces the date printed on a collection notice.
 
+## Case timeline and optional analysis
+
+Review every field in the included records before requesting an explanation.
+Choose **Codex (ChatGPT sign-in)** or **OpenAI API** under **Analysis method**, then
+select **Create timeline & explanation**. This is separate from extraction: it sends
+included, reviewed values and their source passages, plus the current reconciliation,
+to OpenAI using the selected connection. The setup and provider-data caveats above
+apply. **View timeline only** opens the local timeline without requesting AI. A
+failed request keeps the case available for review and does not switch methods or fall back to another provider.
+
+The combined results open after a successful request. **Your case, in order** shows
+events from reviewed fields. Valid reviewed dates and amounts can still appear on
+an excluded record. A record on the timeline is not necessarily used in the balance:
+check its source and the reconciliation findings, especially for unmatched,
+duplicate, or unsettled payments.
+
+The AI can suggest an overview, items to check, and questions for billing. It
+cannot edit timeline amounts, dates, or the balance calculation. Output checks
+reject unknown source references and finding codes, plus digits and currency symbols
+in explanatory prose. These checks do not prove that a sentence correctly
+interprets its sources: review the explanation and citations.
+Changing the case or analysis method clears the explanation; run it again when
+ready. In this version, AI analysis is not added to the response letter or export.
+
+### Measured reading of real-world layouts
+
+`scripts/measure_layouts.py` draws Maya's four fictional documents in six layouts and scores
+local extraction against the fixture values (41 fields). The previous parser is the baseline
+(`--baseline-ref`); results are in `data/benchmark/layouts.json`.
+
+| Layout | Previous parser | Current | Precision |
+| --- | --- | --- | --- |
+| Table rows, no colons | 0/41 | 41/41 | 1.00 |
+| Label above value | 0/41 | 41/41 | 1.00 |
+| Leader dots | 0/41 | 41/41 | 1.00 |
+| Two pairs per line | 1/41 | 41/41 | 1.00 |
+| Image-only scanned PDF (OCR) | 0/41 | 38/41 | 0.93 |
+| Phone-style photo, PNG (OCR) | 0/41 | 39/41 | 0.95 |
+
+OCR misses are names read without spaces ("MapleGroveMedical"); identity matching ignores
+spacing, so these still link, but users should correct them during review. These are
+synthetic layouts of fictional documents: a regression check, not accuracy on real paperwork.
+The 70-bundle synthetic benchmark is unchanged (70/70, no false payment findings).
+
+## Guide (AI assistant)
+
+**Ask the guide** (bottom right) answers questions about the map, the upload and
+review steps, and what to ask billing or a collector. It uses Google Gemini with
+tool calls over the public atlas data (state profiles, state comparisons, hospital
+search, filed Schedule H policies, posted prices) and can open a state, a workspace,
+or the evidence navigator for the user. Questions go to Google; the route handler
+(`app/api/assistant`) is uncached and does not log messages. Case details are sent
+only when the user checks **Share my case summary**, which sends balances and
+findings from the deterministic engine, never document text. The guide gives general
+information, not legal advice, and is instructed never to call a debt invalid or rank
+hospitals. It needs `GEMINI_API_KEY`.
+
+The Gemini key used for development is on the free tier: **20 requests per day per
+model**. Extraction uses one request per document and the guide uses one to five per
+question, so the app works through a chain of Flash models (`GEMINI_MODELS`) when
+one is exhausted or busy. Enable billing on the Google project before a live demo.
+
+## Community map
+
+**Community map** is the landing workspace. It is built from public data only and
+never reads case records.
+
+- **Priority map:** states colored by 2025 CFPB medical-debt collection complaints
+  per 100k residents, by the ratio of observed to expected complaints (a Poisson
+  model with population, uninsured rate, and poverty rate), by a bivariate
+  uninsured-rate × complaint-burden view, or per 10k uninsured residents. Circles
+  show uninsured residents. Select a state to see counties (2023–2025 complaints
+  placed by ZIP code) and CMS hospitals outlined by ownership; filled dots have a
+  linked Schedule H policy. `?state=GA` opens a state directly.
+- **Community profile:** monthly trend against the U.S. rate, issue mix, company
+  responses, companies named most often, ACS context, the counties with the
+  highest rates, and hospitals with their reported free/discounted-care income
+  limits, policy links, and whether collection actions were permitted before
+  eligibility was checked. A sample of hospitals shows posted prices for six
+  common services.
+- **Advocate briefing:** a printable HTML summary for one state, generated in the
+  browser from the same public aggregates.
+- **Open evidence navigator:** carries the selected state and hospital into the
+  upload and case views, which then show that hospital's filed policy and
+  questions to ask. Community data give context; the user's own records still
+  decide the case.
+- **Support gap:** a scatterplot of uninsured (or poverty) rate against complaint
+  rate, sized by population and colored by linked nonprofit policy features.
+
+Refresh the public artifacts in `public/atlas/` (raw downloads stay in ignored
+`data/raw/atlas/`):
+
+```sh
+uv sync --extra dev --extra atlas
+uv run python scripts/refresh_atlas.py            # reuses cached raw inputs
+uv run python scripts/refresh_atlas.py --refresh  # re-downloads everything
+```
+
+The IRS e-file ZIPs use Deflate64, so the refresh needs the optional `atlas`
+extra (`inflate64`). The app itself does not. See [the atlas guide](docs/atlas.md)
+for sources, methods, measured coverage, and limitations.
+
 ## Research
 
 The committed aggregate snapshot contains 8,843 medical-debt complaint records
@@ -82,8 +291,34 @@ are not verified events, unique people, or supervised-model accuracy. Raw archiv
 and extracted narratives are excluded from Git; aggregates and source checksums
 are committed. See [sources and methods](docs/data_sources.md).
 
+Company responses for the same 2025 query come from the CFPB API aggregations:
+823 of 1,005 “Debt was paid” complaints (81.9%) and 7,227 of all 8,843 (81.7%)
+were closed with explanation; 3 and 22, respectively, ended with monetary relief.
+These are company-reported response categories, not verified outcomes.
+
 ```sh
 uv run python scripts/refresh_research.py --help
+uv run python scripts/refresh_response_outcomes.py   # response aggregates only
+```
+
+## Synthetic benchmark
+
+`scripts/run_benchmark.py` generates 70 seeded case bundles across 14 perturbation
+families (paid, partial, duplicate, already credited, missing receipt, notice fees,
+wrong/masked account, pending/reversed payment, payment after notice, overpayment,
+bill arithmetic error, unrecognized label). Each bundle passes through the local
+parser and reconciler. Expected outcomes follow the documented product rules.
+
+Measured on the committed seed ([results](data/benchmark/results.json)): 70/70
+bundles meet every check; 0 false possible-uncredited-payment findings in 55
+bundles where none was expected; 40/40 correct abstentions. A mutation test
+confirms that treating “Pending” as paid fails the benchmark. The parser reads
+known labels only; an unfamiliar label such as “Billed by” causes a withheld balance.
+This is a synthetic regression check in the parser's own text format, not an
+accuracy estimate for real paperwork.
+
+```sh
+uv run python scripts/run_benchmark.py
 ```
 
 ## Verify
@@ -91,6 +326,9 @@ uv run python scripts/refresh_research.py --help
 ```sh
 uv run pytest -q
 uv run ruff check .
+npm run typecheck
+npm run lint
+npm run build
 ```
 
 Tests cover evidence matching, missing/partial/duplicate/reversed payments, dates,
@@ -101,8 +339,12 @@ outcome has been measured.
 
 ## Project files
 
-- `src/not_my_debt/`: schema, extraction, reconciliation, packet export, research, UI.
+- `app/`: Next.js interface, Recharts views, source/review drawer, and API route.
+- `lib/`: TypeScript case contracts and API client.
+- `src/not_my_debt/`: Python evidence engine, stateless web bridge, and legacy UI.
 - `data/research/`: reproducible public aggregate data and source manifest.
+- `data/benchmark/`: seeded synthetic benchmark summary.
+- `presentation/`: self-contained animated presentation; see its README.
 - `tests/`: synthetic regression cases and parser/aggregation checks.
 - [Scope and presentation storyboard](docs/scope.md).
 
@@ -111,7 +353,6 @@ This pivot uses branch `pivot/not-my-debt`. The mortgage project is preserved on
 
 ## Attribution
 
-Created with assistance from OpenAI Codex for design, code, tests, and documentation.
 Official guidance: [CFPB response resources](https://www.consumerfinance.gov/ask-cfpb/what-should-i-do-when-a-debt-collector-contacts-me-en-1695/),
 [CMS EOB explanation](https://www.cms.gov/initiatives/your-patient-rights/medical-bill-rights/get-help/medical-bill-guides-resources/how-read-health-insurance-explanation-benefits),
 and [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).

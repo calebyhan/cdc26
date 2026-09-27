@@ -1,0 +1,236 @@
+"""Next.js boundary regressions on synthetic records."""
+
+import io
+import json
+from copy import deepcopy
+from dataclasses import asdict
+
+import pytest
+from pydantic import ValidationError
+
+from not_my_debt.examples import example_documents
+from not_my_debt.web_bridge import handle_request
+
+
+def case(scenario="paid"):
+    return [asdict(doc) for doc in example_documents(scenario)]
+
+
+def test_live_receipt_removal_changes_result_and_draft():
+    documents = case()
+    response = handle_request({"operation": "reconcile", "documents": documents})
+    assert response["result"]["supported_balance_cents"] == 0
+    assert "Provider payment receipt, 2026-07-20" in response["drafts"]["provider"]
+    documents[2]["included"] = False
+    missing = handle_request({"operation": "reconcile", "documents": documents})
+    assert "possible_uncredited_payment" not in {f["code"] for f in missing["result"]["findings"]}
+    assert "Provider payment receipt, 2026-07-20" not in missing["drafts"]["provider"]
+
+
+@pytest.mark.parametrize("scenario", ["wrong_account", "duplicate_receipt", "partial_payment"])
+def test_bridge_uses_existing_matching_and_deduplication(scenario):
+    response = handle_request({"operation": "reconcile", "documents": case(scenario)})
+    result = response["result"]
+    assert (
+        result["applied_payments_cents"]
+        == {"wrong_account": 0, "duplicate_receipt": 15000, "partial_payment": 5000}[scenario]
+    )
+
+
+def test_local_extraction_stays_unconfirmed_and_retains_source():
+    response = handle_request(
+        {
+            "operation": "extract",
+            "text": "Account reference: MG-1042\nBalance: 150.00",
+            "kind": "bill",
+            "title": "Fictional bill",
+            "method": "local",
+        }
+    )
+    fact = response["document"]["fields"]["balance"]
+    assert fact["confirmed"] is False
+    assert fact["quote"] == "Balance: 150.00"
+
+
+def test_packet_requires_confirmation_and_review():
+    request = {"operation": "packet", "documents": case(), "letter": "Reviewed draft"}
+    with pytest.raises(ValueError, match="Review the draft"):
+        handle_request(request)
+    request["reviewed"] = True
+    request["documents"][0]["fields"]["account"]["confirmed"] = False
+    with pytest.raises(ValueError, match="Review all"):
+        handle_request(request)
+
+
+def test_packet_escapes_user_text_and_keeps_original_quotes():
+    documents = case()
+    documents[2]["fields"]["payment_amount"].update(value="50.00", origin="user")
+    response = handle_request(
+        {
+            "operation": "packet",
+            "documents": documents,
+            "reviewed": True,
+            "letter": "<script>alert('fictional')</script>",
+            "recipient": "provider",
+        }
+    )
+    assert "<script>" not in response["html"]
+    assert "Receipt payment: 150.00" in response["html"]
+    assert "User-corrected value" in response["html"]
+
+
+def test_bridge_rejects_duplicate_ids_and_string_confirmation_flags():
+    documents = case()
+    duplicate = deepcopy(documents[0])
+    with pytest.raises(ValueError, match="distinct identifier"):
+        handle_request({"operation": "reconcile", "documents": [*documents, duplicate]})
+    documents[0]["fields"]["account"]["confirmed"] = "false"
+    with pytest.raises(ValidationError):
+        handle_request({"operation": "reconcile", "documents": documents})
+
+
+@pytest.mark.parametrize("installed", [False, True])
+def test_bootstrap_reports_codex_presence_without_launching_it(monkeypatch, installed):
+    monkeypatch.setattr("not_my_debt.web_bridge.codex_available", lambda: installed)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    response = handle_request({"operation": "bootstrap"})
+    assert response["codex_available"] is installed
+    assert response["ai_available"] is False
+
+
+def test_codex_extraction_through_bridge_requires_review(monkeypatch):
+    from not_my_debt import codex_adapter
+
+    calls = []
+
+    def run(prompt, schema):
+        calls.append(json.loads(prompt.split("\n")[-1]))
+        return json.dumps(
+            {
+                "fields": [
+                    {"key": "balance", "value": "150.00", "quote": "Balance: $150.00", "page": 1}
+                ],
+                "warnings": [],
+            }
+        )
+
+    monkeypatch.setattr(codex_adapter, "run_codex", run)
+    response = handle_request(
+        {
+            "operation": "extract",
+            "kind": "bill",
+            "title": "Fictional bill",
+            "text": "Balance: $150.00",
+            "method": "codex",
+        }
+    )
+    assert calls == [{"document_type": "bill", "document_text": "Balance: $150.00"}]
+    document = response["document"]
+    assert document["extraction_method"] == "Codex structured extraction (ChatGPT sign-in)"
+    assert document["fields"]["balance"]["value"] == "150.00"
+    assert document["fields"]["balance"]["confirmed"] is False
+
+
+def test_bridge_extraction_error_is_useful_without_echoing_case_data(monkeypatch, capsys):
+    from not_my_debt import web_bridge
+
+    def fail(*args, **kwargs):
+        raise ValueError("PRIVATE CASE CONTENT")
+
+    monkeypatch.setattr(web_bridge, "extract_document", fail)
+    monkeypatch.setattr(
+        web_bridge.sys,
+        "stdin",
+        io.StringIO(
+            json.dumps(
+                {
+                    "operation": "extract",
+                    "kind": "bill",
+                    "text": "PRIVATE CASE CONTENT",
+                    "method": "codex",
+                }
+            )
+        ),
+    )
+    web_bridge.main()
+    output = json.loads(capsys.readouterr().out)
+    assert "PRIVATE CASE CONTENT" not in output["error"]
+    assert "sign-in" in output["error"]
+    assert "No alternate extractor was used" in output["error"]
+    assert "document" not in output
+
+
+def test_reconciliation_returns_local_timeline_without_calling_ai(monkeypatch):
+    def unexpected(*args, **kwargs):
+        raise AssertionError("Reconciliation must not make a model request")
+
+    monkeypatch.setattr("not_my_debt.web_bridge.analyze_case", unexpected)
+    response = handle_request({"operation": "reconcile", "documents": case()})
+    assert [event["document_id"] for event in response["timeline"]] == [
+        "eob",
+        "bill",
+        "receipt",
+        "collection",
+    ]
+    receipt = response["timeline"][2]
+    assert receipt["date"] == "2026-07-20"
+    assert receipt["amount_cents"] == 15000
+    assert "receipt.payment_amount" in receipt["refs"]
+    assert response["result"]["supported_balance_cents"] == 0
+
+
+def test_case_analysis_uses_server_reconciliation_and_explicit_method(monkeypatch):
+    calls = []
+
+    def analyze(documents, result, method):
+        calls.append((documents, result, method))
+        return {
+            "summary": {
+                "text": "Review the payment allocation.",
+                "refs": ["receipt.payment_amount"],
+            }
+        }
+
+    monkeypatch.setattr("not_my_debt.web_bridge.analyze_case", analyze)
+    response = handle_request(
+        {
+            "operation": "analyze_case",
+            "documents": case(),
+            "method": "codex",
+            "result": {"supported_balance_cents": 999999},
+        }
+    )
+    assert len(calls) == 1
+    documents, result, method = calls[0]
+    assert result.supported_balance_cents == 0
+    assert method == "codex"
+    assert len(documents) == 4
+    assert response["explanation"]["summary"]["refs"] == ["receipt.payment_amount"]
+    assert "html" not in response
+
+
+def test_analysis_failure_never_echoes_private_model_output(monkeypatch, capsys):
+    from not_my_debt import web_bridge
+
+    def fail(*args, **kwargs):
+        raise ValueError("PRIVATE MODEL OUTPUT")
+
+    monkeypatch.setattr(web_bridge, "analyze_case", fail)
+    monkeypatch.setattr(
+        web_bridge.sys,
+        "stdin",
+        io.StringIO(
+            json.dumps(
+                {
+                    "operation": "analyze_case",
+                    "documents": case(),
+                    "method": "codex",
+                }
+            )
+        ),
+    )
+    web_bridge.main()
+    output = json.loads(capsys.readouterr().out)
+    assert "PRIVATE MODEL OUTPUT" not in output["error"]
+    assert "Review the included facts" in output["error"]
+    assert "explanation" not in output

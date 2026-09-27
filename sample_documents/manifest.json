@@ -1,0 +1,104 @@
+{
+  "synthetic": true,
+  "fixture_source": "src/not_my_debt/examples.py",
+  "case": "Maya Ellis / MG-1042 / July 1, 2026",
+  "files": {
+    "01_insurance_explanation.pdf": {
+      "kind": "eob",
+      "scenario": "paid",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-1042",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-07-12",
+        "charges": "1200.00",
+        "adjustments": "400.00",
+        "allowed": "800.00",
+        "insurer_paid": "650.00",
+        "patient_responsibility": "150.00"
+      }
+    },
+    "02_provider_bill.pdf": {
+      "kind": "bill",
+      "scenario": "paid",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-1042",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-07-15",
+        "charges": "1200.00",
+        "adjustments": "400.00",
+        "insurer_paid": "650.00",
+        "patient_paid": "0.00",
+        "balance": "150.00"
+      }
+    },
+    "03_payment_receipt.pdf": {
+      "kind": "receipt",
+      "scenario": "paid",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-1042",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-07-20",
+        "payment_date": "2026-07-20",
+        "payment_amount": "150.00",
+        "payment_reference": "PAY-715028",
+        "payment_status": "Completed"
+      }
+    },
+    "04_collection_notice.pdf": {
+      "kind": "collection",
+      "scenario": "paid",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-1042",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-08-15",
+        "collector": "Pine Valley Account Services",
+        "balance": "150.00",
+        "validation_end": "2026-09-20"
+      }
+    },
+    "variants/03_payment_receipt_partial_payment.pdf": {
+      "kind": "receipt",
+      "scenario": "partial_payment",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-1042",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-07-20",
+        "payment_date": "2026-07-20",
+        "payment_amount": "50.00",
+        "payment_reference": "PAY-715028",
+        "payment_status": "Completed"
+      }
+    },
+    "variants/03_payment_receipt_wrong_account.pdf": {
+      "kind": "receipt",
+      "scenario": "wrong_account",
+      "expected_fields": {
+        "provider": "Maple Grove Medical",
+        "patient": "Maya Ellis",
+        "account": "MG-9999",
+        "claim_id": "CL-260701",
+        "service_date": "2026-07-01",
+        "statement_date": "2026-07-20",
+        "payment_date": "2026-07-20",
+        "payment_amount": "150.00",
+        "payment_reference": "PAY-715028",
+        "payment_status": "Completed"
+      }
+    }
+  }
+}

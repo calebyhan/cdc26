@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b27">
+<meta name="description" content="Not My Debt: a community medical-debt map, a fictional billing story, real CFPB complaint data, and source-linked evidence navigation.">
+<title>Not My Debt · Presentation</title>
+<!-- Built by build_deck.py from deck.template.html. Edit the template, then rebuild. -->
+<style>
+  /* One stage in a 1600×900 design space: 1cqw = 16 design px. */
+  :root {
+    color-scheme: light;
+    --cream: #f5f1e8;
+    --paper: #fffdf8;
+    --ink: #173c36;
+    --muted: #5f6f65;
+    --faint: #9aa79e;
+    --line: #d6d9ca;
+    --lime: #cfe4a6;
+    --coral: #c95b41;
+    --coral-soft: #f7dfd3;
+    --teal: #2e7d70;
+    --stone: #b7c4bd;
+    --sans: "Avenir Next", "Segoe UI", Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: #102b27; color: var(--ink); font-family: var(--sans); display: grid; place-items: center; overflow: hidden; }
+  #stage { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; container-type: inline-size; background: var(--cream); overflow: hidden; cursor: pointer; user-select: none; }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .layer { position: absolute; visibility: hidden; opacity: 0; }
+
+  #head { position: absolute; left: 6cqw; top: 4.1cqw; width: 52cqw; }
+  #eyebrow { font-size: 0.95cqw; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: flex; gap: 1.2cqw; }
+  #eyebrow b { color: var(--coral); font-weight: 650; }
+  #headline { margin: 1cqw 0 0; font-family: var(--serif); font-weight: 400; font-size: 3.6cqw; line-height: 1.05; letter-spacing: -.035em; text-wrap: balance; }
+  #headline em { font-style: italic; color: var(--coral); }
+  #head.xl #headline { font-size: 5cqw; }
+  #head.community { width: 28cqw; }
+  #caption { position: absolute; margin: 0; font-size: 1.3cqw; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+  #caption.side { left: 6cqw; top: 23cqw; width: 42cqw; }
+  #caption.map-caption { top: 21cqw; width: 27cqw; }
+  #caption.bottom { left: 6cqw; top: 44.6cqw; width: 70cqw; }
+  #caption strong { font-weight: 650; }
+  #caption .map-action { display: inline-block; margin-top: 1.1cqw; padding: .55cqw .8cqw; border-radius: .3cqw; background: var(--lime); font-weight: 650; }
+  #caption .c { color: var(--coral); font-weight: 650; }
+  #caption .t { color: var(--teal); font-weight: 650; }
+  #source { position: absolute; left: 6cqw; right: 6cqw; top: 51.3cqw; margin: 0; font-size: .74cqw; line-height: 1.4; color: var(--muted); }
+  #source a { color: inherit; }
+  .fade-in { animation: fadein 420ms ease-out both; }
+  @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+  @keyframes fadein { from { opacity: 0; transform: translateY(.35cqw); } to { opacity: 1; transform: none; } }
+
+  /* Documents: one element each, posed by JS across story, packet, and method scenes. */
+  .doc { position: absolute; left: 0; top: 0; width: 27.5cqw; transform-origin: 0 0; background: var(--paper); border: 1px solid #173c3618; box-shadow: 0 1.1cqw 2.8cqw #173c3616; padding: 1.8cqw 1.9cqw 0; will-change: transform, opacity; }
+  .doc-head { display: flex; justify-content: space-between; gap: 1cqw; border-bottom: 1px solid var(--line); padding-bottom: 1cqw; margin-bottom: 1cqw; }
+  .issuer { margin: 0; font-size: 1.1cqw; font-weight: 700; line-height: 1.3; }
+  .kind { margin: .3cqw 0 0; font-size: .72cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .date { margin: 0; font-size: .8cqw; color: var(--muted); white-space: nowrap; }
+  .meta { display: flex; justify-content: space-between; font-size: .88cqw; line-height: 1.7; margin-bottom: .6cqw; }
+  .meta span { display: block; color: var(--muted); font-size: .72cqw; }
+  .acct { border-radius: .3cqw; padding: 0 .4cqw; margin: 0 -.4cqw; }
+  .rows { width: 100%; border-collapse: collapse; font-size: .95cqw; line-height: 2.25; }
+  .rows td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .band { margin: .8cqw -1.9cqw 0; padding: .9cqw 1.9cqw; display: flex; justify-content: space-between; align-items: center; background: var(--lime); font-size: .9cqw; }
+  .band strong { font-size: 2.6cqw; font-weight: 500; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+  .doc[data-kind="collection"] { border-top: .4cqw solid var(--coral); }
+  .doc[data-kind="collection"] .band { background: var(--coral-soft); }
+  .doc[data-kind="collection"] .band strong { color: #a9462d; }
+  .doc[data-kind="receipt"] { border-top: .4cqw solid var(--ink); }
+  .receipt-amount { font-size: 5.6cqw; letter-spacing: -.07em; text-align: center; margin: .4cqw 0 0; font-weight: 500; }
+  .stamp { display: flex; justify-content: center; align-items: center; gap: .5cqw; font-size: 1cqw; font-weight: 650; margin: .3cqw 0 1cqw; color: var(--teal); }
+  .stamp i { font-style: normal; width: 1.4cqw; height: 1.4cqw; border: 1px solid currentColor; border-radius: 50%; display: inline-grid; place-items: center; font-size: .85cqw; }
+  .ref { border-top: 1px dashed #b6c2b5; padding: .9cqw 0 1.4cqw; font-family: var(--mono); font-size: .8cqw; line-height: 1.8; color: var(--muted); margin: 0; }
+  .note-line { font-size: .78cqw; color: var(--muted); padding: .7cqw 0 1.1cqw; margin: 0; }
+  .notice-heading { font-family: var(--serif); font-size: 2cqw; letter-spacing: -.03em; margin: .4cqw 0 .6cqw; }
+  .doc-tag { position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: .4cqw; font-weight: 650; color: var(--ink); white-space: nowrap; }
+  .void { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--coral); background: #f5f1e8cc; }
+
+  /* Data drill-down */
+  #counter { left: 6cqw; top: 13.2cqw; }
+  #counter .num { font-family: var(--serif); font-size: 9cqw; line-height: 1; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+  #counter .lbl { font-size: 1.5cqw; margin-top: .6cqw; max-width: 60cqw; }
+
+  /* Captures from the working map stay inside the offline deck. */
+  #community-visual { left: 34cqw; top: 12cqw; width: 60cqw; height: 37cqw; margin: 0; }
+  #community-visual img { position: absolute; width: 100%; height: 100%; object-fit: contain; object-position: right center; filter: drop-shadow(0 .45cqw .9cqw #173c361a); }
+
+  #packet { left: 0; top: 0; width: 29cqw; transform: translate(60cqw, 9.4cqw) rotate(1.5deg); background: var(--paper); border: 1px solid #173c3618; box-shadow: 0 1.1cqw 2.8cqw #173c3618; padding: 2.2cqw; }
+  #packet .plabel { font-size: .8cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  #packet h3 { font-family: var(--serif); font-weight: 400; font-size: 2.5cqw; line-height: 1.1; margin: .8cqw 0 1.2cqw; }
+  #packet .finding { border-left: .24cqw solid var(--coral); padding-left: 1.1cqw; font-size: 1.05cqw; line-height: 1.6; margin: 0 0 1.2cqw; }
+  #packet .cite { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: .75cqw 0; font-size: .9cqw; }
+  #packet .ask { border-top: 1px solid var(--line); padding-top: 1cqw; margin: 0; font-size: .95cqw; line-height: 1.5; }
+  #demo-link { left: 6cqw; top: 27cqw; display: inline-flex; gap: 1.6cqw; align-items: center; text-decoration: none; color: var(--ink); background: var(--lime); border-radius: .4cqw; padding: 1.1cqw 1.6cqw; font-size: 1.3cqw; font-weight: 650; cursor: pointer; }
+  #demo-link:hover { background: #e0efc2; }
+  #demo-link:focus-visible { outline: .2cqw solid var(--coral); outline-offset: .3cqw; }
+
+  /* Method */
+  #facts { left: 32cqw; top: 15cqw; width: 62cqw; }
+  #facts table { width: 100%; border-collapse: collapse; font-size: .98cqw; }
+  #facts th { text-align: left; font-size: .72cqw; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 0 .8cqw .7cqw 0; border-bottom: 1px solid var(--line); }
+  #facts td { padding: 1cqw .8cqw 1cqw 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  #facts td span { display: inline-block; border-radius: .25cqw; padding: .1cqw .35cqw; margin: -.1cqw -.35cqw; }
+  #facts td.rec { font-weight: 650; white-space: nowrap; }
+  #facts td.quote { font-family: var(--mono); font-size: .78cqw; color: var(--muted); }
+  #facts .ok { color: var(--teal); font-weight: 700; }
+  #facts .bad { color: var(--coral); font-weight: 700; }
+  #facts tr.struck td { color: var(--faint); }
+  #finding { left: 71cqw; top: 15.6cqw; width: 23cqw; border-radius: .6cqw; padding: 1.5cqw 1.6cqw; border: 1px solid; }
+  #finding.discrepancy { background: #fbeee8; border-color: #efcfc0; }
+  #finding.pending { background: #eef0eb; border-color: var(--line); }
+  #finding small { display: block; font-size: .72cqw; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
+  #finding.discrepancy small { color: var(--coral); }
+  #finding.pending small { color: var(--muted); }
+  #finding h3 { font-family: var(--serif); font-weight: 400; font-size: 1.8cqw; line-height: 1.15; margin: .7cqw 0; }
+  #finding p { margin: 0; font-size: .95cqw; line-height: 1.5; color: var(--muted); }
+
+  /* What the complaints shaped */
+  #checks { left: 64cqw; top: 15.4cqw; width: 30cqw; }
+  .check { display: grid; grid-template-columns: 6.2cqw 1fr; gap: 1.2cqw; align-items: baseline; padding: 1.1cqw 0; border-top: 1px solid var(--line); }
+  .check strong { font-family: var(--serif); font-weight: 400; font-size: 3cqw; letter-spacing: -.05em; text-align: right; font-variant-numeric: tabular-nums; }
+  .check p { margin: 0; font-size: .95cqw; line-height: 1.45; color: var(--muted); }
+  .check b { display: block; color: var(--teal); font-size: 1.05cqw; margin-top: .3cqw; }
+
+  /* Results */
+  #tallies { left: 47.5cqw; top: 14.4cqw; width: 46cqw; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6cqw 3cqw; }
+  .tally { border-top: 2px solid var(--ink); padding-top: 1cqw; }
+  .tally strong { display: block; font-family: var(--serif); font-weight: 400; font-size: 4.4cqw; line-height: 1.05; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+  .tally p { margin: .5cqw 0 0; font-size: .95cqw; line-height: 1.45; color: var(--muted); }
+  .legend { grid-column: 1 / -1; display: flex; gap: 2cqw; font-size: .82cqw; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .5cqw; }
+  .legend i { width: 1cqw; height: 1cqw; border-radius: .15cqw; }
+  #failure { left: 47.5cqw; top: 14.4cqw; width: 46cqw; }
+  #layout-tallies { left: 52cqw; top: 14.4cqw; width: 42cqw; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6cqw 3cqw; }
+  .fail-text { position: relative; font-family: var(--mono); font-size: 1.05cqw; line-height: 2.1; background: var(--paper); border: 1px solid var(--line); padding: .9cqw 1.4cqw; margin: 0 0 1.4cqw; }
+  .fail-text .scan { position: absolute; left: 0; right: 0; height: 2.2cqw; background: #cfe4a666; border-left: .25cqw solid var(--teal); }
+  .fail-text div:not(.scan) { position: relative; }
+  .fail-row { display: grid; grid-template-columns: 9cqw 1fr; gap: 1cqw; padding: .7cqw 0; border-bottom: 1px solid var(--line); font-size: 1.05cqw; }
+  .fail-row span:first-child { color: var(--muted); }
+  .fail-row .bad { color: var(--coral); font-weight: 650; }
+  .fail-row .ok { color: var(--teal); font-weight: 650; }
+  .withheld { display: inline-block; margin-top: 1.4cqw; border: .12cqw dashed var(--ink); border-radius: .3cqw; padding: .7cqw 1.2cqw; font-weight: 650; font-size: 1.1cqw; }
+
+  /* Community atlas */
+  #atlas-side { left: 6cqw; top: 17cqw; width: 30cqw; }
+  #atlas-side h4 { margin: 0 0 .8cqw; font-size: .8cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
+  .rank { display: grid; grid-template-columns: 3.2cqw 1fr auto; align-items: baseline; gap: 1cqw; padding: .75cqw 0; border-top: 1px solid var(--line); font-size: 1.05cqw; }
+  .rank b { font-family: var(--serif); font-weight: 400; font-size: 2.2cqw; letter-spacing: -.04em; }
+  .rank strong { font-variant-numeric: tabular-nums; font-size: 1.3cqw; font-weight: 650; }
+  .rank small { color: var(--muted); font-size: .85cqw; }
+  .rank.hot strong { color: var(--coral); }
+  #hosp-card { left: 6cqw; top: 16.4cqw; width: 33cqw; background: var(--paper); border: 1px solid #173c3618; box-shadow: 0 1.1cqw 2.8cqw #173c3616; padding: 1.6cqw 1.8cqw; border-top: .4cqw solid #2a78d6; }
+  #hosp-card .kind { margin: 0 0 .4cqw; }
+  #hosp-card h3 { font-family: var(--serif); font-weight: 400; font-size: 2cqw; line-height: 1.1; margin: 0 0 1cqw; }
+  #hosp-card .row { display: flex; justify-content: space-between; gap: 1.2cqw; border-top: 1px solid var(--line); padding: .6cqw 0; font-size: .95cqw; }
+  #hosp-card .row span:first-child { color: var(--muted); }
+  #hosp-card .row strong { font-weight: 650; text-align: right; }
+  #hosp-card .from { margin: .8cqw 0 0; font-size: .74cqw; line-height: 1.45; color: var(--muted); }
+  #chat { left: 52cqw; top: 8.5cqw; width: 42cqw; background: var(--paper); border: 1px solid #173c3618; box-shadow: 0 1.1cqw 2.8cqw #173c3616; border-radius: .9cqw; padding: 1.4cqw 1.6cqw; }
+  #chat .who { font-size: .72cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 650; margin: 0 0 1.1cqw; }
+  .bubble { border-radius: .9cqw; padding: .9cqw 1.1cqw; font-size: 1.02cqw; line-height: 1.5; margin-bottom: .8cqw; }
+  .bubble.q { background: var(--ink); color: #fff; margin-left: 8cqw; border-bottom-right-radius: .2cqw; }
+  .bubble.a { background: #eef3e2; margin-right: 3cqw; border-bottom-left-radius: .2cqw; }
+  .bubble.a p { margin: 0 0 .5cqw; }
+  .tool { display: inline-flex; gap: .4cqw; align-items: center; font-family: var(--mono); font-size: .78cqw; color: var(--teal); background: #e6f1ea; border-radius: 999px; padding: .2cqw .7cqw; margin: 0 .4cqw .7cqw 0; }
+  .opened { display: inline-block; margin-top: .3cqw; font-size: .8cqw; color: var(--teal); border: 1px solid #b7d3c4; border-radius: 999px; padding: .15cqw .7cqw; background: #fff; }
+  #atlas-tallies { left: 47.5cqw; top: 14.4cqw; width: 46cqw; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6cqw 3cqw; }
+
+  footer { position: absolute; left: 6cqw; right: 6cqw; top: 53.5cqw; display: flex; align-items: center; gap: 1.6cqw; font-size: .72cqw; color: var(--muted); }
+  .progress { display: flex; gap: 1.4cqw; flex: 1; }
+  .scene { border: 0; padding: 0; background: none; font: inherit; color: inherit; text-align: left; display: grid; gap: .35cqw; cursor: pointer; }
+  .scene .label { text-transform: uppercase; letter-spacing: .1em; }
+  .scene.on .label { color: var(--ink); font-weight: 650; }
+  .ticks { display: flex; gap: .25cqw; }
+  .tick { width: 1.5cqw; height: .25cqw; background: var(--line); border-radius: 1px; }
+  .tick.done { background: var(--faint); }
+  .tick.now { background: var(--coral); }
+  .controls { display: flex; gap: .4cqw; }
+  .controls button { font: inherit; font-size: .8cqw; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: .3cqw; padding: .35cqw .7cqw; cursor: pointer; }
+  .controls button:hover { border-color: var(--faint); }
+  .controls button:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
+
+  #notes { position: fixed; right: 20px; bottom: 20px; width: min(440px, calc(100vw - 40px)); max-height: 55vh; overflow: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; box-shadow: 0 10px 50px #0007; font-size: 15px; line-height: 1.6; z-index: 5; }
+  #notes[hidden] { display: none; }
+  #notes h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  #notes .timing { font-size: 12px; color: var(--muted); font-weight: 650; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Not My Debt presentation. Use the arrow keys to advance.">
+  <svg id="fx" viewBox="0 0 1600 900" aria-hidden="true">
+    <defs><clipPath id="bar-clip"><rect id="bar-clip-rect" x="96" y="470" width="1408" height="64"/></clipPath></defs>
+    <g id="g-timeline"></g><g id="g-links"></g><g id="g-drill"></g><g id="g-wf"></g><g id="g-heat"></g><g id="g-bench"></g><g id="g-layouts"></g><g id="g-atlas"></g>
+  </svg>
+  <header id="head"><div id="eyebrow"></div><h1 id="headline"></h1></header>
+  <p id="caption"></p>
+  <div id="docs"></div>
+  <div class="layer" id="counter"><div class="num" id="counter-num"></div><div class="lbl" id="counter-lbl"></div></div>
+  <figure class="layer" id="community-visual" aria-label="Community map views captured from the app">
+    <img id="community-national" alt="App view of 2025 reported medical-debt complaints per 100,000 residents by state, with uninsured-population circles">
+    <img id="community-georgia" alt="App view of Georgia county complaints, hospital locations, a selected hospital's filed assistance policy, and posted prices">
+  </figure>
+  <article class="layer" id="packet" aria-label="Evidence summary for Maya's case"></article>
+  <a class="layer" id="demo-link" href="http://127.0.0.1:3000/?state=GA" target="_blank" rel="noopener noreferrer">Open the app ↗</a>
+  <div class="layer" id="facts"></div>
+  <div class="layer" id="finding"></div>
+  <div class="layer" id="checks"></div>
+  <div class="layer" id="tallies"></div>
+  <div class="layer" id="failure"></div>
+  <div class="layer" id="layout-tallies"></div>
+  <div class="layer" id="atlas-side"></div>
+  <article class="layer" id="hosp-card" aria-label="A hospital's filed financial-assistance policy"></article>
+  <div class="layer" id="chat" aria-label="Recorded exchange with the app's guide"></div>
+  <div class="layer" id="atlas-tallies"></div>
+  <p id="source"></p>
+  <footer>
+    <div class="progress" id="progress"></div>
+    <div class="controls">
+      <button type="button" id="prev" aria-label="Previous beat">←</button>
+      <button type="button" id="next" aria-label="Next beat">→</button>
+      <button type="button" id="replay" aria-label="Replay this beat">R</button>
+      <button type="button" id="rate" aria-label="Playback speed">1×</button>
+      <button type="button" id="notes-btn" aria-label="Speaker notes" aria-expanded="false">N</button>
+    </div>
+  </footer>
+  <p class="sr-only" id="live" aria-live="polite"></p>
+</main>
+<aside id="notes" hidden><h2 id="notes-title"></h2><p id="notes-text"></p><p class="timing" id="notes-timing"></p></aside>
+
+<script id="deck-data" type="application/json">/*DATA*/null</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("deck-data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const seg = (t, a, b) => clamp01((t - a) / (b - a));
+  const int = (n) => Math.round(n).toLocaleString("en-US");
+  const cents = (v) => Number(v.replace(/[$,]/g, "")) * 100;
+  const usd = (c, exact) => {
+    const v = c / 100;
+    return (c < 0 ? "−" : "") + "$" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: exact || c % 100 ? 2 : 0, maximumFractionDigits: 2 });
+  };
+  const dateText = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const svg = (tag, attrs, text) => {
+    const a = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(" ");
+    return text == null ? `<${tag} ${a}/>` : `<${tag} ${a}>${text}</${tag}>`;
+  };
+  const show = (el, a) => { el.style.opacity = a; el.style.visibility = a > 0.01 ? "visible" : "hidden"; };
+  const F = D.facts;
+  const fv = (kind, key) => F[kind][key].value;
+
+  // ---------- documents ----------
+  const ORDER = ["eob", "bill", "receipt", "collection"];
+  const TAGS = { eob: "Insurance explanation", bill: "Provider bill", receipt: "Payment receipt", collection: "Collection notice" };
+  const meta = (kind) => `<div class="meta"><div><span>Patient</span>${fv(kind, "patient")}</div><div class="acct"><span>Account</span>${fv(kind, "account")}</div></div>`;
+  const head = (issuer, kind, iso) => `<div class="doc-head"><div><p class="issuer">${issuer}</p><p class="kind">${kind}</p></div><p class="date">${dateText(iso)}</p></div>`;
+  const BILL_ROWS = [["Provider charges", fv("bill", "charges"), 1], ["Contractual adjustment", fv("bill", "adjustments"), -1], ["Insurance payment", fv("bill", "insurer_paid"), -1]];
+  const DOC_HTML = {
+    eob: head("Your health plan", "Explanation of benefits", fv("eob", "statement_date")) + meta("eob") +
+      `<table class="rows"><tr><td>Provider charges</td><td>${usd(cents(fv("eob", "charges")), 1)}</td></tr><tr><td>Allowed amount</td><td>${usd(cents(fv("eob", "allowed")), 1)}</td></tr><tr><td>Plan paid</td><td>${usd(cents(fv("eob", "insurer_paid")), 1)}</td></tr></table>` +
+      `<div class="band"><span>Your share</span><strong>${usd(cents(fv("eob", "patient_responsibility")))}</strong></div><p class="note-line">This is not a bill, and not proof of payment.</p>`,
+    bill: head(fv("bill", "provider"), "Patient statement", fv("bill", "statement_date")) + meta("bill") +
+      `<table class="rows">${BILL_ROWS.map(([l, v, s], i) => `<tr class="r${i}"><td>${l}</td><td>${s < 0 ? "− " : ""}${usd(cents(v), 1)}</td></tr>`).join("")}</table>` +
+      `<div class="band"><span>Balance due</span><strong id="bill-band"></strong></div><p class="note-line">One visit · ${dateText(fv("bill", "service_date"))}</p>`,
+    receipt: head(fv("receipt", "provider"), "Payment receipt", fv("receipt", "payment_date")) +
+      `<p class="receipt-amount">${usd(cents(fv("receipt", "payment_amount")), 1)}</p><p class="stamp" id="stamp"><i>✓</i> Payment ${fv("receipt", "payment_status").toLowerCase()}</p>` + meta("receipt") +
+      `<p class="ref">Payment ${fv("receipt", "payment_reference")}<br>Service date ${fv("receipt", "service_date")}</p><div class="void" id="void">Removed</div>`,
+    collection: head(fv("collection", "collector"), "Collection notice · excerpt", fv("collection", "statement_date")) +
+      `<p class="notice-heading">Outstanding balance</p>` + meta("collection") +
+      `<p class="note-line">Provider ${fv("collection", "provider")} · service ${fv("collection", "service_date")}</p>` +
+      `<div class="band"><span>Amount requested</span><strong>${usd(cents(fv("collection", "balance")))}</strong></div><p class="note-line"></p>`,
+  };
+  const docEls = {};
+  for (const kind of ORDER) {
+    const el = document.createElement("article");
+    el.className = "doc";
+    el.dataset.kind = kind;
+    el.innerHTML = DOC_HTML[kind] + `<div class="doc-tag">${TAGS[kind]}</div>`;
+    $("docs").append(el);
+    docEls[kind] = el;
+  }
+
+  // Poses: story stack, timeline lanes, gathered into the packet, 2×2 method grid.
+  const BASE_ROT = { eob: 0, bill: 2, receipt: -3, collection: 3 };
+  function poseFor(kind, i, layout, depth) {
+    if (layout === 0) return { x: 980 - 44 * depth, y: 150 - 4 * depth, s: 1 - 0.05 * depth, r: BASE_ROT[kind] - 3 * depth };
+    if (layout === 1) return { x: 96 + i * 352, y: 250, s: 0.72, r: 0 };
+    if (layout === 2) return { x: 1070 + i * 8, y: 290 + i * 8, s: 0.22, r: 0 };
+    return { x: 96 + (i % 2) * 176, y: 250 + Math.floor(i / 2) * 190, s: 0.37, r: 0 };
+  }
+
+  // ---------- beats ----------
+  const DEFAULTS = {
+    docsA: 0, lay: 0, eobIn: 0, billIn: 0, rcptIn: 0, noticeIn: 0, billT: 0, stampT: 0,
+    tlA: 0, tlDay: 0, gapA: 0, linkT: 0,
+    drillA: 0, fill: 0, zoom: 0, cmpA: 0,
+    packetA: 0, demoA: 0, mapA: 0, mapT: 0,
+    tableA: 0, tableT: 0, tableMode: 0, wfA: 0, wfT: 0, rcpt: 1, findA: 0, findMode: 0,
+    heatA: 0, heatT: 0, checksA: 0, checkT: 0,
+    benchA: 0, benchT: 0, benchDim: 0, talliesA: 0, failA: 0, failT: 0, layA: 0, layT: 0, layTalA: 0,
+    mapA: 0, mapT: 0, adjT: 0, sideA: 0, scatA: 0, scatT: 0, gaZoom: 0, hospA: 0, cardA: 0,
+    chatA: 0, chatT: 0, aTallyA: 0,
+  };
+  const LY = D.layouts;
+  const lyRow = (key) => LY.rows.find((r) => r.key === key);
+  const lyNow = (key) => lyRow(key).now;
+  const AT = D.atlas;
+  const AC = AT.counts;
+  const GA = AT.states.find((s) => s.abbr === "GA");
+  const gaRatio = GA.rate / AT.national;
+  const dh = AT.demoHospital;
+  const atlasSrc = "CFPB Consumer Complaint Database (Debt collection • Medical debt) and U.S. Census ACS 2020–2024 5-year estimates, built by the app’s public-data pipeline.";
+  const DISCRETE = new Set(["tableMode", "findMode"]);
+  const W = D.withReceipt, WO = D.withoutReceipt;
+  const paidCount = D.drill[1].segs.find((s) => s.label === D.drill[1].hi).count;
+  const notOwed = D.drill[0].segs.find((s) => s.label === D.drill[0].hi).count;
+  const explained = D.drill[2].segs.find((s) => s.label === D.drill[2].hi).count;
+  const monetary = D.drill[2].segs.find((s) => s.label === "Closed with monetary relief").count;
+  const allExplained = D.allResponses.responses.find((s) => s.label === "Closed with explanation").count;
+  const pct = (a, b) => Math.round((100 * a) / b);
+  const flagged = D.bench.families.filter((f) => f.flags).reduce((n, f) => n + f.bundles, 0);
+  const API = "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&date_received_min=2025-01-01&date_received_max=2025-12-31&product=Debt+collection%E2%80%A2Medical+debt";
+  const src = (text) => `${text} Source: <a href="${API}" target="_blank" rel="noopener noreferrer">CFPB Consumer Complaint Database</a>, retrieved ${D.retrieved}.`;
+  const fictional = "Maya, her providers, and every document are fictional.";
+
+  const BEATS = [
+    {
+      scene: 0, xl: true, cap: "side", eyebrow: ["Meet Maya Ellis", "July 15, 2026"], headline: "A doctor’s visit.<br>A <em>$150</em> bill.",
+      caption: "She’s a recent graduate. Insurance covered part of the visit. The bill does the arithmetic: charges, minus the contractual adjustment, minus what insurance paid.",
+      source: fictional, timing: "About 15 seconds",
+      notes: "Meet Maya, a recent graduate. She goes to the doctor. Watch the bill: $1,200 in charges, minus a $400 contractual adjustment, minus $650 from insurance. Her share is $150. This is a fictional case using the same facts as our app demo.",
+      to: { docsA: 1, lay: 0, billIn: 1, tlA: 1 }, dur: 900,
+      clocks: [{ k: "billT", from: 0, to: 1, dur: 2600, delay: 700 }, { k: "tlDay", from: 0, to: 14, dur: 1600, delay: 400 }],
+    },
+    {
+      scene: 0, xl: true, cap: "side", eyebrow: ["She pays", "July 20, 2026"], headline: "She pays.<br>And saves the receipt.",
+      caption: "Five days later: $150, paid to the same provider, for the same account. As far as Maya knows, she’s done.",
+      source: fictional, timing: "About 12 seconds",
+      notes: "Five days later, Maya pays the full $150. Her provider gives her a completed payment receipt for the same account. She saves it and moves on. Pause here before advancing.",
+      to: { rcptIn: 1 }, dur: 900,
+      clocks: [{ k: "stampT", from: 0, to: 1, dur: 500, delay: 900 }, { k: "tlDay", from: 14, to: 19, dur: 900, delay: 300 }],
+    },
+    {
+      scene: 0, xl: true, cap: "side", eyebrow: ["Then", "August 15, 2026"], headline: "A collector asks for the <em>same $150.</em>",
+      caption: "Same provider. Same account. Same visit. <span class=\"c\">26 days after she paid.</span>",
+      source: fictional, timing: "About 15 seconds",
+      notes: "Twenty-six days later, a collection notice arrives. Same provider, same account. It asks for the same $150 she already paid. The records disagree. We have not established why: the current account ledger or a later reversal could change the explanation.",
+      to: { noticeIn: 1 }, dur: 1000,
+      clocks: [{ k: "tlDay", from: 19, to: 45, dur: 1600, delay: 500 }, { k: "gapA", from: 0, to: 1, dur: 600, delay: 2000 }],
+    },
+    {
+      scene: 0, cap: "bottom", eyebrow: ["Four records", "Three organizations"], headline: "“I paid this. <em>How do I prove it?</em>”",
+      caption: "Four documents, one account: <strong>" + fv("bill", "account") + "</strong>. The insurance explanation says what she owed. Only the receipt shows she paid. Linking the account, provider, and visit is what connects that payment to the notice.",
+      source: fictional + " An insurance explanation describes responsibility; it is not proof of payment.", timing: "About 18 seconds",
+      notes: "Now Maya has to reconstruct what happened across four documents from three organizations. The insurance explanation tells her share. The bill tells what the provider charged. Only the receipt supports that she paid. Matching the account, provider, and visit is what connects that payment to the notice.",
+      to: { lay: 1, eobIn: 1, gapA: 0 }, dur: 1300,
+      clocks: [{ k: "linkT", from: 0, to: 1, dur: 1800, delay: 1300 }],
+    },
+    {
+      scene: 1, cap: "bottom", eyebrow: ["CFPB complaints", "2025"], headline: "Medical-debt collection complaints",
+      caption: `The CFPB received <strong>${int(D.drill[0].total)}</strong> medical-debt collection complaints in 2025. The largest issue: <span class="c">attempts to collect debt not owed</span>, ${int(notOwed)} complaints.`,
+      source: src("Consumer-selected categories: complaint records, not verified billing errors or unique people."), timing: "About 15 seconds",
+      notes: `Maya is fictional, but her problem shows up in real data. In 2025 the CFPB received ${int(D.drill[0].total)} medical-debt collection complaints. The biggest category, ${int(notOwed)} of them, is attempts to collect a debt the person says they don't owe.`,
+      to: { docsA: 0, tlA: 0, linkT: 0, drillA: 1, zoom: 0 }, dur: 800,
+      clocks: [{ k: "fill", from: 0, to: 1, dur: 1800, delay: 400 }],
+    },
+    {
+      scene: 1, cap: "bottom", eyebrow: ["Inside “debt not owed”", "2025"], headline: "“Debt was paid”",
+      caption: `Zoom into those ${int(notOwed)}: <span class="c">${int(paidCount)} complaints</span> say the debt was already paid. A reported pattern that motivates checking payment evidence.`,
+      source: src("Consumer-selected sub-issue; counts complaint records, not unique people or verified errors."), timing: "About 15 seconds",
+      notes: `Inside that category, ${int(paidCount)} complaints were categorized "Debt was paid." Those are complaint records, not verified errors or unique people. The CFPB supplies complaints, not the bills and receipts behind them.`,
+      to: { zoom: 1 }, dur: 1800,
+    },
+    {
+      scene: 1, cap: "bottom", eyebrow: ["How companies responded", "“Debt was paid” complaints"], headline: "Closed with an explanation",
+      caption: `<span class="c">${pct(explained, paidCount)}%</span> were closed with a company explanation. Only <strong>${monetary}</strong> of ${int(paidCount)} ended with monetary relief. Across all ${int(D.allResponses.total)} medical-debt complaints, ${pct(allExplained, D.allResponses.total)}% were closed with explanation. These categories do not establish whether a balance was corrected.`,
+      source: src(D.responseCaveat), timing: "About 20 seconds",
+      notes: `What happened to those complaints? ${pct(explained, paidCount)} percent were closed with an explanation from the company. ${monetary} out of ${int(paidCount)} ended with monetary relief. Across all medical-debt complaints, the explanation share is similar. These are company-reported categories; they do not tell us whether a balance was corrected or whether a complaint was unfounded. Our prototype helps organize the underlying records.`,
+      to: { zoom: 2 }, dur: 1800,
+      clocks: [{ k: "cmpA", from: 0, to: 1, dur: 700, delay: 2200 }],
+    },
+    {
+      scene: 2, cap: "side map-caption", community: true, eyebrow: ["For advocates", "Community map"], headline: "Where people report <em>medical debt</em>",
+      caption: "The map starts with reported CFPB collection complaints. Census population turns counts into comparable rates; uninsured and poverty estimates add context. An advocate can select a state for local detail.",
+      source: `Public data: <a href="https://www.consumerfinance.gov/data-research/consumer-complaints/" target="_blank" rel="noopener noreferrer">CFPB complaints</a> (${D.community.rateYear}) and <a href="https://www.census.gov/programs-surveys/acs" target="_blank" rel="noopener noreferrer">Census ACS</a> (2020–2024). Complaints are consumer reports, not verified billing errors.`, timing: "About 20 seconds",
+      notes: "The app opens on this community map. State colors show reported medical-debt collection complaints per 100,000 residents in 2025. The circles show uninsured populations. We also use Census uninsured and poverty estimates to compare observed complaint counts with expected counts. Complaints reflect reporting and awareness, so the map helps advocates choose where to look more closely; it does not measure verified harm.",
+      to: { drillA: 0, cmpA: 0, mapA: 1, mapT: 0 }, dur: 1100,
+    },
+    {
+      scene: 2, cap: "side map-caption", community: true, eyebrow: ["Georgia", "Local context"], headline: "From the map to <em>local help</em>",
+      caption: `Georgia had <strong>${int(D.community.georgiaComplaints)}</strong> reported complaints in ${D.community.rateYear}, or <strong>${Number(D.community.georgiaRate).toFixed(1)}</strong> per 100k. Its county view adds CMS hospitals, linked IRS assistance policies, and sample posted prices.<br><span class="map-action">Open evidence navigator →</span>`,
+      source: `<a href="https://www.consumerfinance.gov/data-research/consumer-complaints/" target="_blank" rel="noopener noreferrer">CFPB</a> · <a href="https://data.cms.gov/provider-data/dataset/xubh-q36u" target="_blank" rel="noopener noreferrer">CMS hospitals</a> · <a href="https://www.irs.gov/charities-non-profits/form-990-series-downloads" target="_blank" rel="noopener noreferrer">IRS Schedule H</a> · <a href="https://www.cms.gov/priorities/key-initiatives/hospital-price-transparency/hospitals" target="_blank" rel="noopener noreferrer">posted prices</a>. Hospitals are local context; filed policies are self-reported and posted prices are not a patient bill.`, timing: "About 25 seconds",
+      notes: "Select Georgia to see complaints placed into counties by ZIP code and nearby CMS hospitals. The screenshot shows Hamilton Medical Center's linked Schedule H policy and a sample of posted prices. The hospital is context, not the subject of those complaints; most complaints name a collector. Schedule H is a filed policy, not a check of practice, and posted prices do not tell us what any patient owes. An advocate can open the evidence navigator with a selected state and hospital. Maya's case coming next is fictional and separate from this real Georgia hospital example.",
+      to: { mapT: 1 }, dur: 1500,
+    },
+    {
+      scene: 3, cap: "side", eyebrow: ["So we built", "Prototype"], headline: "Not My Debt<em>.</em>",
+      caption: "Put the records together. Know what to ask. Prepare a response Maya can review.",
+      source: "Illustrative summary of the fictional case; the live app is next.", timing: "About 12 seconds",
+      notes: "We built Not My Debt to connect those records and prepare a factual response. It flags a possible uncredited payment, shows the evidence, and asks for an updated ledger. It does not declare the debt canceled or send anything automatically.",
+      to: { mapA: 0, docsA: 1, lay: 2, packetA: 1 }, dur: 1500,
+    },
+    {
+      scene: 3, xl: true, cap: "side", eyebrow: ["Live demo", "Maya Ellis / " + fv("bill", "account")], headline: "Let’s follow Maya’s <em>$150.</em>",
+      caption: "Start on Community map, then open Maya’s fictional example case.",
+      source: "Start the app beforehand (npm run build && npm start). The link opens Georgia on the community map.", timing: "About 8 seconds, then about 2 minutes in the app",
+      notes: "Open the app on Community map. Show Georgia briefly, then choose Upload a case and Open an example to load Maya's fictional case. Maya and Maple Grove Medical are separate from the real Georgia hospital example. Open one document; Connect the records; click the Receipt bar; switch Include payment receipt off and on; Prepare a response; tick review; download the packet. Then return to this tab and press → for How it works.",
+      to: { packetA: 0, docsA: 0, demoA: 1 }, dur: 700,
+    },
+    {
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "1 · Extract"], headline: "Every fact keeps its <em>source.</em>",
+      caption: "The engine reads labeled fields into typed facts, each with the exact line it came from. Nothing counts until a person confirms it.",
+      source: "Values and quotes are the fixture facts the engine uses for Maya’s case.", timing: "About 15 seconds",
+      notes: "After the demo: how it works, in four steps. First, extract. Each amount, date, and identifier becomes a typed fact with the exact passage it came from, and nothing is used until a person confirms it.",
+      to: { demoA: 0, docsA: 1, lay: 3, tableA: 1, tableMode: 0 }, dur: 1300,
+      clocks: [{ k: "tableT", from: 0, to: 1, dur: 2600, delay: 900 }],
+    },
+    {
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "2 · Match"], headline: "Records link only on <em>identity.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "2 · Match"], headline: "Records link only on <em>identity.</em>",
+      caption: `Provider, patient, account, and visit date must agree. A matching amount is never enough: a receipt for account <span class="c">${D.wrongAccount}</span> is not applied, and the balance is withheld.`,
+      source: "The fifth row is the engine’s “receipt belongs to another account” case.", timing: "About 15 seconds",
+      notes: `Second, match. Records are linked on provider, patient, account, and visit date. The same dollar amount is never enough. Here is a receipt for account ${D.wrongAccount}: same amount, same provider, but it is not applied, and the engine withholds a balance instead of guessing.`,
+      to: { tableMode: 1 }, dur: 600,
+      clocks: [{ k: "tableT", from: 0, to: 1, dur: 3000, delay: 300 }],
+    },
+    {
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "3 · Reconcile"], headline: "Follow the money, in <em>whole cents.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "3 · Reconcile"], headline: "Follow the money, in <em>whole cents.</em>",
+      caption: `The bill’s own arithmetic reaches ${usd(W.ledger.find((r) => r.label === "Provider statement balance").cents)}. The matched receipt brings it to <strong>${usd(W.supported)}</strong>. The notice still asks for <span class="c">${usd(W.collection)}</span>: a possible uncredited payment.`,
+      source: "Bars are the engine’s ledger for Maya’s case. Integer-cent arithmetic; the EOB is never subtracted as a payment.", timing: "About 20 seconds",
+      notes: "Third, reconcile. This is the engine's actual ledger for Maya. Charges, minus the adjustment, minus the insurance payment gives the bill's $150. The matched receipt brings it to zero. The notice still asks for $150. That gap is the finding: a payment that may not have been credited.",
+      to: { tableA: 0, wfA: 1, findA: 1, findMode: 0, rcpt: 1 }, dur: 900,
+      clocks: [{ k: "wfT", from: 0, to: 1, dur: 3400, delay: 500 }],
+    },
+    {
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "4 · Withdraw"], headline: "Remove the receipt, <em>lose the finding.</em>",
+      scene: 4, cap: "bottom", eyebrow: ["How it works", "4 · Withdraw"], headline: "Remove the receipt, <em>lose the finding.</em>",
+      caption: `Without payment evidence the records support <strong>${usd(WO.supported)}</strong>, the same as the notice. The app doesn’t guess: it says payment evidence is missing. An EOB is not proof of payment.`,
+      source: "Both states are engine output for the same case, with and without the receipt.", timing: "About 15 seconds",
+      notes: "Fourth, the finding depends on the evidence. Take the receipt away and the supported balance goes back to $150, matching the notice. The finding is withdrawn and the app asks for payment evidence. It never treats the insurance explanation as proof that Maya paid.",
+      to: { rcpt: 0, findMode: 1 }, dur: 1600,
+    },
+    {
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", D.archive.period], headline: "What people describe, and <em>which documents</em>",
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", D.archive.period], headline: "What people describe, and <em>which documents</em>",
+      caption: `Keyword rules analyzed ${int(D.archive.unique)} unique medical-debt complaint narratives. Each cell counts narratives matching both a complaint theme and a document type. Bills and verification requests dominate.`,
+      source: "Transparent keyword rules; categories overlap and are not validated classifiers. Narratives from the CFPB historical archive.", timing: "About 12 seconds",
+      notes: `We read the complaint narratives to decide what the engine should check. ${int(D.archive.unique)} unique narratives from early 2025. The heatmap counts narratives that match both a theme and a document type. Bills and verification requests come up most.`,
+      to: { wfA: 0, findA: 0, docsA: 0, rcpt: 1, heatA: 1 }, dur: 900,
+      clocks: [{ k: "heatT", from: 0, to: 1, dur: 2200, delay: 500 }],
+    },
+    {
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", "What they shaped"], headline: "The complaints decided <em>what we check.</em>",
+      scene: 5, cap: "bottom", eyebrow: ["Complaint narratives", "What they shaped"], headline: "The complaints decided <em>what we check.</em>",
+      caption: "Each recurring theme became an evidence check you saw in the demo.",
+      source: "Counts are narratives matching each rule, among " + int(D.archive.unique) + " unique narratives. Rules overlap.", timing: "About 18 seconds",
+      notes: "Each theme became a check. People mention bills, so the statement is rebuilt line by line. They ask for proof, so every amount opens its source. They question whose debt it is, so identity must match exactly. They mention receipts, so only a completed receipt counts as payment.",
+      to: { checksA: 1 }, dur: 600,
+      clocks: [{ k: "checkT", from: 0, to: 1, dur: 4400, delay: 300 }],
+    },
+    {
+      scene: 6, cap: "bottom", eyebrow: ["Synthetic benchmark", `${D.bench.families.length} scenario families`], headline: "Tested on the ways it could <em>go wrong.</em>",
+      scene: 6, cap: "bottom", eyebrow: ["Synthetic benchmark", `${D.bench.families.length} scenario families`], headline: "Tested on the ways it could <em>go wrong.</em>",
+      caption: `${D.bench.bundles} generated cases, each run through the parser and the engine. <span class="c">Coral</span> cases should flag a payment; dashed cases should withhold a balance; teal cases should compute one.`,
+      source: "Seeded synthetic documents in the parser’s labeled-text format; expected outcomes follow the product rules. Not an accuracy estimate for real paperwork; no real-user validation yet.", timing: "About 22 seconds",
+      notes: `We generated ${D.bench.bundles} cases across ${D.bench.families.length} families: partial payments, duplicate receipts, wrong and masked accounts, pending and reversed payments, payments after the notice, bills that don't add up. Watch the tallies: all ${D.bench.passed} reach the expected outcome, zero false payment flags, and every ambiguous case withholds a balance. This is a synthetic regression check, not real-world accuracy.`,
+      to: { heatA: 0, checksA: 0, benchA: 1, talliesA: 1, benchDim: 0 }, dur: 900,
+      clocks: [{ k: "benchT", from: 0, to: 1, dur: 4200, delay: 600 }],
+    },
+    {
+      scene: 6, cap: "bottom", eyebrow: ["Where it breaks", "Unrecognized label"], headline: "When it can’t read, it <em>doesn’t guess.</em>",
+      caption: "The local parser only reads labels it knows. A bill that says “Billed By” loses its provider, so the bill can’t be linked to the notice, and the balance is withheld. A deliberately broken rule (treating “Pending” as paid) fails the benchmark.",
+      source: "The parser output shown is the real local parser on this text.", timing: "About 18 seconds",
+      notes: "Where it breaks. The local parser only reads labels it knows. On a bill that says Billed By instead of Provider, the provider is missing, so the engine can't link the bill to the notice. It withholds the balance rather than guessing. And when we deliberately broke a rule, treating Pending as paid, the benchmark caught it.",
+      to: { layA: 0, layTalA: 0, benchA: 1, talliesA: 0, failA: 1, benchDim: 1 }, dur: 800,
+      clocks: [{ k: "failT", from: 0, to: 1, dur: 3600, delay: 500 }],
+    },
+    {
+      scene: 7, xl: true, cap: "side", eyebrow: ["Back to Maya", "Next"], headline: "Four documents.<br>One clear <em>question.</em>",
+      caption: "Maya can ask her provider how the payment was applied, with the records attached. Nothing is sent or filed for her.<br><br><strong>Next:</strong> pilot with patient advocates and financial counselors, add OCR for scanned bills, and measure preparation time with real people.",
+      source: fictional + " The packet does not establish legal liability.", timing: "About 20 seconds",
+      notes: "Back to Maya. She started with four documents from three organizations. She now has one clear question for her provider, backed by the records that support it, and advocates can see where people like her need help. Next, we want to pilot the map and navigator with legal-aid groups and financial counselors, verify the hospital filings, test the reader on real bills people consent to share, and measure how much preparation time this saves real people. Thank you.",
+      to: { benchA: 0, failA: 0, benchDim: 0, aTallyA: 0, docsA: 1, lay: 2, packetA: 1 }, dur: 1500,
+    },
+  ];
+  const SCENES = ["Maya", "The data", "Community map", "Not My Debt", "How it works", "What shaped it", "Results", "Close"];
+
+  function stateAt(i) {
+    const p = { ...DEFAULTS };
+    for (let j = 0; j <= i; j++) {
+      Object.assign(p, BEATS[j].to);
+      for (const c of BEATS[j].clocks || []) p[c.k] = c.to;
+    }
+    return p;
+  }
+  const P = { ...DEFAULTS };
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let beat = 0, anim = null, rate = 1, dirty = true;
+
+  function go(i, animate) {
+    i = Math.max(0, Math.min(BEATS.length - 1, Number.isFinite(i) ? Math.floor(i) : 0));
+    dirty = true;
+    const target = stateAt(i);
+    if (!animate || reduced) {
+      Object.assign(P, target);
+      anim = null;
+    } else {
+      const b = BEATS[i];
+      for (const k of DISCRETE) P[k] = target[k];
+      for (const c of b.clocks || []) P[c.k] = c.from;
+      anim = { from: { ...P }, to: target, dur: b.dur || 1000, clocks: b.clocks || [], t: 0 };
+    }
+    beat = i;
+    renderText();
+  }
+  function next() {
+    if (anim) { Object.assign(P, anim.to); anim = null; dirty = true; return; }
+    if (beat < BEATS.length - 1) go(beat + 1, true);
+  }
+  function prev() { go(beat - 1, false); }
+
+  // ---------- text, progress, notes ----------
+  const progress = $("progress");
+  SCENES.forEach((name, s) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "scene";
+    el.setAttribute("aria-label", `Jump to ${name}`);
+    el.innerHTML = `<span class="label">${s + 1} · ${name}</span><span class="ticks">${BEATS.map((b, i) => (b.scene === s ? `<i class="tick" data-i="${i}"></i>` : "")).join("")}</span>`;
+    el.addEventListener("click", (e) => { e.stopPropagation(); go(BEATS.findIndex((b) => b.scene === s), true); });
+    progress.append(el);
+  });
+  const strip = (html) => html.replace(/<[^>]+>/g, "");
+  function renderText() {
+    const b = BEATS[beat];
+    $("eyebrow").innerHTML = `<b>${b.eyebrow[0]}</b><span>${b.eyebrow[1]}</span>`;
+    $("headline").innerHTML = b.headline;
+    $("head").classList.toggle("xl", !!b.xl);
+    $("head").classList.toggle("community", !!b.community);
+    const cap = $("caption");
+    cap.innerHTML = b.caption;
+    cap.className = b.cap;
+    $("source").innerHTML = b.source || "";
+    for (const el of [$("head"), cap, $("source")]) { el.classList.remove("fade-in"); void el.offsetWidth; el.classList.add("fade-in"); }
+    document.querySelectorAll(".tick").forEach((t) => {
+      const i = +t.dataset.i;
+      t.className = "tick" + (i < beat ? " done" : i === beat ? " now" : "");
+    });
+    document.querySelectorAll(".scene").forEach((el, s) => el.classList.toggle("on", s === b.scene));
+    $("notes-title").textContent = `Beat ${beat + 1} of ${BEATS.length} · ${SCENES[b.scene]}`;
+    $("notes-text").textContent = b.notes;
+    $("notes-timing").textContent = b.timing;
+    $("live").textContent = `${strip(b.headline)}. ${strip(b.caption)}`;
+    try { history.replaceState(null, "", `#b=${beat}`); } catch (e) { /* file:// or sandboxed frames may refuse */ }
+  }
+
+  // ---------- live rendering ----------
+  const stageEl = $("stage");
+  function designPoint(el) {
+    const s = stageEl.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const k = 1600 / s.width;
+    return { x: (r.left + r.width / 2 - s.left) * k, y: (r.top + r.height / 2 - s.top) * k, bottom: (r.bottom - s.top) * k };
+  }
+
+  function updateDocs() {
+    const ins = { eob: P.eobIn, bill: P.billIn, receipt: P.rcptIn, collection: P.noticeIn };
+    const later = { eob: 0, bill: P.rcptIn + P.noticeIn, receipt: P.noticeIn, collection: 0 };
+    const a = Math.floor(Math.min(P.lay, 2.999)), t = P.lay - a;
+    const gatherW = clamp01(1 - Math.abs(P.lay - 2));
+    ORDER.forEach((kind, i) => {
+      const el = docEls[kind];
+      const p0 = poseFor(kind, i, a, later[kind]), p1 = poseFor(kind, i, a + 1, later[kind]);
+      const k = ease(t);
+      const x = lerp(p0.x, p1.x, k), y = lerp(p0.y, p1.y, k), s = lerp(p0.s, p1.s, k), r = lerp(p0.r, p1.r, k);
+      const arrive = P.lay < 1 ? ins[kind] : Math.max(ins[kind], clamp01(P.lay));
+      const lift = (1 - arrive) * 90;
+      let alpha = P.docsA * arrive * (1 - 0.94 * gatherW);
+      if (kind === "receipt") alpha *= 0.4 + 0.6 * P.rcpt;
+      el.style.transform = `translate(${x / 16}cqw, ${(y + lift) / 16}cqw) rotate(${r}deg) scale(${s})`;
+      el.style.opacity = alpha;
+      el.style.visibility = alpha > 0.01 ? "visible" : "hidden";
+      el.style.zIndex = kind === "eob" ? 0 : i;
+      const tag = el.querySelector(".doc-tag");
+      tag.style.opacity = clamp01(P.lay - 2);
+      tag.style.fontSize = `${0.85 / s}cqw`;
+    });
+    // Bill arithmetic: each row lands, and the band counts down to the balance.
+    const bill = docEls.bill;
+    let running = cents(BILL_ROWS[0][1]);
+    BILL_ROWS.forEach(([, v, sign], i) => {
+      const u = seg(P.billT, i / 3, (i + 1) / 3);
+      bill.querySelector(`.r${i}`).style.opacity = 0.15 + 0.85 * clamp01(u * 3);
+      if (i > 0) running += sign * cents(v) * ease(u);
+    });
+    $("bill-band").textContent = usd(Math.round(running / 100) * 100);
+    $("stamp").style.opacity = P.stampT;
+    $("stamp").style.transform = `scale(${1.2 - 0.2 * P.stampT})`;
+    show($("void"), 1 - P.rcpt);
+  }
+
+  const DAY0 = Date.UTC(2026, 6, 1);
+  const dayOf = (iso) => (Date.parse(iso + "T00:00:00Z") - DAY0) / 86400000;
+  const tlX = (d) => 96 + (d / 50) * 1408;
+  const EVENTS = [
+    { d: 0, label: "Visit", up: true },
+    { d: dayOf(fv("eob", "statement_date")), label: "EOB", up: false, kind: "eob" },
+    { d: dayOf(fv("bill", "statement_date")), label: "Bill", up: true, kind: "bill" },
+    { d: dayOf(fv("receipt", "payment_date")), label: "Paid", up: false, kind: "receipt" },
+    { d: dayOf(fv("collection", "statement_date")), label: "Notice", up: true, kind: "collection" },
+  ];
+  function drawTimeline() {
+    const g = $("g-timeline");
+    if (P.tlA < 0.01) { g.innerHTML = ""; return; }
+    const Y = 640;
+    let h = svg("line", { x1: 96, y1: Y, x2: 1504, y2: Y, stroke: "#d6d9ca", "stroke-width": 2 });
+    h += svg("line", { x1: 96, y1: Y, x2: tlX(P.tlDay), y2: Y, stroke: "#173c36", "stroke-width": 3 });
+    for (const e of EVENTS) {
+      const on = clamp01((P.tlDay - e.d) * 1.5 + 1);
+      if (on <= 0) continue;
+      const x = tlX(e.d), color = e.kind === "collection" ? "#c95b41" : "#173c36";
+      h += `<g opacity="${on}">` + svg("circle", { cx: x, cy: Y, r: 6, fill: color });
+      const dt = new Date(DAY0 + e.d * 86400000).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+      h += svg("text", { x, y: e.up ? Y - 16 : Y + 28, "text-anchor": "middle", "font-size": 15, "font-weight": 650, fill: color }, e.label);
+      h += svg("text", { x, y: e.up ? Y - 34 : Y + 46, "text-anchor": "middle", "font-size": 13, fill: "#5f6f65" }, dt) + "</g>";
+    }
+    if (P.gapA > 0.01) {
+      const x1 = tlX(EVENTS[3].d), x2 = tlX(EVENTS[4].d), gy = Y + 62;
+      const xm = lerp(x1, x2, ease(P.gapA));
+      h += `<g opacity="${P.gapA}">` + svg("path", { d: `M${x1} ${gy - 8} V${gy} H${xm}${P.gapA > 0.99 ? ` V${gy - 8}` : ""}`, fill: "none", stroke: "#c95b41", "stroke-width": 2 });
+      h += svg("text", { x: (x1 + x2) / 2, y: gy + 22, "text-anchor": "middle", "font-size": 15, "font-weight": 650, fill: "#c95b41" }, `${Math.round(EVENTS[4].d - EVENTS[3].d)} days after she paid`) + "</g>";
+    }
+    // Leader lines from each lane card to its date.
+    const lanes = clamp01(P.lay) * clamp01(2 - P.lay);
+    if (lanes > 0.01) {
+      ORDER.forEach((kind) => {
+        const e = EVENTS.find((ev) => ev.kind === kind);
+        const p = designPoint(docEls[kind]);
+        h += svg("path", { d: `M${p.x} ${p.bottom + 6} L${tlX(e.d)} ${Y - 50}`, stroke: "#9aa79e", "stroke-width": 1.5, "stroke-dasharray": "4 5", fill: "none", opacity: lanes * P.eobIn });
+      });
+    }
+    g.setAttribute("opacity", P.tlA);
+    g.innerHTML = h;
+  }
+
+  function drawLinks() {
+    const g = $("g-links");
+    const accts = ORDER.map((k) => docEls[k].querySelector(".acct"));
+    accts.forEach((el, i) => { el.style.background = P.linkT * 4 > i + 0.3 && P.docsA > 0.5 ? "#cfe4a6" : "transparent"; });
+    if (P.linkT < 0.01 || P.docsA < 0.5) { g.innerHTML = ""; return; }
+    const pts = accts.map(designPoint);
+    const n = P.linkT * (pts.length - 1);
+    let d = `M${pts[0].x} ${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) {
+      const u = clamp01(n - (i - 1));
+      if (u <= 0) break;
+      d += ` L${lerp(pts[i - 1].x, pts[i].x, u)} ${lerp(pts[i - 1].y, pts[i].y, u)}`;
+    }
+    g.innerHTML = svg("path", { d, stroke: "#2e7d70", "stroke-width": 3, fill: "none", "stroke-linecap": "round", opacity: 0.8 });
+  }
+
+  // Drill-down: each level's highlighted segment widens to fill the bar, then its parts appear.
+  const LEVEL_COLORS = [
+    (s, hi) => (s.label === hi ? "#c95b41" : "#b7c4bd"),
+    (s, hi) => (s.label === hi ? "#c95b41" : "#b7c4bd"),
+    (s) => ({ "Closed with explanation": "#c95b41", "Closed with non-monetary relief": "#2e7d70", "Untimely response": "#d9b8a6", "Closed with monetary relief": "#173c36" })[s.label] || "#b7c4bd",
+  ];
+  function spans(level) {
+    let acc = 0;
+    return level.segs.map((s) => { const a = acc / level.total; acc += s.count; return { ...s, a, b: acc / level.total }; });
+  }
+  function drawDrill() {
+    const g = $("g-drill"), counter = $("counter");
+    show(counter, P.drillA);
+    if (P.drillA < 0.01) { g.innerHTML = ""; return; }
+    const X0 = 96, WID = 1408, Y = 470, H = 64;
+    const L = Math.min(Math.floor(P.zoom), D.drill.length - 1), t = P.zoom - L;
+    const lvl = spans(D.drill[L]);
+    const hi = lvl.find((s) => s.label === D.drill[L].hi);
+    // Viewport inside this level's coordinates, narrowing onto the highlight as t → 1.
+    const hasNext = L + 1 < D.drill.length;
+    const v0 = hasNext ? lerp(0, hi.a, t) : 0, v1 = hasNext ? lerp(1, hi.b, t) : 1;
+    const map = (x) => X0 + ((x - v0) / (v1 - v0)) * WID;
+    let h = "";
+    const rects = [];
+    const childA = hasNext ? seg(t, 0.45, 1) : 0;
+    for (const s of lvl) {
+      const isHi = s === hi;
+      const op = isHi && hasNext ? 1 - childA : 1;
+      rects.push({ x1: map(s.a), x2: map(s.b), color: LEVEL_COLORS[L](s, D.drill[L].hi), op, s, lvl: L, isHi });
+    }
+    if (hasNext && childA > 0) {
+      for (const c of spans(D.drill[L + 1])) {
+        rects.push({ x1: map(hi.a + (hi.b - hi.a) * c.a), x2: map(hi.a + (hi.b - hi.a) * c.b), color: LEVEL_COLORS[L + 1](c, D.drill[L + 1].hi), op: childA, s: c, lvl: L + 1, isHi: c.label === D.drill[L + 1].hi });
+      }
+    }
+    for (const r of rects) h += svg("rect", { x: r.x1, y: Y, width: Math.max(0, r.x2 - r.x1 - 2), height: H, fill: r.color, opacity: r.op });
+    $("bar-clip-rect").setAttribute("width", WID * P.fill);
+    h = `<g clip-path="url(#bar-clip)">${h}</g>`;
+    // Labels for segments wide enough to read; the highlight is labelled above the bar.
+    const settled = t < 0.12 || t > 0.88 || !hasNext;
+    if (settled && P.fill > 0.95) {
+      const active = rects.filter((r) => r.op > 0.5);
+      for (const r of active) {
+        const w = Math.min(r.x2, X0 + WID) - Math.max(r.x1, X0);
+        const total = D.drill[r.lvl].total;
+        if (r.isHi) {
+          h += svg("text", { x: Math.max(r.x1, X0) + 2, y: Y - 14, "font-size": 17, "font-weight": 700, fill: "#c95b41" }, `${r.s.label} · ${int(r.s.count)}`);
+        } else if (w > 170) {
+          h += svg("text", { x: Math.max(r.x1, X0) + 2, y: Y + H + 22, "font-size": 14, fill: "#5f6f65" }, ({ "Closed with non-monetary relief": "Non-monetary relief", "Debt is not yours": "Not your debt" })[r.s.label] || r.s.label);
+          h += svg("text", { x: Math.max(r.x1, X0) + 2, y: Y + H + 40, "font-size": 14, "font-weight": 650, fill: "#173c36" }, `${int(r.s.count)} · ${pct(r.s.count, total)}%`);
+        }
+      }
+      if (L === 2) {
+        const m = active.find((r) => r.s.label === "Closed with monetary relief");
+        if (m) {
+          h += svg("path", { d: `M${m.x2 - 1} ${Y + H + 4} V${Y + H + 56} H${m.x2 - 120}`, stroke: "#173c36", fill: "none", "stroke-width": 1.5 });
+          h += svg("text", { x: m.x2 - 124, y: Y + H + 61, "text-anchor": "end", "font-size": 15, "font-weight": 700, fill: "#173c36" }, `${m.s.count} monetary relief`);
+        }
+      }
+    }
+    // Comparison: all medical-debt complaints, same colours.
+    if (P.cmpA > 0.01) {
+      const all = spans({ total: D.allResponses.total, segs: D.allResponses.responses });
+      const cy = 640;
+      h += `<g opacity="${P.cmpA}">` + svg("text", { x: X0, y: cy - 8, "font-size": 14, fill: "#5f6f65" }, `All ${int(D.allResponses.total)} medical-debt collection complaints`);
+      for (const s of all) h += svg("rect", { x: X0 + s.a * WID, y: cy, width: Math.max(0, (s.b - s.a) * WID - 2), height: 22, fill: LEVEL_COLORS[2](s) });
+      h += svg("text", { x: X0 + WID, y: cy - 8, "text-anchor": "end", "font-size": 14, "font-weight": 700, fill: "#c95b41" }, `${pct(allExplained, D.allResponses.total)}% closed with explanation`) + "</g>";
+    }
+    g.setAttribute("opacity", P.drillA);
+    g.innerHTML = h;
+    // Counter narrows with the zoom: all complaints → “debt was paid” → share explained.
+    const num = $("counter-num"), lbl = $("counter-lbl");
+    if (P.zoom <= 1) {
+      num.textContent = int(P.zoom > 0 ? lerp(D.drill[0].total, paidCount, ease(P.zoom)) : D.drill[0].total * P.fill);
+      lbl.innerHTML = P.zoom < 0.5 ? "medical-debt collection complaints to the CFPB · 2025" : "categorized <strong>“Debt was paid”</strong> · 2025";
+    } else {
+      num.textContent = `${Math.round(pct(explained, paidCount) * (P.zoom - 1))}%`;
+      lbl.innerHTML = `of the ${int(paidCount)} “Debt was paid” complaints were closed with an <strong>explanation</strong>`;
+    }
+  }
+
+  // Method table: extract (facts + quotes) or match (identity checks).
+  const AMOUNT_KEY = { eob: "patient_responsibility", bill: "balance", receipt: "payment_amount", collection: "balance" };
+  const DATE_KEY = { eob: "statement_date", bill: "statement_date", receipt: "payment_date", collection: "statement_date" };
+  const IDENT = ["provider", "patient", "account", "service_date"];
+  let tableBuilt = -1;
+  function buildTable(mode) {
+    tableBuilt = mode;
+    if (mode === 0) {
+      $("facts").innerHTML = `<table><thead><tr><th>Record</th><th>Account</th><th>Amount</th><th>Date</th><th>Source passage</th></tr></thead><tbody>${ORDER.map((k) =>
+        `<tr><td class="rec">${TAGS[k]}</td><td><span data-c>${fv(k, "account")}</span></td><td><span data-c>${usd(cents(fv(k, AMOUNT_KEY[k])), 1)}</span></td><td><span data-c>${fv(k, DATE_KEY[k])}</span></td><td class="quote"><span data-c>“${F[k][AMOUNT_KEY[k]].quote}”</span></td></tr>`).join("")}</tbody></table>`;
+    } else {
+      const rows = ORDER.map((k) => ({ name: TAGS[k], vals: IDENT.map((f) => fv(k, f)), wrong: false }));
+      rows.push({ name: "Another receipt", vals: IDENT.map((f) => (f === "account" ? D.wrongAccount : fv("receipt", f))), wrong: true });
+      $("facts").innerHTML = `<table><thead><tr><th>Record</th><th>Provider</th><th>Patient</th><th>Account</th><th>Visit date</th><th>Linked?</th></tr></thead><tbody>${rows.map((r) =>
+        `<tr${r.wrong ? ' class="extra"' : ""}><td class="rec">${r.name}</td>${r.vals.map((v, j) => `<td><span data-c data-ok="${v === fv("bill", IDENT[j])}">${v} <b></b></span></td>`).join("")}<td><span data-c data-result="${r.wrong ? "no" : "yes"}"></span></td></tr>`).join("")}</tbody></table>`;
+    }
+  }
+  function updateTable() {
+    show($("facts"), P.tableA);
+    if (P.tableA < 0.01) return;
+    if (tableBuilt !== P.tableMode) buildTable(P.tableMode);
+    const cells = [...$("facts").querySelectorAll("[data-c]")];
+    if (P.tableMode === 0) {
+      cells.forEach((c, k) => {
+        const u = P.tableT * cells.length - k;
+        c.style.opacity = clamp01(u * 2);
+        c.style.background = u > 0 && u < 3 ? `rgba(207,228,166,${1 - u / 3})` : "transparent";
+      });
+      return;
+    }
+    // Match: columns check left to right, then the extra receipt row resolves.
+    const rows = [...$("facts").querySelectorAll("tbody tr")];
+    rows.forEach((tr, ri) => {
+      const extra = tr.classList.contains("extra");
+      const rowA = extra ? seg(P.tableT, 0.72, 0.8) : 1;
+      tr.style.opacity = rowA;
+      [...tr.querySelectorAll("[data-c]")].forEach((c, j) => {
+        const on = extra ? seg(P.tableT, 0.8 + j * 0.03, 0.83 + j * 0.03) : seg(P.tableT, j * 0.16, j * 0.16 + 0.12);
+        const b = c.querySelector("b");
+        if (c.dataset.result) {
+          c.textContent = on > 0.5 ? (c.dataset.result === "yes" ? "✓ linked" : "✕ not applied") : "";
+          c.className = c.dataset.result === "yes" ? "ok" : "bad";
+        } else if (b) {
+          b.textContent = on > 0.5 ? (c.dataset.ok === "true" ? "✓" : "✕") : "";
+          b.className = c.dataset.ok === "true" ? "ok" : "bad";
+          c.style.background = on > 0.5 && c.dataset.ok === "false" ? "#f7dfd3" : "transparent";
+        }
+      });
+      tr.classList.toggle("struck", extra && P.tableT > 0.95);
+    });
+  }
+
+  // Waterfall from the engine ledger; the receipt bar collapses as the receipt is removed.
+  const SHORT = { "Provider charges": "Charges", "Contractual adjustment": "Adjustment", "Posted insurer payment": "Insurance paid", "Patient payments already posted": "Earlier payments", "Provider statement balance": "Bill balance", "Matching completed payment after statement": "Receipt" };
+  function drawWaterfall() {
+    const g = $("g-wf");
+    if (P.wfA < 0.01) { g.innerHTML = ""; return; }
+    const supported = lerp(WO.supported, W.supported, P.rcpt);
+    const steps = [];
+    let run = 0;
+    for (const row of W.ledger) {
+      if (row.label === "Balance supported by supplied records") continue;
+      if (row.label === "Provider statement balance") { run = row.cents; steps.push({ label: SHORT[row.label], lo: 0, hi: row.cents, v: row.cents, color: "#173c36" }); continue; }
+      if (row.cents === 0 && row.label !== "Provider charges") continue;
+      const isReceipt = row.label.startsWith("Matching");
+      const delta = isReceipt ? row.cents * P.rcpt : row.cents;
+      const nxt = run + delta;
+      steps.push({ label: SHORT[row.label] || row.label, lo: Math.min(run, nxt), hi: Math.max(run, nxt), v: delta, color: delta > 0 ? "#9fb3aa" : "#2e7d70", receipt: isReceipt });
+      run = nxt;
+    }
+    steps.push({ label: "Records support", lo: 0, hi: supported, v: supported, color: "#173c36", total: true });
+    steps.push({ label: "Notice asks", lo: 0, hi: W.collection, v: W.collection, color: "#c95b41", total: true });
+    const X0 = 480, BW = 60, GAP = 26, BASE = 620, TOP = 262;
+    const max = Math.max(...steps.map((s) => s.hi));
+    const yOf = (c) => BASE - (c / max) * (BASE - TOP);
+    let h = svg("line", { x1: X0 - 10, y1: BASE, x2: X0 + steps.length * (BW + GAP), y2: BASE, stroke: "#d6d9ca", "stroke-width": 2 });
+    steps.forEach((s, i) => {
+      const u = ease(seg(P.wfT, i / steps.length, (i + 0.85) / steps.length));
+      if (u <= 0) return;
+      const x = X0 + i * (BW + GAP);
+      const top = yOf(s.hi), bot = yOf(s.lo);
+      const hgt = Math.max(s.total && s.hi === 0 ? 3 : 0, (bot - top) * u);
+      const y = s.v < 0 && !s.total ? top : bot - hgt;
+      const fade = s.receipt ? 0.25 + 0.75 * P.rcpt : 1;
+      h += svg("rect", { x, y, width: BW, height: hgt, fill: s.color, rx: 3, opacity: u * fade });
+      if (u > 0.9) {
+        h += svg("text", { x: x + BW / 2, y: top - 10, "text-anchor": "middle", "font-size": 15, "font-weight": 650, fill: "#173c36", opacity: fade }, usd(Math.round(s.v)));
+      }
+      h += svg("text", { x: x + BW / 2, y: BASE + 26 + (i % 2) * 22, "text-anchor": "middle", "font-size": 13.5, fill: s.label === "Notice asks" ? "#c95b41" : "#45534f", opacity: u }, s.label);
+    });
+    // Gap between what the records support and what the notice asks.
+    const gapC = W.collection - supported;
+    const gapA = seg(P.wfT, 0.92, 1) * clamp01(gapC / W.collection * 4);
+    if (gapA > 0.01) {
+      const xs = X0 + (steps.length - 2) * (BW + GAP) + BW + GAP / 2;
+      h += `<g opacity="${gapA}">` + svg("path", { d: `M${xs - 8} ${yOf(supported)} H${xs} V${yOf(W.collection)} H${xs + 8}`, stroke: "#c95b41", "stroke-width": 2.5, fill: "none" });
+      h += svg("text", { x: xs, y: yOf(W.collection) - 30, "text-anchor": "middle", "font-size": 15, "font-weight": 700, fill: "#c95b41" }, `${usd(Math.round(gapC))} gap`) + "</g>";
+    }
+    g.setAttribute("opacity", P.wfA);
+    g.innerHTML = h;
+  }
+  let findBuilt = -1;
+  function updateFinding() {
+    show($("finding"), P.findA * seg(P.wfT, 0.8, 1));
+    if (findBuilt === P.findMode) return;
+    findBuilt = P.findMode;
+    const f = $("finding");
+    f.className = "layer " + (P.findMode === 0 ? "discrepancy" : "pending");
+    f.innerHTML = P.findMode === 0
+      ? `<small>Possible discrepancy</small><h3>A ${usd(W.applied)} payment may not have been credited.</h3><p>A completed receipt matches the account and visit, dated after the bill and before the notice. Ask the provider how it was applied.</p>`
+      : `<small>Evidence status</small><h3>Payment evidence is missing.</h3><p>The records support ${usd(WO.supported)}. An insurance explanation is not proof that Maya paid.</p>`;
+  }
+
+  // Heatmap: complaint theme × document mentioned, then the checks each theme shaped.
+  const CHECKS = [
+    { kind: "doc", id: "bill", noun: "narratives mention a bill or statement", check: "The provider statement is rebuilt line by line" },
+    { kind: "pattern", id: "verification_language", noun: "ask for verification or proof", check: "Every amount opens its source passage" },
+    { kind: "pattern", id: "identity_language", noun: "question whose debt it is", check: "Identity must match exactly across records" },
+    { kind: "doc", id: "receipt", noun: "mention a receipt or payment proof", check: "Completed, matching payment proof is required" },
+  ];
+  const A = D.archive;
+  const countOf = (kind, id) => (kind === "doc" ? A.documents : A.patterns).find((x) => x.id === id).count;
+  $("checks").innerHTML = CHECKS.map((c) => `<div class="check"><strong>${int(countOf(c.kind, c.id))}</strong><p>${c.noun}<b>→ ${c.check}</b></p></div>`).join("");
+  function drawHeat() {
+    const g = $("g-heat");
+    show($("checks"), P.checksA);
+    if (P.heatA < 0.01) { g.innerHTML = ""; return; }
+    const X = 360, Y = 282, CW = 142, CH = 62, GP = 6;
+    const max = Math.max(...A.matrix.map((c) => c.count));
+    let h = "";
+    A.documents.forEach((d, j) => { h += svg("text", { x: X + j * (CW + GP) + CW / 2, y: Y - 14, "text-anchor": "middle", "font-size": 15, "font-weight": 650, fill: "#45534f" }, d.label); });
+    const active = P.checksA > 0.01 ? Math.min(3, Math.floor(P.checkT * 4)) : -1;
+    const n = A.patterns.length * A.documents.length;
+    A.patterns.forEach((p, i) => {
+      h += svg("text", { x: X - 14, y: Y + i * (CH + GP) + CH / 2 + 5, "text-anchor": "end", "font-size": 15, fill: "#45534f" }, p.label);
+      A.documents.forEach((d, j) => {
+        const v = A.matrix.find((c) => c.pattern_id === p.id && c.document_id === d.id).count;
+        const k = i * A.documents.length + j;
+        const u = seg(P.heatT * n, k * 0.7, k * 0.7 + 3);
+        const strength = v / max;
+        const x = X + j * (CW + GP), y = Y + i * (CH + GP);
+        h += svg("rect", { x, y, width: CW, height: CH, rx: 3, fill: `rgba(46,125,112,${(0.06 + 0.84 * strength) * u})` });
+        h += svg("rect", { x, y, width: CW, height: CH, rx: 3, fill: "none", stroke: "#d6d9ca", "stroke-width": 1 });
+        if (u > 0) h += svg("text", { x: x + CW / 2, y: y + CH / 2 + 7, "text-anchor": "middle", "font-size": 20, fill: strength > 0.45 ? "#fff" : "#173c36", opacity: u }, int(v * u));
+      });
+    });
+    if (active >= 0) {
+      const c = CHECKS[active];
+      const hl = c.kind === "doc"
+        ? { x: X + A.documents.findIndex((d) => d.id === c.id) * (CW + GP) - 4, y: Y - 4, w: CW + 8, h: A.patterns.length * (CH + GP) + 2 }
+        : { x: X - 4, y: Y + A.patterns.findIndex((p) => p.id === c.id) * (CH + GP) - 4, w: A.documents.length * (CW + GP) + 2, h: CH + 8 };
+      h += svg("rect", { x: hl.x, y: hl.y, width: hl.w, height: hl.h, rx: 5, fill: "none", stroke: "#c95b41", "stroke-width": 3 });
+    }
+    g.setAttribute("opacity", P.heatA);
+    g.innerHTML = h;
+    [...$("checks").children].forEach((el, i) => {
+      el.style.opacity = clamp01((P.checkT * 4 - i) * 3) * (i === active || P.checkT >= 1 ? 1 : 0.55);
+    });
+  }
+
+  // Benchmark: every generated case lights up as it runs; tallies accumulate from the data.
+  const B = D.bench;
+  $("tallies").innerHTML = `
+    <div class="tally"><strong id="t-run">0</strong><p>of ${B.bundles} generated cases reached the expected outcome</p></div>
+    <div class="tally"><strong id="t-false">0</strong><p>false “uncredited payment” flags, in <span id="t-nopay">0</span> cases where none was expected</p></div>
+    <div class="tally"><strong id="t-held">0</strong><p>of ${B.shouldAbstain} ambiguous cases correctly withheld a balance</p></div>
+    <div class="tally"><strong id="t-flag">0</strong><p>of ${flagged} cases flagged the payment they should flag</p></div>
+    <div class="legend"><span><i style="background:#c95b41"></i>Flags a payment</span><span><i style="background:#2e7d70"></i>Computes a balance</span><span><i style="border:2px dashed #173c36"></i>Withholds a balance</span></div>`;
+  function drawBench() {
+    const g = $("g-bench");
+    show($("tallies"), P.talliesA);
+    show($("failure"), P.failA);
+    if (P.benchA < 0.01) { g.innerHTML = ""; return; }
+    const X = 470, Y = 238, SZ = 22, GX = 8, RH = 30;
+    const total = B.families.reduce((n, f) => n + f.bundles, 0);
+    const lit = P.benchT * total;
+    let h = "", k = 0, ok = 0, held = 0, flags = 0, nopay = 0;
+    B.families.forEach((f, r) => {
+      const focus = f.key === "unrecognized_label";
+      const dim = P.benchDim && !focus ? 1 - 0.75 * P.benchDim : 1;
+      h += svg("text", { x: X - 14, y: Y + r * RH + SZ - 5, "text-anchor": "end", "font-size": 14, fill: focus && P.benchDim > 0.5 ? "#c95b41" : "#45534f", "font-weight": focus && P.benchDim > 0.5 ? 700 : 400, opacity: dim }, f.label);
+      for (let j = 0; j < f.bundles; j++, k++) {
+        const u = clamp01(lit - k);
+        const x = X + j * (SZ + GX), y = Y + r * RH;
+        const pass = j < f.passed;
+        const color = !pass ? "#fff" : f.flags ? "#c95b41" : f.withholds ? "none" : "#2e7d70";
+        const attrs = { x, y, width: SZ, height: SZ, rx: 3, opacity: (0.12 + 0.88 * u) * dim };
+        if (u < 0.5) h += svg("rect", { ...attrs, fill: "#e7e5dc" });
+        else if (f.withholds && pass) h += svg("rect", { ...attrs, fill: "none", stroke: "#173c36", "stroke-width": 2, "stroke-dasharray": "4 3" });
+        else h += svg("rect", { ...attrs, fill: color, stroke: pass ? "none" : "#c95b41", "stroke-width": 2 });
+        if (u >= 0.5) {
+          ok += pass; held += pass && f.withholds; flags += pass && f.flags; nopay += !f.flags;
+        }
+      }
+      if (focus && P.benchDim > 0.01) h += svg("rect", { x: X - 6, y: Y + r * RH - 5, width: f.bundles * (SZ + GX) + 4, height: SZ + 10, rx: 5, fill: "none", stroke: "#c95b41", "stroke-width": 2.5, opacity: P.benchDim });
+    });
+    g.setAttribute("opacity", P.benchA);
+    g.innerHTML = h;
+    $("t-run").textContent = int(ok);
+    $("t-held").textContent = int(held);
+    $("t-flag").textContent = int(flags);
+    $("t-nopay").textContent = int(nopay);
+    $("t-false").textContent = int(B.falseFlags * clamp01(nopay / B.noPaymentBundles));
+    updateFailure();
+  }
+
+  const FL = D.failure;
+  $("failure").innerHTML = `<div class="fail-text"><div class="scan" id="scan"></div>${FL.lines.map((l) => `<div>${l}</div>`).join("")}</div>
+    <div class="fail-row" data-f="0"><span>Provider</span><span class="${FL.fields.provider ? "ok" : "bad"}">${FL.fields.provider ? "✓ " + FL.fields.provider : "✕ not found: “Billed By” isn’t a known label"}</span></div>
+    <div class="fail-row" data-f="1"><span>Account</span><span class="ok">✓ ${FL.fields.account}</span></div>
+    <div class="fail-row" data-f="2"><span>Balance</span><span class="ok">✓ ${usd(cents(FL.fields.balance), 1)}</span></div>
+    <div class="fail-row" data-f="3"><span>Match</span><span class="bad">Provider missing: the bill can’t be linked to the notice</span></div>
+    <div data-f="4"><span class="withheld">Balance withheld, not guessed</span></div>`;
+  function updateFailure() {
+    if (P.failA < 0.01) return;
+    const lines = FL.lines.length;
+    const scanU = seg(P.failT, 0, 0.35);
+    $("scan").style.top = `${0.9 + Math.min(lines - 1, Math.floor(scanU * lines)) * 2.2}cqw`;
+    $("scan").style.opacity = scanU > 0 && scanU < 1 ? 1 : 0;
+    $("failure").querySelectorAll("[data-f]").forEach((el) => {
+      const i = +el.dataset.f;
+      const at = i < 3 ? 0.35 + i * 0.1 : i === 3 ? 0.7 : 0.85;
+      el.style.opacity = seg(P.failT, at, at + 0.08);
+    });
+  }
+
+  // Layout benchmark: previous parser vs now, fields read correctly out of LY.expected.
+  const ocrWrong = LY.rows.reduce((n, r) => n + r.wrong, 0);
+  $("layout-tallies").innerHTML = [
+    [`${LY.expected}/${LY.expected}`, "fields on each text layout: table rows, label above value, dotted leaders, two columns. None wrong."],
+    [`${lyNow("scan")}/${LY.expected}`, "from a scanned PDF with no text layer, read by OCR on this computer"],
+    [`${lyNow("photo")}/${LY.expected}`, "from a phone-style photo of the same documents"],
+    [`${ocrWrong}`, "OCR misreads, all company names with their spaces dropped (“MapleGroveMedical”). The person fixes them in review."],
+  ].map(([n, t]) => `<div class="tally"><strong>${n}</strong><p>${t}</p></div>`).join("");
+  const dataBar = (x, y, w, h, fill) => {
+    if (w <= 0.5) return svg("rect", { x, y, width: 2, height: h, fill });
+    const r = Math.min(4, w / 2, h / 2);
+    return svg("path", { d: `M${x},${y}h${w - r}q${r},0 ${r},${r}v${h - 2 * r}q0,${r} -${r},${r}h-${w - r}z`, fill });
+  };
+  function drawLayouts() {
+    const g = $("g-layouts");
+    show($("layout-tallies"), P.layTalA);
+    if (P.layA < 0.01) { g.innerHTML = ""; return; }
+    const X = 420, Y = 244, W = 300, BH = 14, RH = 58, N = LY.expected;
+    const sc = (n) => (n / N) * W;
+    const bottom = Y + LY.rows.length * RH - 14;
+    let h = svg("line", { x1: X + W, x2: X + W, y1: Y - 8, y2: bottom, stroke: "#9aa79e", "stroke-dasharray": "4 4" });
+    h += svg("text", { x: X + W, y: bottom + 20, "text-anchor": "middle", "font-size": 13, fill: "#5f6f65" }, `all ${N} fields`);
+    LY.rows.forEach((row, i) => {
+      const y = Y + i * RH;
+      const grow = ease(seg(P.layT, i * 0.09, i * 0.09 + 0.5));
+      h += svg("text", { x: X - 14, y: y + BH + 7, "text-anchor": "end", "font-size": 15, fill: "#173c36" }, row.label);
+      const bw = sc(row.before);
+      h += dataBar(X, y, bw, BH, "#b9b5a6");
+      h += svg("text", { x: X + Math.max(bw, 2) + 8, y: y + BH - 2, "font-size": 13, fill: "#5f6f65" }, row.before);
+      const nw = sc(row.now) * grow;
+      h += dataBar(X, y + BH + 2, nw, BH, "#2e7d70");
+      h += svg("text", { x: X + Math.max(nw, 2) + 8, y: y + 2 * BH, "font-size": 14, "font-weight": 650, fill: "#173c36", opacity: grow }, Math.round(row.now * grow));
+    });
+    const ly = bottom + 20;
+    h += svg("rect", { x: X - 150, y: ly - 11, width: 14, height: 12, rx: 2, fill: "#b9b5a6" }) + svg("text", { x: X - 130, y: ly, "font-size": 13, fill: "#5f6f65" }, "Before");
+    h += svg("rect", { x: X - 70, y: ly - 11, width: 14, height: 12, rx: 2, fill: "#2e7d70" }) + svg("text", { x: X - 50, y: ly, "font-size": 13, fill: "#5f6f65" }, "Now");
+    g.setAttribute("opacity", P.layA);
+    g.innerHTML = h;
+  }
+
+  function updatePacket() {
+    show($("packet"), P.packetA * clamp01(P.lay - 1));
+    show($("demo-link"), P.demoA);
+  }
+  $("community-national").src = D.community.nationalImage;
+  $("community-georgia").src = D.community.georgiaImage;
+  function updateCommunity() {
+    show($("community-visual"), P.mapA);
+    show($("community-national"), 1 - P.mapT);
+    show($("community-georgia"), P.mapT);
+  }
+  const rc = F.receipt, nc = F.collection;
+  $("packet").innerHTML = `<p class="plabel">Evidence summary · ${fv("bill", "patient")}</p><h3>Possible uncredited<br>payment</h3>
+    <p class="finding">A <strong>${usd(W.applied)} payment</strong> may not have been credited to the balance now being collected.</p>
+    <div class="cite"><span>Receipt · ${dateText(rc.payment_date.value)}</span><strong>${usd(cents(rc.payment_amount.value))} paid</strong></div>
+    <div class="cite"><span>Notice · ${dateText(nc.statement_date.value)}</span><strong>${usd(cents(nc.balance.value))} requested</strong></div>
+    <p class="ask"><strong>Question for the provider</strong><br>Can you send an updated ledger showing how this payment was applied?</p>`;
+
+
+  // ---------- community atlas ----------
+  const OWN = { nonprofit: "#2a78d6", for_profit: "#eb6834", government: "#1baf7a", other: "#8a8f8c" };
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const x = hex(a), y = hex(b); return "#" + x.map((v, i) => Math.round(lerp(v, y[i], t)).toString(16).padStart(2, "0")).join(""); };
+  const RAMP = ["#eef3e2", "#cfe4a6", "#8fc19a", "#4e9a84", "#2e7d70", "#1f5a50", "#173c36"];
+  // Six quantile bins (five cuts) on RAMP[1..6]; RAMP[0] is the unrevealed tone.
+  const rateColor = (v) => { const i = AT.rateCuts.findIndex((c) => v < c); return RAMP[i === -1 ? RAMP.length - 1 : i + 1]; };
+  const DIV = [[0.5, "#6f9fb8"], [0.75, "#a9c7d3"], [0.9, "#d6e2e2"], [1.1, "#ebe7dc"], [1.33, "#f2c9b6"], [2, "#e08b6c"], [Infinity, "#c95b41"]];
+  const adjColor = (v) => (v == null ? "#e7e4da" : DIV.find(([c]) => v < c)[1]);
+  const MAP = { x: 690, y: 168, k: 0.82 };
+  const gb = GA.box, gw = gb[2] - gb[0], gh = gb[3] - gb[1];
+  const GZ = { k: Math.min(560 / gh, 520 / gw), cx: 1110, cy: 420 };
+  const rankOf = new Map([...AT.states].sort((a, b) => a.rate - b.rate).map((s, i) => [s.abbr, i / AT.states.length]));
+  const topRate = new Set(AT.topRate.slice(0, 3).map((s) => s.abbr)), topAdj = new Set(AT.topAdjusted.slice(0, 3).map((s) => s.abbr));
+  const gAtlas = $("g-atlas");
+  gAtlas.innerHTML =
+    `<g id="atlas-map">${AT.states.map((s) => `<path data-a="${s.abbr}" d="${s.d}" stroke="#fffdf8" stroke-width="0.9" vector-effect="non-scaling-stroke"/>`).join("")}` +
+    `<path id="atlas-ga" d="${GA.d}" fill="none" stroke="#173c36" stroke-width="2" vector-effect="non-scaling-stroke"/>` +
+    `<g id="atlas-hosp">${AT.gaHospitals.map((h) => `<circle cx="${h.xy[0]}" cy="${h.xy[1]}" stroke="${OWN[h.own]}" fill="${h.linked ? OWN[h.own] : "#fffdf8"}" vector-effect="non-scaling-stroke"${h.id === "110018" ? ' id="atlas-demo"' : ""}/>`).join("")}</g></g>` +
+    `<g id="atlas-legend"></g><g id="atlas-scatter"></g>`;
+  const mapPaths = [...gAtlas.querySelectorAll("#atlas-map path[data-a]")];
+  const stateBy = new Map(AT.states.map((s) => [s.abbr, s]));
+  const hospEls = [...gAtlas.querySelectorAll("#atlas-hosp circle")];
+
+  // Scatter: uninsured rate vs complaints per 100k, sized by population.
+  const SC = { x0: 760, x1: 1470, y0: 640, y1: 190, ux: 0.2, uy: 8 };
+  const sx = (u) => SC.x0 + (u / SC.ux) * (SC.x1 - SC.x0), sy = (r) => SC.y0 - (r / SC.uy) * (SC.y0 - SC.y1);
+  const maxPop = Math.max(...AT.states.map((s) => s.population));
+  const scatterStates = AT.states.filter((s) => s.modeled).sort((a, b) => b.population - a.population);
+  function scatterSvg(t) {
+    let h = "";
+    for (let u = 0; u <= 0.2001; u += 0.05) h += svg("line", { x1: sx(u), x2: sx(u), y1: SC.y0, y2: SC.y1, stroke: "#e2e0d4" }) + svg("text", { x: sx(u), y: SC.y0 + 24, "text-anchor": "middle", "font-size": 14, fill: "#5f6f65" }, `${Math.round(u * 100)}%`);
+    for (let r = 0; r <= 8; r += 2) h += svg("line", { x1: SC.x0, x2: SC.x1, y1: sy(r), y2: sy(r), stroke: "#e2e0d4" }) + svg("text", { x: SC.x0 - 12, y: sy(r) + 5, "text-anchor": "end", "font-size": 14, fill: "#5f6f65" }, r);
+    h += svg("line", { x1: SC.x0, x2: SC.x1, y1: sy(AT.national), y2: sy(AT.national), stroke: "#9aa79e", "stroke-dasharray": "5 4" });
+    h += svg("text", { x: SC.x1, y: sy(AT.national) - 8, "text-anchor": "end", "font-size": 13, fill: "#5f6f65" }, `U.S. ${AT.national.toFixed(2)}`);
+    h += svg("text", { x: (SC.x0 + SC.x1) / 2, y: SC.y0 + 52, "text-anchor": "middle", "font-size": 15, fill: "#173c36" }, "Uninsured residents (ACS) →");
+    h += svg("text", { x: SC.x0 - 52, y: (SC.y0 + SC.y1) / 2, "text-anchor": "middle", "font-size": 15, fill: "#173c36", transform: `rotate(-90 ${SC.x0 - 52} ${(SC.y0 + SC.y1) / 2})` }, "Complaints per 100k →");
+    scatterStates.forEach((s, i) => {
+      const a = ease(seg(t, (i / scatterStates.length) * 0.6, (i / scatterStates.length) * 0.6 + 0.4));
+      if (a <= 0) return;
+      const r = (5 + 30 * Math.sqrt(s.population / maxPop)) * a;
+      const hot = s.uninsured > 0.1 && s.rate > AT.national * 1.5;
+      h += svg("circle", { cx: sx(s.uninsured), cy: sy(s.rate), r, fill: hot ? "#c95b41" : "#2e7d70", "fill-opacity": 0.55, stroke: "#fffdf8", "stroke-width": 1.5 });
+      if (r > 14 || hot) h += svg("text", { x: sx(s.uninsured), y: sy(s.rate) + 4.5, "text-anchor": "middle", "font-size": 12, "font-weight": 650, fill: "#173c36", opacity: a }, s.abbr);
+    });
+    return h;
+  }
+
+  function drawAtlas() {
+    const on = Math.max(P.mapA, P.scatA);
+    gAtlas.style.display = on > 0.01 ? "" : "none";
+    show($("atlas-side"), P.sideA * P.mapA);
+    show($("hosp-card"), P.cardA);
+    show($("chat"), P.chatA);
+    show($("atlas-tallies"), P.aTallyA);
+    if (P.chatA > 0.01) {
+      $("chat").querySelectorAll("[data-at]").forEach((el) => { el.style.opacity = seg(P.chatT, +el.dataset.at, +el.dataset.at + 0.15); });
+    }
+    if (on <= 0.01) return;
+    const z = ease(P.gaZoom);
+    const k = lerp(MAP.k, GZ.k, z);
+    const tx = lerp(MAP.x, GZ.cx - GZ.k * (gb[0] + gw / 2), z), ty = lerp(MAP.y, GZ.cy - GZ.k * (gb[1] + gh / 2), z);
+    const mapEl = $("atlas-map");
+    mapEl.setAttribute("transform", `translate(${tx},${ty}) scale(${k})`);
+    mapEl.setAttribute("opacity", P.mapA);
+    for (const el of mapPaths) {
+      const st = stateBy.get(el.dataset.a);
+      const reveal = ease(seg(P.mapT, rankOf.get(st.abbr) * 0.55, rankOf.get(st.abbr) * 0.55 + 0.45));
+      const target = mix(rateColor(st.rate), adjColor(st.adjusted), P.adjT);
+      let fill = mix("#ebe7dc", target, reveal);
+      if (z > 0) fill = mix(fill, st.abbr === "GA" ? "#fffdf8" : "#ece9df", z);
+      el.setAttribute("fill", fill);
+      const hi = P.gaZoom < 0.05 && ((P.adjT < 0.5 && topRate.has(st.abbr)) || (P.adjT >= 0.5 && topAdj.has(st.abbr)));
+      el.setAttribute("stroke", hi && P.mapT > 0.95 ? "#c95b41" : "#fffdf8");
+      el.setAttribute("stroke-width", hi && P.mapT > 0.95 ? 2.2 : 0.9);
+    }
+    $("atlas-ga").setAttribute("opacity", z);
+    hospEls.forEach((c) => { c.setAttribute("r", 4.6 / k); c.setAttribute("stroke-width", 1.6); c.setAttribute("opacity", P.hospA); });
+    const demo = $("atlas-demo");
+    if (demo) { demo.setAttribute("r", 8 / k); demo.setAttribute("stroke", "#173c36"); demo.setAttribute("stroke-width", 3); }
+    // Legend under the national map.
+    let lg = "";
+    if (P.mapA > 0.01 && z < 0.5) {
+      const items = P.adjT < 0.5
+        ? RAMP.slice(1).map((c, i) => [c, i === 0 ? `<${AT.rateCuts[0]}` : i === RAMP.length - 2 ? `≥${AT.rateCuts[i - 1]}` : ""])
+        : DIV.map(([c, col], i) => [col, i === 0 ? "<0.5×" : i === 3 ? "as expected" : i === DIV.length - 1 ? "≥2×" : ""]);
+      items.forEach(([col, label], i) => {
+        lg += svg("rect", { x: 1130 + i * 46, y: 628, width: 44, height: 12, fill: col });
+        if (label) lg += svg("text", { x: 1130 + i * 46 + 22, y: 660, "text-anchor": "middle", "font-size": 13, fill: "#5f6f65" }, label);
+      });
+      lg += svg("text", { x: 1130, y: 614, "font-size": 13, "font-weight": 650, fill: "#173c36" }, P.adjT < 0.5 ? "Complaints per 100k, 2025" : "Observed ÷ expected");
+    }
+    if (z > 0.5) {
+      [["nonprofit", "Nonprofit"], ["for_profit", "For-profit"], ["government", "Government"]].forEach(([key, label], i) => {
+        lg += svg("circle", { cx: 1290, cy: 212 + i * 26, r: 6, fill: "#fffdf8", stroke: OWN[key], "stroke-width": 2 }) + svg("text", { x: 1304, y: 217 + i * 26, "font-size": 14, fill: "#173c36" }, label);
+      });
+      lg += svg("circle", { cx: 1290, cy: 212 + 3 * 26, r: 6, fill: "#5f6f65" }) + svg("text", { x: 1304, y: 217 + 3 * 26, "font-size": 14, fill: "#173c36" }, "Filled: policy linked");
+      lg = `<g opacity="${P.hospA}">${lg}</g>`;
+    }
+    $("atlas-legend").innerHTML = lg;
+    $("atlas-scatter").innerHTML = P.scatA > 0.01 ? `<g opacity="${P.scatA}">${scatterSvg(P.scatT)}</g>` : "";
+  }
+
+  // Atlas HTML layers (static content; visibility and reveal handled in drawAtlas).
+  let sideMode = -1;
+  function updateAtlasSide() {
+    const mode = P.adjT >= 0.5 ? 1 : 0;
+    if (mode === sideMode) return;
+    sideMode = mode;
+    const list = mode ? AT.topAdjusted : AT.topRate;
+    $("atlas-side").innerHTML = `<h4>${mode ? "Observed ÷ expected · 100+ complaints" : "Highest rates · per 100k"}</h4>` +
+      list.map((s, i) => `<div class="rank ${i < 3 ? "hot" : ""}"><b>${s.abbr}</b><small>${int(s.n)} complaints</small><strong>${mode ? s.value.toFixed(2) + "×" : s.value.toFixed(1)}</strong></div>`).join("");
+  }
+  $("hosp-card").innerHTML = `<p class="kind">Filed financial-assistance policy</p><h3>${dh.name}</h3>
+    <div class="row"><span>Location</span><strong>${dh.city}, GA · nonprofit</strong></div>
+    <div class="row"><span>Free care</span><strong>Up to ${dh.free}% of poverty level</strong></div>
+    <div class="row"><span>Discounted care</span><strong>Up to ${dh.discount}% of poverty level</strong></div>
+    <div class="row"><span>Policy notice on bills</span><strong>${dh.noticeOnBills ? "Yes" : "No"}</strong></div>
+    <div class="row"><span>Collection actions before eligibility is checked</span><strong>${dh.ecasBefore.length ? dh.ecasBefore.length + " permitted" : dh.noEcasBefore ? "None reported" : "Not reported"}</strong></div>
+    <p class="from">From ${dh.filer}’s Form 990 Schedule H, tax year ${dh.taxYear}. Self-reported; linked by ZIP code and name.</p>`;
+  $("chat").innerHTML = `<p class="who">Ask the guide · Google Gemini</p>
+    <div class="bubble q" data-at="0">${AT.guide.question}</div>
+    <div data-at="0.25">${AT.guide.tools.map((t) => `<span class="tool">⚙ ${t}</span>`).join("")}</div>
+    <div class="bubble a" data-at="0.5">${AT.guide.answer.map((line) => `<p>${line}</p>`).join("")}<span class="opened">Opened Georgia on the map</span></div>`;
+  $("atlas-tallies").innerHTML = [
+    [int(AC.cfpb_records), "CFPB medical-debt complaint records, Jan 2021 – Aug 2026"],
+    [`${Math.round((100 * AC.county_complaints_mapped) / AC.county_complaints)}%`, `of 2023–2025 complaints placed in a county by ZIP code (${int(AC.county_complaints_mapped)} of ${int(AC.county_complaints)})`],
+    [`${int(AC.cms_nonprofit_with_policy)}`, `of ${int(AC.cms_nonprofit)} nonprofit hospitals linked to a filed Schedule H policy (${Math.round((100 * AC.cms_nonprofit_with_policy) / AC.cms_nonprofit)}%)`],
+    [`${AT.linkReview.second[0]} / ${AT.linkReview.second[1]}`, `facility links plausible in a fresh random review, after fixing the ${AT.linkReview.first[1] - AT.linkReview.first[0]} errors found in the first ${AT.linkReview.first[1]}`],
+  ].map(([n, t]) => `<div class="tally"><strong>${n}</strong><p>${t}</p></div>`).join("");
+
+  function frame(now) {
+    if (!anim && !dirty) { lastNow = now; requestAnimationFrame(frame); return; }
+    dirty = false;
+    const dt = Math.min(100, now - lastNow);
+    lastNow = now;
+    if (anim) {
+      anim.t += dt * rate;
+      let done = true;
+      const clockKeys = new Set(anim.clocks.map((c) => c.k));
+      const u = Math.min(1, anim.t / anim.dur);
+      for (const k of Object.keys(anim.to)) {
+        if (clockKeys.has(k) || DISCRETE.has(k)) continue;
+        P[k] = lerp(anim.from[k], anim.to[k], ease(u));
+      }
+      if (u < 1) done = false;
+      for (const c of anim.clocks) {
+        const cu = clamp01((anim.t - (c.delay || 0)) / c.dur);
+        P[c.k] = lerp(c.from, c.to, cu);
+        if (cu < 1) done = false;
+      }
+      if (done) { Object.assign(P, anim.to); anim = null; }
+    }
+    updateDocs();
+    drawTimeline();
+    drawLinks();
+    drawDrill();
+    updateTable();
+    drawWaterfall();
+    updateFinding();
+    drawHeat();
+    drawBench();
+    drawLayouts();
+    updateAtlasSide();
+    drawAtlas();
+    updatePacket();
+    updateCommunity();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- input ----------
+  const notes = $("notes");
+  function toggleNotes() {
+    notes.hidden = !notes.hidden;
+    $("notes-btn").setAttribute("aria-expanded", String(!notes.hidden));
+  }
+  stageEl.addEventListener("click", (e) => { if (!e.target.closest("a, button, footer")) next(); });
+  $("next").addEventListener("click", (e) => { e.stopPropagation(); next(); });
+  $("prev").addEventListener("click", (e) => { e.stopPropagation(); prev(); });
+  function replay() { Object.assign(P, beat > 0 ? stateAt(beat - 1) : DEFAULTS); go(beat, true); }
+  $("replay").addEventListener("click", (e) => { e.stopPropagation(); replay(); });
+  $("notes-btn").addEventListener("click", (e) => { e.stopPropagation(); toggleNotes(); });
+  const RATES = [0.5, 1, 2, 4];
+  $("rate").addEventListener("click", (e) => {
+    e.stopPropagation();
+    rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
+    $("rate").textContent = `${rate}×`;
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest("a, button, input, textarea, select") && [" ", "Enter"].includes(e.key)) return;
+    if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === "Home") go(0, false);
+    else if (e.key === "End") go(BEATS.length - 1, false);
+    else if (/^[1-9]$/.test(e.key)) {
+      const first = BEATS.findIndex((b) => b.scene === +e.key - 1);
+      if (first >= 0) go(first, true);
+    } else if (e.key === "r" || e.key === "R") replay();
+    else if (e.key === "s" || e.key === "S") $("rate").click();
+    else if (e.key === "n" || e.key === "N") toggleNotes();
+    else if (e.key === "Escape" && !notes.hidden) toggleNotes();
+    else if (e.key === "f" || e.key === "F") {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.().catch(() => { /* needs a user gesture */ });
+    }
+  });
+
+  let lastNow = performance.now();
+  window.addEventListener("resize", () => { dirty = true; });
+  window.addEventListener("hashchange", () => {
+    const match = /^#b=(\d+)$/.exec(location.hash);
+    go(match ? Number(match[1]) : 0, false);
+  });
+  const m = /^#b=(\d+)$/.exec(location.hash);
+  go(m ? +m[1] : 0, !m);
+  requestAnimationFrame((t) => { lastNow = t; frame(t); });
+})();
+</script>
+</body>
+</html>

@@ -16,6 +16,7 @@ from not_my_debt.research import (  # noqa: E402
     build_research,
     download_archive,
     fetch_api,
+    refresh_response_outcomes,
     sha256_file,
     summarize_archive,
     utc_now,
@@ -97,6 +98,8 @@ def main() -> None:
         },
     }
     write_json(args.output.parent / "source_manifest.json", manifest)
+    # Company-response aggregates reuse the API response fetched above.
+    refresh_response_outcomes(args.output, raw, reuse=True, root=ROOT)
     print(
         json.dumps(
             {

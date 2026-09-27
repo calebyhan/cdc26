@@ -13,3 +13,7 @@ uploads/
 exports/
 dist/
 build/
+node_modules/
+.next/
+out/
+*.tsbuildinfo

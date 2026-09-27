@@ -1,4 +1,4 @@
-"""Not My Debt application entrypoint. Created with assistance from OpenAI Codex."""
+"""Not My Debt application entrypoint."""
 
 import sys
 from pathlib import Path

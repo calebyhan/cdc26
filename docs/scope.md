@@ -1,9 +1,23 @@
 # Not My Debt — proposed hackathon scope
 
-Status: first implementation checkpoint. The app has six synthetic scenarios,
-local extraction, an optional untested-live AI adapter, deterministic reconciliation,
-source review, packet export, and public complaint aggregates. The fuller evaluation
-and presentation work below remain planned; they are not completed-result claims.
+Status update (September 27, 2026): the product now opens on a public-data
+**community medical-debt priority map** for patient advocates. The evidence
+navigator below is its individual-action layer. See [atlas.md](atlas.md) for
+sources, methods, measured coverage, and guardrails. The map describes reported
+complaints and filed policies; it does not rank hospitals or establish harm.
+
+Status: Next.js presentation UI checkpoint. The primary interface now uses
+Next.js/TypeScript and Recharts over the existing Python engine. A stateless
+route handler processes case requests without persistence or shared caching.
+The legacy Streamlit implementation remains runnable. This replaces the original
+Streamlit UI preference below; the product and evidence boundaries still apply.
+
+First implementation checkpoint: The app has six synthetic scenarios,
+local extraction, optional Codex and OpenAI API extraction, deterministic reconciliation,
+source review, packet export, and public complaint aggregates. Codex extraction was
+live-checked on the four fictional demo PDFs; see the [recorded synthetic run](demo.md#recorded-live-check).
+The separate OpenAI API path has not been live-checked. The fuller evaluation and
+presentation work below remain planned; they are not completed-result claims.
 Prepared September 26, 2026 for 3–4 teammates with more than 12 hours remaining.
 
 ## Product decision

@@ -4,7 +4,16 @@ Work on `pivot/not-my-debt`. The original mortgage implementation is preserved o
 `main` and `mortgage-v1`; do not modify those refs as part of pivot development.
 
 Use `uv sync --extra dev`, `uv run pytest -q`, and `uv run ruff check .`.
-Run the app with `uv run streamlit run streamlit_app.py`.
+Run the primary app with `npm ci`, `uv sync --extra dev`, and `npm run dev`.
+Check the frontend with `npm run typecheck`, `npm run lint`, and `npm run build`.
+The legacy Streamlit entrypoint remains available. Next.js route handlers call
+the existing Python engine; keep case responses uncached and case inputs out of logs.
+Read relevant installed Next.js docs in `node_modules/next/dist/docs/` when
+changing framework behavior.
+
+Refresh the public community map with `uv sync --extra dev --extra atlas` and
+`uv run python scripts/refresh_atlas.py`; read `docs/atlas.md` first. Keep atlas
+claims to reported complaints and filed policies: no hospital rankings or causal claims.
 
 Read `docs/scope.md` and `README.md` before changing product behavior. They distinguish
 real complaint data, synthetic document benchmarks, and user-supplied case records.

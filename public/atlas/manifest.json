@@ -1,0 +1,162 @@
+{
+ "schema_version": "1.0",
+ "started_at": "2026-09-27T06:56:30+00:00",
+ "generated_at": "2026-09-27T06:56:34+00:00",
+ "sources": [
+  {
+   "id": "cfpb",
+   "name": "CFPB Consumer Complaint Database \u2014 Debt collection \u2022 Medical debt",
+   "url": "https://www.consumerfinance.gov/data-research/consumer-complaints/",
+   "api": "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/",
+   "use": "Complaint counts by state, month, issue, company response, and ZIP (2021\u2013Aug 2026).",
+   "limits": "Complaints are not a statistical sample and do not establish wrongdoing. Most name a debt collector, not the hospital or provider that billed."
+  },
+  {
+   "id": "acs",
+   "name": "U.S. Census Bureau, American Community Survey 2020\u20132024 5-year estimates",
+   "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF",
+   "use": "Population (B01003), uninsured (B27010), poverty (B17001), median income (B19013), disability (B18101), and rent burden \u226530% of income (B25070).",
+   "limits": "Survey estimates with margins of error; small counties are less precise."
+  },
+  {
+   "id": "cms",
+   "name": "CMS Hospital General Information",
+   "url": "https://data.cms.gov/provider-data/dataset/xubh-q36u",
+   "use": "Hospital name, ZIP, type, ownership, and emergency services.",
+   "limits": "Map points use Census ZIP-area (ZCTA) centroids, not street addresses."
+  },
+  {
+   "id": "schedule_h",
+   "name": "IRS Form 990 e-file XML \u2014 Schedule H (Hospitals)",
+   "url": "https://www.irs.gov/charities-non-profits/form-990-series-downloads",
+   "instructions": "https://www.irs.gov/instructions/i990sh",
+   "use": "Reported financial-assistance income limits, publicity, and extraordinary collection actions permitted before reasonable efforts to determine eligibility.",
+   "limits": "Self-reported filing answers, not audited practice. Returns filed in 2025\u20132026 (mostly tax year 2024). Facility links to CMS use ZIP and name similarity."
+  },
+  {
+   "id": "prices",
+   "name": "Hospital price-transparency machine-readable files (via each site's cms-hpt.txt)",
+   "url": "https://www.cms.gov/priorities/key-initiatives/hospital-price-transparency/hospitals",
+   "use": "Gross charge, discounted cash price, and payer-negotiated rates for six shoppable services at up to four linked nonprofit hospitals per state.",
+   "limits": "A bounded sample, not every hospital. Files vary in format and completeness; posted prices are not what a given patient owes."
+  },
+  {
+   "id": "geo",
+   "name": "Census ZCTA gazetteer and ZCTA-to-county relationship file",
+   "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
+   "use": "Approximate hospital points and ZIP-to-county assignment for complaints.",
+   "limits": "ZIP codes and ZCTAs differ; masked 3-digit complaint ZIPs cannot be placed in a county."
+  },
+  {
+   "id": "maps",
+   "name": "us-atlas (Census cartographic boundaries, 1:10m)",
+   "url": "https://github.com/topojson/us-atlas",
+   "use": "State and county outlines.",
+   "limits": "2017 county boundaries: Connecticut's 2022 planning regions are not drawn."
+  }
+ ],
+ "cfpb_pull": {
+  "windows": [
+   {
+    "start": "2021-01-01",
+    "end": "2021-12-31",
+    "api_total": 10490,
+    "received": 10490
+   },
+   {
+    "start": "2022-01-01",
+    "end": "2022-12-31",
+    "api_total": 9077,
+    "received": 9077
+   },
+   {
+    "start": "2023-01-01",
+    "end": "2023-12-31",
+    "api_total": 7410,
+    "received": 7410
+   },
+   {
+    "start": "2024-01-01",
+    "end": "2024-12-31",
+    "api_total": 7265,
+    "received": 7265
+   },
+   {
+    "start": "2025-01-01",
+    "end": "2025-12-31",
+    "api_total": 8843,
+    "received": 8843
+   },
+   {
+    "start": "2026-01-01",
+    "end": "2026-08-31",
+    "api_total": 5383,
+    "received": 5383
+   }
+  ]
+ },
+ "irs": {
+  "index_years": [
+   2025,
+   2026
+  ],
+  "candidate_returns": 5475,
+  "located_returns": 5475,
+  "returns_with_schedule_h": 1936
+ },
+ "inputs": {
+  "cfpb_medical.jsonl": "06ff8732b3cba394ba66be21a2fcb2c352bda01dbf58ef60d608e77faec1ccb1",
+  "cms_hospital_general_information.csv": "f48f2a51c3eccc9fb30e0aebab7818a8358e8303bf501666df7b7a6eb91c13ad",
+  "2024_Gaz_zcta_national.zip": "7b85c04a131672f58b38a950eb82855d5fd4054f0bd9bc3f69aa28897a714e3d",
+  "tab20_zcta520_county20_natl.txt": "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf",
+  "acs_b01003.psv": "730546441e0e24d02552135e5dd8cec1b29ccd247ee3c03eba27197128e5d204",
+  "acs_b27010.psv": "99cf0e6af325623da27033a701f37e1a9608f897e91b87791f03b7ea3d12d629",
+  "acs_b17001.psv": "bdd8782864fd47e8e28f568495a35c8bb9d58dac4f8b0087b089c3e6ad11e014",
+  "acs_b19013.psv": "24b8f6ae0cb911aae51141cf4630d4aad19cc6065f4b47dca96c38b46eb02d0d",
+  "acs_b18101.psv": "7878ba1875f60270437bf74c6c14f0ab5780348cacf2bc31da593856d31991da",
+  "acs_b25070.psv": "e4a55405e0b83942c9546d42770f8185e54f81a78f460aa42ac4b960923928a1",
+  "acs_geos.psv": "a2e2159a31188c9268371702dd41c70d7b1241d25664ed1dccaf1ec19fe22db3",
+  "acs_shells.txt": "5b46f4af873744a415c4974204010db976e2a61ff916674732f81c496a6b517d"
+ },
+ "outputs": {
+  "states.json": "08a850ff541c7bc9b7140f904e817dbcd7233b748e680fa616ad853b957c586b",
+  "counties.json": "e5a720f46803715c1cc12509ab36b0281fcbf157b7ee3ea3208300653ef1f22f",
+  "hospitals.json": "a2730e1b077f02db57aa2ffe43b380c28c4f24b064373e3f552da59072948e40",
+  "schedule_h.json": "dace6b32f742f2ce5e59311c4621bc91d9340cea2ff0e4c1f4986a565bab35f7",
+  "prices.json": "06aa3a991ebd14a0ce48f196e221ab919d40eb4e48eb533804652e247ab97007"
+ },
+ "counts": {
+  "cfpb_records": 48468,
+  "cms_hospitals": 5419,
+  "cms_hospitals_located": 5283,
+  "schedule_h_filers": 1936,
+  "schedule_h_facilities": 2941,
+  "schedule_h_facilities_linked": 2254,
+  "cms_nonprofit": 2939,
+  "cms_nonprofit_with_policy": 1808,
+  "price_hospitals_attempted": 200,
+  "price_hospitals_with_basket": 92,
+  "county_complaints": 23518,
+  "county_complaints_mapped": 19772
+ },
+ "model": {
+  "features": [
+   "uninsured_rate",
+   "poverty_rate"
+  ],
+  "rate_ratio_per_sd": {
+   "uninsured_rate": 1.278,
+   "poverty_rate": 1.1226
+  },
+  "feature_mean": {
+   "uninsured_rate": 0.07692,
+   "poverty_rate": 0.12239
+  },
+  "feature_sd": {
+   "uninsured_rate": 0.02795,
+   "poverty_rate": 0.02596
+  },
+  "pearson_dispersion": 38.22,
+  "n": 51
+ }
+}

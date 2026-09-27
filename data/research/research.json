@@ -62,7 +62,60 @@
     "filter_verified_sample_size": 3,
     "narratives_present_in_sample": 0,
     "narrative_status": "Current API supplies structured fields, not complaint narratives. Narrative analysis uses the historical archive.",
-    "last_indexed": "2026-09-26T12:00:00-05:00"
+    "last_indexed": "2026-09-26T12:00:00-05:00",
+    "response_outcomes": {
+      "groups": [
+        {
+          "label": "All medical-debt collection complaints",
+          "total": 8843,
+          "responses": [
+            {
+              "label": "Closed with explanation",
+              "count": 7227
+            },
+            {
+              "label": "Closed with non-monetary relief",
+              "count": 1382
+            },
+            {
+              "label": "Untimely response",
+              "count": 212
+            },
+            {
+              "label": "Closed with monetary relief",
+              "count": 22
+            }
+          ]
+        },
+        {
+          "label": "Categorized “Debt was paid”",
+          "total": 1005,
+          "responses": [
+            {
+              "label": "Closed with explanation",
+              "count": 823
+            },
+            {
+              "label": "Closed with non-monetary relief",
+              "count": 149
+            },
+            {
+              "label": "Untimely response",
+              "count": 30
+            },
+            {
+              "label": "Closed with monetary relief",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "source_urls": [
+        "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&date_received_min=2025-01-01&date_received_max=2025-12-31&product=Debt+collection%E2%80%A2Medical+debt",
+        "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=3&date_received_min=2025-01-01&date_received_max=2025-12-31&product=Debt+collection%E2%80%A2Medical+debt&issue=Attempts+to+collect+debt+not+owed%E2%80%A2Debt+was+paid"
+      ],
+      "caveat": "Company responses are reported by companies. “Closed with explanation” does not establish that a complaint was unfounded, and relief categories are not verified corrections."
+    }
   },
   "archive": {
     "period": "January–February 2025",
