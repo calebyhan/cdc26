@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error: timedOut
-          ? "The evidence engine timed out. Retry or explicitly choose Local parser."
+          ? "The request timed out. Please try again."
           : "The evidence engine is unavailable. Run uv sync and retry.",
       },
       { status: timedOut ? 504 : 503, headers },

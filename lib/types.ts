@@ -35,6 +35,28 @@ export type Result = {
 export type Analysis = {
   result: Result;
   drafts: Record<"provider" | "collector", string>;
+  timeline: TimelineEvent[];
+};
+export type TimelineEvent = {
+  document_id: string;
+  title: string;
+  kind: string;
+  date: string | null;
+  date_label: string;
+  amount_cents: number | null;
+  amount_label: string;
+  status: "included" | "excluded" | "unmatched" | "needs_review";
+  refs: string[];
+};
+export type CaseAnalysisMethod = "codex" | "openai";
+export type CitedText = { text: string; refs: string[] };
+export type CaseExplanation = {
+  summary: CitedText;
+  events: (CitedText & { document_id: string })[];
+  issues: (CitedText & { title: string; finding_codes: string[] })[];
+  questions: CitedText[];
+  method: CaseAnalysisMethod;
+  fingerprint: string;
 };
 export type Count = { label: string; count: number };
 export type Rule = Count & { id: string; description: string };
