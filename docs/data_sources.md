@@ -2,6 +2,10 @@
 
 Not My Debt uses real CFPB complaint data to measure reported medical-debt problems and inspect the language of historical complaints. It uses separate synthetic document bundles to demonstrate evidence reconciliation. The complaint corpus contains no paired EOB, provider bill, payment receipt, and collection-notice bundles.
 
+The community priority map uses additional public sources (CFPB records by state
+and ZIP for 2021–2026, ACS 2020–2024, CMS hospitals, IRS Schedule H, and hospital
+price-transparency files). They are documented separately in [atlas.md](atlas.md).
+
 ## Official sources
 
 1. [CFPB Consumer Complaint Database](https://www.consumerfinance.gov/data-research/consumer-complaints/) and its [field reference](https://cfpb.github.io/api/ccdb/fields.html). The database is not a statistical sample, and complaints do not establish wrongdoing.

@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from .codex_adapter import run_codex
 from .domain import FIELD_LABELS, CaseResult, Document, money_cents
 from .extract import normalize_value
+from .gemini_adapter import GeminiError
 
 MAX_PAYLOAD_CHARACTERS = 60_000
 MAX_RESPONSE_CHARACTERS = 60_000
@@ -259,14 +260,16 @@ def analyze_case(documents: list[Document], result: CaseResult, method: str = "c
     Reference and numeric-prose checks do not establish semantic correctness.
     The caller must continue to display the authoritative numbers and findings.
     """
-    if method not in {"codex", "openai"}:
-        raise ValueError("Choose Codex or OpenAI API for case analysis.")
+    if method not in {"codex", "openai", "gemini"}:
+        raise ValueError("Choose Codex, OpenAI API, or Gemini for case analysis.")
     payload, references = _reviewed_payload(documents, result)
     serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     if len(serialized) > MAX_PAYLOAD_CHARACTERS:
         raise ValueError("The reviewed case is too large for analysis. Include fewer records and retry.")
     if method == "openai" and not os.environ.get("OPENAI_API_KEY"):
         raise ValueError("OpenAI API analysis needs OPENAI_API_KEY in the server environment.")
+    if method == "gemini" and not os.environ.get("GEMINI_API_KEY"):
+        raise ValueError("Gemini analysis needs GEMINI_API_KEY in the server environment.")
     try:
         if method == "codex":
             output = run_codex(
@@ -274,6 +277,17 @@ def analyze_case(documents: list[Document], result: CaseResult, method: str = "c
                 CaseExplanation.model_json_schema(),
             )
             if not isinstance(output, str) or len(output) > MAX_RESPONSE_CHARACTERS:
+                raise ValueError(INVALID_RESPONSE)
+            parsed = CaseExplanation.model_validate_json(output)
+        elif method == "gemini":
+            from .gemini_adapter import generate_json
+
+            output, _ = generate_json(
+                _instructions(),
+                "Case data follows as JSON:\n" + serialized,
+                CaseExplanation.model_json_schema(),
+            )
+            if len(output) > MAX_RESPONSE_CHARACTERS:
                 raise ValueError(INVALID_RESPONSE)
             parsed = CaseExplanation.model_validate_json(output)
         else:
@@ -289,6 +303,8 @@ def analyze_case(documents: list[Document], result: CaseResult, method: str = "c
             parsed = CaseExplanation.model_validate(response.output_parsed)
     except ValidationError:
         raise ValueError(INVALID_RESPONSE) from None
+    except GeminiError:
+        raise  # sanitized quota/availability message; contains no case data
     except Exception:
         # Provider errors may contain source quotes, prompts, or auth details.
         raise ValueError(REQUEST_FAILED) from None

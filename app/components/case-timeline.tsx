@@ -26,6 +26,7 @@ const roles: Record<string, string> = {
 const methods: Record<CaseAnalysisMethod, string> = {
   codex: "Codex (ChatGPT sign-in)",
   openai: "OpenAI API",
+  gemini: "Google Gemini",
 };
 const statuses = {
   included: { label: "Included", icon: Check },
@@ -115,7 +116,8 @@ export function CaseTimeline({
   onSource: (refs: string[]) => void;
   onReview: () => void;
 }) {
-  const anyMethod = availability.codex || availability.openai;
+  const anyMethod =
+    availability.codex || availability.openai || availability.gemini;
   const needsReview =
     pending > 0 ||
     documents.some(
@@ -304,6 +306,9 @@ export function CaseTimeline({
             }
             aria-describedby="case-analysis-disclosure"
           >
+            <option value="gemini" disabled={!availability.gemini}>
+              Google Gemini
+            </option>
             <option value="codex" disabled={!availability.codex}>
               Codex (ChatGPT sign-in)
             </option>
@@ -327,13 +332,15 @@ export function CaseTimeline({
         </div>
       </div>
       <p className="nmd-analysis-disclosure" id="case-analysis-disclosure">
-        {method === "codex"
+        {method === "gemini"
+          ? "Sends reviewed facts and quotes to Google Gemini. Amounts and dates stay controlled by the app."
+          : method === "codex"
           ? "Sends reviewed facts and quotes to OpenAI through Codex using your ChatGPT usage."
           : "Sends reviewed facts and quotes to OpenAI. API usage is billed separately."}
       </p>
       {!anyMethod && (
         <p className="nmd-analysis-guidance">
-          Connect Codex or add an OpenAI API key to use AI analysis. The
+          Add a Gemini or OpenAI API key, or connect Codex, to use AI analysis. The
           timeline is available without it.
         </p>
       )}

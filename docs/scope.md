@@ -1,5 +1,11 @@
 # Not My Debt — proposed hackathon scope
 
+Status update (September 27, 2026): the product now opens on a public-data
+**community medical-debt priority map** for patient advocates. The evidence
+navigator below is its individual-action layer. See [atlas.md](atlas.md) for
+sources, methods, measured coverage, and guardrails. The map describes reported
+complaints and filed policies; it does not rank hospitals or establish harm.
+
 Status: Next.js presentation UI checkpoint. The primary interface now uses
 Next.js/TypeScript and Recharts over the existing Python engine. A stateless
 route handler processes case requests without persistence or shared caching.

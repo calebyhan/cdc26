@@ -109,7 +109,13 @@ export function UploadCase({
 }) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [method, setMethod] = useState<ExtractionMethod>(
-    boot.codex_available ? "codex" : boot.ai_available ? "openai" : "local",
+    boot.gemini_available
+      ? "gemini"
+      : boot.codex_available
+        ? "codex"
+        : boot.ai_available
+          ? "openai"
+          : "local",
   );
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -136,6 +142,7 @@ export function UploadCase({
     local: true,
     codex: boot.codex_available,
     openai: boot.ai_available,
+    gemini: boot.gemini_available,
   };
   const successes = queue.filter(
     (item) => item.status === "done" && item.document,
@@ -461,6 +468,9 @@ export function UploadCase({
             }
             aria-describedby="upload-extraction-disclosure"
           >
+            <option value="gemini" disabled={!availability.gemini}>
+              Google Gemini
+            </option>
             <option value="codex" disabled={!availability.codex}>
               Codex (ChatGPT sign-in)
             </option>
@@ -472,7 +482,9 @@ export function UploadCase({
         </div>
         <div className="nmd-upload-read-copy">
           <p id="upload-extraction-disclosure">
-            {method === "codex"
+            {method === "gemini"
+              ? "Sends document text to Google Gemini for extraction. Nothing is saved by this app."
+              : method === "codex"
               ? "Sends document text to OpenAI using your ChatGPT sign-in and usage allowance."
               : method === "openai"
                 ? "Sends document text to OpenAI. API usage is billed separately."

@@ -10,7 +10,13 @@ npm ci
 npm run dev
 ```
 
-The app starts with an empty upload case. Add the documents, check their roles,
+The app opens on **Community map**, a public-data priority map of reported
+medical-debt collection complaints (CFPB), adjusted for population and coverage
+(ACS). It overlays CMS hospitals, IRS Schedule H financial-assistance policies,
+and a price-transparency sample, and links to the evidence navigator. See
+[docs/atlas.md](atlas.md); refresh with `uv sync --extra dev --extra atlas` and
+`uv run python scripts/refresh_atlas.py`. **Upload a case** starts with an empty
+upload case. Add the documents, check their roles,
 extract fields, and review each record before selecting **Create timeline &
 explanation**. The combined timeline and AI explanation open only after that
 explicit request succeeds. **View timeline only** is an explicit local-only path.
@@ -72,6 +78,36 @@ results into a reset or replaced case; every upload starts unconfirmed. Uploaded
 PDF previews use transient browser URLs, revoked on reset, replacement, and unmount. Do not automatically run AI or fall back
 to another provider. Analysis text stays separate from the response letter and
 export in this iteration.
+
+## Gemini and the guide
+
+- `src/not_my_debt/gemini_adapter.py`: Gemini JSON-schema extraction and case
+  analysis, with the same quote validation and review gates as the other providers.
+- `lib/server/gemini.ts`, `lib/server/assistant-tools.ts`, `app/api/assistant/route.ts`,
+  `app/components/assistant.tsx`: the in-app guide (tool-calling over public atlas
+  data; UI actions to open a state, workspace, or the navigator).
+- The key lives in ignored `.env.local` as `GEMINI_API_KEY`. It is a free-tier key
+  (20 requests/day/model); the adapters move through `GEMINI_MODELS` on 429/503.
+- Recorded check (September 27, 2026, fictional PDFs): Gemini extracted the EOB
+  (11 fields, 4.8 s) and provider bill (11 fields, 9.6 s) with every quote
+  verified. The receipt and notice then hit the daily quota and were not re-run.
+  One guide question ("Show me Georgia…") opened Georgia and returned figures
+  matching the atlas (7.18 per 100k, 2.72× U.S., 1.99× expected) in 31.9 s,
+  mostly spent skipping exhausted models.
+
+## Community map
+
+- `src/not_my_debt/atlas/`: the pipeline (`cfpb`, `acs`, `cms`, `geo`,
+  `schedule_h`, `prices`, `build`). Raw inputs stay in ignored `data/raw/atlas/`;
+  static artifacts go to `public/atlas/` with `manifest.json` hashes.
+- `app/components/atlas/`: map, state profile, hospital card, support-gap scatter,
+  price basket, and the community card shown in the upload/case views. `lib/atlas.ts`
+  holds types and loaders; `lib/briefing.ts` builds the printable briefing.
+- Community data never enter case requests or the Python bridge. The navigator only
+  receives a state code and CMS hospital ID in React state.
+- Keep the guardrails: reported complaints, not harm; no hospital ranking; Schedule H
+  line 18 means actions permitted *before* eligibility efforts; posted prices are
+  not what a patient owes.
 
 ## Suggested parallel ownership
 

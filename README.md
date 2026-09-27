@@ -1,13 +1,21 @@
 # Not My Debt
 
-A medical-billing evidence workspace: connect a provider bill, insurance explanation,
-payment receipt, and collection notice; inspect discrepancies; prepare a factual
+A medical-debt **community priority map** and **evidence navigator** for patient
+advocates. The map shows where reported medical-debt collection pressure is high
+after accounting for population and insurance coverage, which hospitals serve the
+area, and what financial-assistance policies nonprofit hospitals reported to the
+IRS. The navigator turns one person's provider bill, insurance explanation, payment
+receipt, and collection notice into a source-linked explanation and a factual
 response packet for review.
 
-**Data boundary:** CFPB supplies complaint records and archived consumer narratives,
-not the underlying bills or receipts. The Research view uses real public data.
-The document scenarios are fictional, and document-reconciliation tests are synthetic.
-This prototype has not been validated on real patient paperwork or legal outcomes.
+**Data boundary:** The community map uses real public data: CFPB complaints, Census
+ACS estimates, CMS hospital data, IRS Form 990 Schedule H filings, and a sample of
+hospital price-transparency files. It describes reported complaints and community
+context, not verified harm, and it does not rank or blame hospitals. CFPB supplies
+complaint records and archived consumer narratives, not the underlying bills or
+receipts. The document scenarios are fictional, and document-reconciliation tests
+are synthetic. This prototype has not been validated on real patient paperwork or
+legal outcomes.
 
 ## Run locally
 
@@ -22,7 +30,9 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000**. The app starts with an empty case. Under
+Open **http://127.0.0.1:3000**. The app opens on **Community map**; see
+[Community map](#community-map) below. Choose **Upload a case** for the document
+workflow. The upload workspace starts with an empty case. Under
 **Start with your documents**, select **Choose documents** to add text-based PDFs.
 Check each **Document type**, select an extractor under **Read with**, and select
 **Read documents**. Review the proposed fields and source passages for each record;
@@ -71,6 +81,7 @@ Choose an extraction method when adding files or in **Documents & review**:
 | Choice | Setup | Where the document text goes |
 | --- | --- | --- |
 | **Local parser** | None | No network request; recognizes explicit `Label: value` fields in the local app |
+| **Google Gemini** | `GEMINI_API_KEY` in `.env.local` | Sent to the Google Gemini API |
 | **Codex (ChatGPT sign-in)** | Installed Codex CLI and saved ChatGPT sign-in | Sent to OpenAI through the CLI; no API key required |
 | **OpenAI API** | `OPENAI_API_KEY` | Sent to the OpenAI Responses API |
 
@@ -187,6 +198,64 @@ in explanatory prose. These checks do not prove that a sentence correctly
 interprets its sources: review the explanation and citations.
 Changing the case or analysis method clears the explanation; run it again when
 ready. In this version, AI analysis is not added to the response letter or export.
+
+## Guide (AI assistant)
+
+**Ask the guide** (bottom right) answers questions about the map, the upload and
+review steps, and what to ask billing or a collector. It uses Google Gemini with
+tool calls over the public atlas data (state profiles, state comparisons, hospital
+search, filed Schedule H policies, posted prices) and can open a state, a workspace,
+or the evidence navigator for the user. Questions go to Google; the route handler
+(`app/api/assistant`) is uncached and does not log messages. Case details are sent
+only when the user checks **Share my case summary**, which sends balances and
+findings from the deterministic engine, never document text. The guide gives general
+information, not legal advice, and is instructed never to call a debt invalid or rank
+hospitals. It needs `GEMINI_API_KEY`.
+
+The Gemini key used for development is on the free tier: **20 requests per day per
+model**. Extraction uses one request per document and the guide uses one to five per
+question, so the app works through a chain of Flash models (`GEMINI_MODELS`) when
+one is exhausted or busy. Enable billing on the Google project before a live demo.
+
+## Community map
+
+**Community map** is the landing workspace. It is built from public data only and
+never reads case records.
+
+- **Priority map:** states colored by 2025 CFPB medical-debt collection complaints
+  per 100k residents, by the ratio of observed to expected complaints (a Poisson
+  model with population, uninsured rate, and poverty rate), by a bivariate
+  uninsured-rate × complaint-burden view, or per 10k uninsured residents. Circles
+  show uninsured residents. Select a state to see counties (2023–2025 complaints
+  placed by ZIP code) and CMS hospitals outlined by ownership; filled dots have a
+  linked Schedule H policy. `?state=GA` opens a state directly.
+- **Community profile:** monthly trend against the U.S. rate, issue mix, company
+  responses, companies named most often, ACS context, the counties with the
+  highest rates, and hospitals with their reported free/discounted-care income
+  limits, policy links, and whether collection actions were permitted before
+  eligibility was checked. A sample of hospitals shows posted prices for six
+  common services.
+- **Advocate briefing:** a printable HTML summary for one state, generated in the
+  browser from the same public aggregates.
+- **Open evidence navigator:** carries the selected state and hospital into the
+  upload and case views, which then show that hospital's filed policy and
+  questions to ask. Community data give context; the user's own records still
+  decide the case.
+- **Support gap:** a scatterplot of uninsured (or poverty) rate against complaint
+  rate, sized by population and colored by linked nonprofit policy features.
+
+Refresh the public artifacts in `public/atlas/` (raw downloads stay in ignored
+`data/raw/atlas/`):
+
+```sh
+uv sync --extra dev --extra atlas
+uv run python scripts/refresh_atlas.py            # reuses cached raw inputs
+uv run python scripts/refresh_atlas.py --refresh  # re-downloads everything
+```
+
+The IRS e-file ZIPs use Deflate64, so the refresh needs the optional `atlas`
+extra (`inflate64`). The app itself does not. See [the atlas guide](docs/atlas.md)
+for sources, methods, measured coverage, and limitations.
 
 ## Research
 

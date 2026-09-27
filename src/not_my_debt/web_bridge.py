@@ -19,6 +19,7 @@ from not_my_debt.demo_documents import demo_cases
 from not_my_debt.domain import FIELD_LABELS, KINDS, Document, Fact
 from not_my_debt.examples import SCENARIOS
 from not_my_debt.extract import extract_document, normalize_value, read_upload
+from not_my_debt.gemini_adapter import GeminiError, gemini_available
 from not_my_debt.packet import draft_letter, render_packet
 from not_my_debt.reconcile import reconcile
 
@@ -83,6 +84,7 @@ def handle_request(request: dict) -> dict:
             "kinds": KINDS,
             "ai_available": bool(os.environ.get("OPENAI_API_KEY")),
             "codex_available": codex_available(),
+            "gemini_available": gemini_available(),
             "research": json.loads(research_path.read_text()),
         }
     if operation == "extract":
@@ -136,6 +138,9 @@ def main() -> None:
     try:
         request = json.loads(sys.stdin.read(14 * 1024 * 1024))
         response = handle_request(request)
+    except GeminiError as error:
+        # Adapter messages are fixed strings about quota or availability, never case text.
+        response = {"error": str(error)}
     except Exception:
         # Validation and provider errors may contain case text; never echo them.
         message = "The request could not be completed. Check your fields, file, and review status."

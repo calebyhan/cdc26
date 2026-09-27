@@ -11,6 +11,26 @@ delays. Open http://127.0.0.1:3000 and select **Start over** for a fresh upload 
 The presentation's app link opens this address.
 Record a backup video of the upload and review flow.
 
+## Community map (opening)
+
+The app opens on **Community map**, built from public data only.
+
+1. Show the national map colored by **Complaints per 100k residents**, then switch
+   **Color states by** to **Compared with expected**. Say "reported complaints," not
+   harm, and note that most complaints name a collector rather than a hospital.
+2. Select Georgia, or open `http://127.0.0.1:3000/?state=GA`. Walk through the
+   county layer, hospitals outlined by ownership (filled = Schedule H policy linked),
+   the monthly trend against the U.S. rate, and a hospital's filed free-care limit.
+3. Select **Advocate briefing** to download the printable state summary.
+4. Select a hospital, then **Use with my records** or **Open evidence navigator**. The
+   upload view shows the community card with that hospital's filed policy and
+   questions to ask. `?community=GA&hospital=110018` opens this state directly.
+5. Scroll to **Support gap** and note the uninsured-rate relationship (r = 0.67
+   across 50 states and DC). This is a correlation, not a cause.
+
+Do not call the map a hospital ranking, and do not describe Schedule H answers as
+verified practice. See [the atlas guide](atlas.md) for exact wording and limits.
+
 ## Upload and review
 
 1. Under **Start with your documents**, select **Choose documents** and add the

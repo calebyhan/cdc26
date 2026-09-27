@@ -11,6 +11,10 @@ the existing Python engine; keep case responses uncached and case inputs out of 
 Read relevant installed Next.js docs in `node_modules/next/dist/docs/` when
 changing framework behavior.
 
+Refresh the public community map with `uv sync --extra dev --extra atlas` and
+`uv run python scripts/refresh_atlas.py`; read `docs/atlas.md` first. Keep atlas
+claims to reported complaints and filed policies: no hospital rankings or causal claims.
+
 Read `docs/scope.md` and `README.md` before changing product behavior. They distinguish
 real complaint data, synthetic document benchmarks, and user-supplied case records.
 Do not describe CFPB narratives as underlying patient documents or legal findings.

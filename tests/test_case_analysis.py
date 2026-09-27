@@ -292,6 +292,6 @@ def test_api_uses_structured_parse_and_no_storage(monkeypatch):
 def test_analysis_has_no_implicit_local_mode(monkeypatch):
     docs = example_documents()
     calls = capture_codex(monkeypatch, {})
-    with pytest.raises(ValueError, match="Choose Codex or OpenAI"):
+    with pytest.raises(ValueError, match="Choose Codex, OpenAI API, or Gemini"):
         case_analysis.analyze_case(docs, reconcile(docs), method="local")
     assert not calls

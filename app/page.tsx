@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   FolderOpen,
   Layers,
   Loader2,
+  Map as MapIcon,
   Plus,
   RotateCcw,
   ShieldCheck,
@@ -54,6 +55,13 @@ import {
 } from "@/app/components/research-evidence";
 import { CaseTimeline } from "@/app/components/case-timeline";
 import { UploadCase, type UploadedRecord } from "@/app/components/upload-case";
+import {
+  CommunityAtlas,
+  type AtlasFocus,
+  type Community,
+} from "@/app/components/atlas/community-atlas";
+import { Assistant, type AssistantAction } from "@/app/components/assistant";
+import { CommunityContext } from "@/app/components/atlas/community-context";
 
 const demoPdfUrl = (file: string) =>
   `/api/demo-document?file=${encodeURIComponent(file)}`;
@@ -104,7 +112,18 @@ export default function Home() {
   >({});
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [step, setStep] = useState(0);
-  const [workspace, setWorkspace] = useState("upload");
+  const [workspace, setWorkspace] = useState("atlas");
+  const [community, setCommunity] = useState<Community | null>(null);
+  const [atlasFocus, setAtlasFocus] = useState<AtlasFocus | null>(null);
+  const [atlasSelection, setAtlasSelection] = useState<{
+    state: string | null;
+    hospitalId: string | null;
+  }>({ state: null, hospitalId: null });
+  const onAtlasSelection = useCallback(
+    (state: string | null, hospitalId: string | null) =>
+      setAtlasSelection({ state, hospitalId }),
+    [],
+  );
   const [uploadFlow, setUploadFlow] = useState(true);
   const [uploadGeneration, setUploadGeneration] = useState(0);
   const [basicTimelineKey, setBasicTimelineKey] = useState<string | null>(null);
@@ -150,8 +169,21 @@ export default function Home() {
       .then((data) => {
         if (controller.signal.aborted) return;
         setBoot(data);
-        setCaseAnalysisMethod(data.codex_available ? "codex" : "openai");
+        setCaseAnalysisMethod(
+          data.gemini_available
+            ? "gemini"
+            : data.codex_available
+              ? "codex"
+              : "openai",
+        );
         setDocuments([]);
+        // Demo link into the navigator: ?community=GA&hospital=<CMS ID>
+        const params = new URLSearchParams(window.location.search);
+        const state = params.get("community")?.toUpperCase();
+        if (state && /^[A-Z]{2}$/.test(state)) {
+          setCommunity({ state, hospitalId: params.get("hospital") });
+          setWorkspace("upload");
+        }
       })
       .catch((e) => {
         if (e.name !== "AbortError") {
@@ -312,10 +344,15 @@ export default function Home() {
     includedDocuments.length > 0 &&
     includedDocuments.every((doc) => Object.keys(doc.fields).length > 0) &&
     !analysis.timeline.some((event) => event.status === "needs_review");
-  const analysisAvailable =
-    caseAnalysisMethod === "codex"
-      ? !!boot?.codex_available
-      : !!boot?.ai_available;
+  const methodReady = (method: CaseAnalysisMethod | ExtractionMethod) =>
+    method === "local"
+      ? true
+      : method === "codex"
+        ? !!boot?.codex_available
+        : method === "gemini"
+          ? !!boot?.gemini_available
+          : !!boot?.ai_available;
+  const analysisAvailable = methodReady(caseAnalysisMethod);
 
   async function explainCase(openResult = false) {
     if (!documents?.length || !analysis || loading || pending) return;
@@ -331,8 +368,7 @@ export default function Home() {
     );
     if (!hasReviewedFacts) return;
     const method = caseAnalysisMethod;
-    const available =
-      method === "codex" ? boot?.codex_available : boot?.ai_available;
+    const available = methodReady(method);
     if (!available) {
       setExplanationState({
         documentKey,
@@ -412,6 +448,9 @@ export default function Home() {
             changeCaseAnalysisMethod(event.target.value as CaseAnalysisMethod)
           }
         >
+          <option value="gemini" disabled={!boot?.gemini_available}>
+            Google Gemini
+          </option>
           <option value="codex" disabled={!boot?.codex_available}>
             Codex (ChatGPT sign-in)
           </option>
@@ -420,7 +459,9 @@ export default function Home() {
           </option>
         </select>
         <p className="footnote">
-          {caseAnalysisMethod === "codex"
+          {caseAnalysisMethod === "gemini"
+            ? "Sends reviewed facts and quotes to Google Gemini. Amounts and dates stay controlled by the app."
+            : caseAnalysisMethod === "codex"
             ? "Sends reviewed facts and quotes to OpenAI through Codex using your ChatGPT usage."
             : "Sends reviewed facts and quotes to OpenAI. API usage is billed separately."}
         </p>
@@ -497,6 +538,50 @@ export default function Home() {
     }
   }
 
+  // Shared with the guide only when the user turns on "Share my case summary".
+  const caseSummary = useMemo(() => {
+    if (!analysis || !documents?.some((doc) => doc.included)) return null;
+    const { result } = analysis;
+    const dollars = (cents: number | null) =>
+      cents == null ? "unknown" : (cents / 100).toFixed(2);
+    return {
+      documents: documents
+        .filter((doc) => doc.included)
+        .map((doc) => ({
+          type: boot?.kinds[doc.kind] ?? doc.kind,
+          fields_reviewed: Object.values(doc.fields).filter((f) => f.confirmed)
+            .length,
+          fields_total: Object.keys(doc.fields).length,
+        })),
+      amount_requested_by_collector: dollars(result.collection_cents),
+      balance_supported_by_records: dollars(result.supported_balance_cents),
+      patient_payments_applied: dollars(result.applied_payments_cents),
+      findings: result.findings.map((f) => ({
+        title: f.title,
+        detail: f.detail,
+        severity: f.severity,
+      })),
+    };
+  }, [analysis, documents, boot]);
+
+  function handleAssistantAction(action: AssistantAction) {
+    if (action.type === "open_workspace") {
+      setWorkspace(action.workspace);
+      return;
+    }
+    if (action.type === "open_state") {
+      setWorkspace("atlas");
+      setAtlasFocus((current) => ({
+        state: action.state,
+        hospitalId: action.hospitalId ?? null,
+        nonce: (current?.nonce ?? 0) + 1,
+      }));
+      return;
+    }
+    setCommunity({ state: action.state, hospitalId: action.hospitalId ?? null });
+    setWorkspace("upload");
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -516,6 +601,7 @@ export default function Home() {
         <div className="sidebar-section">WORKSPACE</div>
         <nav aria-label="Workspace">
           {[
+            { id: "atlas", name: "Community map", icon: MapIcon },
             { id: "upload", name: "Upload a case", icon: Upload },
             { id: "demo", name: "Case overview", icon: FolderOpen },
             { id: "evidence", name: "Documents & review", icon: FileCheck2 },
@@ -600,7 +686,24 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {workspace === "atlas" && (
+              <CommunityAtlas
+                focus={atlasFocus}
+                onSelectionChange={onAtlasSelection}
+                onOpenNavigator={(next) => {
+                  setCommunity(next);
+                  setWorkspace("upload");
+                }}
+              />
+            )}
             <div hidden={workspace !== "upload"}>
+              {community && (
+                <CommunityContext
+                  community={community}
+                  onChange={setCommunity}
+                  onClear={() => setCommunity(null)}
+                />
+              )}
               <UploadCase
                 key={uploadGeneration}
                 boot={boot}
@@ -727,6 +830,13 @@ export default function Home() {
                         receipt shows what you paid.
                       </p>
                     </div>
+                    {community && (
+                      <CommunityContext
+                        community={community}
+                        onChange={setCommunity}
+                        onClear={() => setCommunity(null)}
+                      />
+                    )}
                   </section>
                 )}
                 {step === 1 &&
@@ -783,6 +893,7 @@ export default function Home() {
                         availability={{
                           codex: boot.codex_available,
                           openai: boot.ai_available,
+                          gemini: boot.gemini_available,
                         }}
                         explanation={
                           currentExplanation?.status === "ready"
@@ -1329,6 +1440,21 @@ export default function Home() {
           }
         />
       )}
+      {boot && (
+        <Assistant
+          workspace={workspace}
+          context={
+            workspace === "atlas"
+              ? atlasSelection
+              : {
+                  state: community?.state ?? null,
+                  hospitalId: community?.hospitalId ?? null,
+                }
+          }
+          caseSummary={caseSummary}
+          onAction={handleAssistantAction}
+        />
+      )}
     </div>
   );
 }
@@ -1708,7 +1834,9 @@ function AddDocument({
       ? true
       : method === "codex"
         ? boot.codex_available
-        : boot.ai_available;
+        : method === "gemini"
+          ? boot.gemini_available
+          : boot.ai_available;
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!methodAvailable) {
@@ -1844,6 +1972,9 @@ function AddDocument({
         }}
       >
         <option value="local">Local parser</option>
+        <option value="gemini" disabled={!boot.gemini_available}>
+          Google Gemini
+        </option>
         <option value="codex" disabled={!boot.codex_available}>
           Codex (ChatGPT sign-in)
         </option>
@@ -1855,6 +1986,12 @@ function AddDocument({
         {method === "local" && (
           <p className="footnote">
             Reads fields in “Label: value” format, such as “Balance: 150.00.”
+          </p>
+        )}
+        {method === "gemini" && (
+          <p className="review-alert">
+            Sends the document text to Google Gemini for extraction. You review
+            every value before it is used.
           </p>
         )}
         {method === "codex" && (

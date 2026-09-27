@@ -48,7 +48,7 @@ export type TimelineEvent = {
   status: "included" | "excluded" | "unmatched" | "needs_review";
   refs: string[];
 };
-export type CaseAnalysisMethod = "codex" | "openai";
+export type CaseAnalysisMethod = "codex" | "openai" | "gemini";
 export type CitedText = { text: string; refs: string[] };
 export type CaseExplanation = {
   summary: CitedText;
@@ -65,7 +65,7 @@ export type ResponseGroup = {
   total: number;
   responses: Count[];
 };
-export type ExtractionMethod = "local" | "codex" | "openai";
+export type ExtractionMethod = "local" | "codex" | "openai" | "gemini";
 export type Bootstrap = {
   scenarios: Record<string, string>;
   examples: Record<string, Document[]>;
@@ -74,6 +74,7 @@ export type Bootstrap = {
   kinds: Record<string, string>;
   ai_available: boolean;
   codex_available: boolean;
+  gemini_available: boolean;
   research: {
     retrieved_at: string;
     api: {
