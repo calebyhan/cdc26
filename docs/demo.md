@@ -38,6 +38,51 @@ supported balance is withheld (dashed bar) rather than guessed.
 Reset restores the receipt, original draft, provider recipient, opening step,
 and unreviewed export state. Re-review the packet after changing the evidence.
 
+## Optional case explanation
+
+The **Your case, in order** timeline in **Connect the records** uses reviewed
+facts without a model call, including reviewed values on excluded records. Click
+a source to compare it with the record. A card marked **Not used in balance** can still describe a supplied record; it does not
+establish an applied payment.
+
+1. Review all fields in the included records. Choose **Codex (ChatGPT sign-in)**
+   or **OpenAI API** under **Analysis method**.
+2. Select **Explain this case**. Included, reviewed values, their source passages,
+   and the current reconciliation are sent to OpenAI through the selected method.
+3. Inspect **AI analysis**, **What to check**, and **Questions for billing** alongside
+   their citations. Timeline amounts and dates remain controlled by the evidence
+   engine, not the model.
+4. Remove the receipt or correct a field. The prior explanation should clear;
+   analysis runs again only when explicitly requested.
+
+Source-reference and numeric checks do not establish that the AI's interpretation
+is correct. Review each claim, especially where the records disagree or remain
+incomplete. A failed request shows an error without a fallback. The timeline and
+local reconciliation remain available. This explanation is not automatically
+inserted into the response letter or exported packet.
+
+Use the same connection setup and privacy considerations described below. The
+[recorded case-analysis check](#recorded-case-analysis-check) is separate from the
+extraction check later in this guide.
+
+## Recorded case-analysis check
+
+A live Codex check used the existing ChatGPT sign-in and the installed CLI's default
+model on four fictional bootstrap scenarios. All four outputs passed structural
+and citation checks. Inspection found the explanations consistent with the
+following deterministic supplied-record balances:
+
+| Scenario | Supported balance | Elapsed time |
+| --- | --- | --- |
+| `paid` | $0 | 14.2 s |
+| `missing_receipt` | $150 | 14.5 s |
+| `wrong_account` | Unknown; withheld because the receipt does not match | 15.0 s |
+| `partial_payment` | $100 | 15.3 s |
+
+The records and arithmetic were unchanged. These are four synthetic integration
+checks, not an accuracy estimate for real patient documents or a performance
+guarantee. The OpenAI API analysis path was not live-tested.
+
 ## Optional live Codex extraction
 
 The opening demo above uses preconfirmed fictional facts and needs no model call.

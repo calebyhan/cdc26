@@ -153,6 +153,30 @@ identifiers and missing facts require review. It does not adjudicate insurance
 coverage, diagnose billing-code errors, decide legal liability, or calculate legal
 deadlines. It surfaces the date printed on a collection notice.
 
+## Case timeline and optional analysis
+
+In **Connect the records**, **Your case, in order** shows events from reviewed
+fields. Valid reviewed dates and amounts can still appear on an excluded record.
+A record on the timeline is not necessarily used in the balance: check its source
+and the reconciliation findings, especially for unmatched, duplicate, or unsettled
+payments.
+
+Review every field in the included records before requesting an explanation.
+Choose **Codex (ChatGPT sign-in)** or **OpenAI API** under
+**Analysis method**, then select **Explain this case**. This is a separate,
+explicit network request. It sends included, reviewed values and their source
+passages, plus the current reconciliation, to OpenAI using the selected connection.
+The setup and provider-data caveats above apply. The timeline works without AI;
+an analysis error does not switch methods or retry with a different provider.
+
+The AI can suggest an overview, items to check, and questions for billing. It
+cannot edit timeline amounts, dates, or the balance calculation. Output checks
+reject unknown source references and finding codes, plus digits and currency symbols
+in explanatory prose. These checks do not prove that a sentence correctly
+interprets its sources: review the explanation and citations.
+Changing the case or analysis method clears the explanation; run it again when
+ready. In this version, AI analysis is not added to the response letter or export.
+
 ## Research
 
 The committed aggregate snapshot contains 8,843 medical-debt complaint records

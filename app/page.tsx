@@ -39,6 +39,8 @@ import {
   shortDate,
   type Analysis,
   type Bootstrap,
+  type CaseAnalysisMethod,
+  type CaseExplanation,
   type Document,
   type ExtractionMethod,
   type Fact,
@@ -50,6 +52,7 @@ import {
   PatternMatrix,
   ResponseOutcomes,
 } from "@/app/components/research-evidence";
+import { CaseTimeline } from "@/app/components/case-timeline";
 
 const demoPdfUrl = (file: string) =>
   `/api/demo-document?file=${encodeURIComponent(file)}`;
@@ -84,6 +87,10 @@ const dollarsFromFact = (doc: Document) => {
   return money(Number(whole) * 100 + Number(fraction.padEnd(2, "0")));
 };
 type Drawer = { docId?: string; refs?: string[]; edit?: boolean };
+type ExplanationState =
+  | { documentKey: string; status: "loading" }
+  | { documentKey: string; status: "ready"; explanation: CaseExplanation }
+  | { documentKey: string; status: "error"; message: string };
 
 export default function Home() {
   const [boot, setBoot] = useState<Bootstrap | null>(null);
@@ -106,12 +113,36 @@ export default function Home() {
   const [reviewed, setReviewed] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
+  const [caseAnalysisMethod, setCaseAnalysisMethod] =
+    useState<CaseAnalysisMethod>("codex");
+  const [explanationState, setExplanationState] =
+    useState<ExplanationState | null>(null);
+  const explanationRequest = useRef<{
+    sequence: number;
+    controller: AbortController | null;
+  }>({ sequence: 0, controller: null });
+  const documentKey = JSON.stringify(documents);
+  const currentExplanation =
+    explanationState?.documentKey === documentKey ? explanationState : null;
+
+  // Hide results by snapshot immediately, then cancel on any document change or
+  // unmount. The sequence guard also rejects late responses from aborted requests.
+  useEffect(() => {
+    const active = explanationRequest.current;
+    return () => {
+      active.controller?.abort();
+      active.controller = null;
+      active.sequence += 1;
+    };
+  }, [documentKey]);
 
   useEffect(() => {
     const controller = new AbortController();
     api<Bootstrap>({ operation: "bootstrap" }, controller.signal)
       .then((data) => {
+        if (controller.signal.aborted) return;
         setBoot(data);
+        setCaseAnalysisMethod(data.codex_available ? "codex" : "openai");
         setDocuments(data.examples.paid);
         setDocumentSources(data.document_sources.paid);
       })
@@ -129,6 +160,7 @@ export default function Home() {
     const controller = new AbortController();
     api<Analysis>({ operation: "reconcile", documents }, controller.signal)
       .then((data) => {
+        if (controller.signal.aborted) return;
         setAnalysis(data);
         setLoading(false);
       })
@@ -141,7 +173,20 @@ export default function Home() {
     return () => controller.abort();
   }, [documents]);
 
+  function clearCaseExplanation() {
+    const active = explanationRequest.current;
+    active.controller?.abort();
+    active.controller = null;
+    active.sequence += 1;
+    setExplanationState(null);
+  }
+  function changeCaseAnalysisMethod(method: CaseAnalysisMethod) {
+    if (method === caseAnalysisMethod) return;
+    clearCaseExplanation();
+    setCaseAnalysisMethod(method);
+  }
   function replaceDocuments(docs: Document[]) {
+    clearCaseExplanation();
     setDocuments(docs);
     setAnalysis(null);
     setLoading(true);
@@ -197,6 +242,70 @@ export default function Home() {
     fictional && scenario === "paid"
       ? "She paid her bill.\nThen this arrived."
       : "Let’s check\nyour medical bill.";
+
+  async function explainCase() {
+    if (!documents?.length || !analysis || loading || pending) return;
+    const needsReview =
+      documents.some(
+        (doc) => doc.included && Object.keys(doc.fields).length === 0,
+      ) || analysis.timeline?.some((event) => event.status === "needs_review");
+    if (needsReview) return;
+    const hasReviewedFacts = documents.some(
+      (doc) =>
+        doc.included &&
+        Object.values(doc.fields).some((fact) => fact.confirmed),
+    );
+    if (!hasReviewedFacts) return;
+    const method = caseAnalysisMethod;
+    const available =
+      method === "codex" ? boot?.codex_available : boot?.ai_available;
+    if (!available) {
+      setExplanationState({
+        documentKey,
+        status: "error",
+        message:
+          "This analysis method is unavailable. Choose another method or check its setup.",
+      });
+      return;
+    }
+    const active = explanationRequest.current;
+    active.controller?.abort();
+    const controller = new AbortController();
+    const sequence = ++active.sequence;
+    active.controller = controller;
+    const snapshot = structuredClone(documents);
+    const snapshotKey = JSON.stringify(snapshot);
+    setExplanationState({ documentKey: snapshotKey, status: "loading" });
+    try {
+      const response = await api<{ explanation: CaseExplanation }>(
+        { operation: "analyze_case", documents: snapshot, method },
+        controller.signal,
+      );
+      if (controller.signal.aborted || active.sequence !== sequence) return;
+      if (response.explanation.method !== method) {
+        throw new Error(
+          "The analysis returned a different method. Please try again.",
+        );
+      }
+      setExplanationState({
+        documentKey: snapshotKey,
+        status: "ready",
+        explanation: response.explanation,
+      });
+    } catch (cause) {
+      if (controller.signal.aborted || active.sequence !== sequence) return;
+      setExplanationState({
+        documentKey: snapshotKey,
+        status: "error",
+        message:
+          cause instanceof Error
+            ? cause.message
+            : "Could not explain this case. Please try again.",
+      });
+    } finally {
+      if (active.sequence === sequence) active.controller = null;
+    }
+  }
 
   async function download() {
     if (!documents || !reviewed || loading || pending) return;
@@ -496,6 +605,32 @@ export default function Home() {
                           : "Based on the included documents"}
                       </span>
                     </div>
+                    <CaseTimeline
+                      events={analysis?.timeline || []}
+                      documents={documents || []}
+                      loading={loading}
+                      pending={pending}
+                      method={caseAnalysisMethod}
+                      availability={{
+                        codex: boot.codex_available,
+                        openai: boot.ai_available,
+                      }}
+                      explanation={
+                        currentExplanation?.status === "ready"
+                          ? currentExplanation.explanation
+                          : null
+                      }
+                      explaining={currentExplanation?.status === "loading"}
+                      error={
+                        currentExplanation?.status === "error"
+                          ? currentExplanation.message
+                          : null
+                      }
+                      onMethodChange={changeCaseAnalysisMethod}
+                      onExplain={explainCase}
+                      onSource={source}
+                      onReview={() => setWorkspace("evidence")}
+                    />
                     {loading ? (
                       <div className="finding-banner loading">
                         <Loader2 className="spin" />

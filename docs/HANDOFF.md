@@ -20,18 +20,47 @@ research uses real CFPB aggregate data.
 ## What is implemented
 
 - Six fictional scenarios and exact-cent reconciliation with source references.
-- Local labeled-text/text-PDF ingestion; optional OpenAI structured extraction.
+- Local labeled-text/text-PDF ingestion; optional Codex or OpenAI API extraction.
 - Review gates and preservation of original source text after a correction.
 - Provider inquiry / collector draft and HTML packet export; no automatic sending.
 - Reproducible CFPB analysis of 812 unique medical-debt narratives, plus annual counts.
 - Next.js/TypeScript UI, Recharts visualizations, source drawer, review gates, and responsive layouts.
 - Stateless Node-to-Python bridge retaining the existing reconciliation and local extraction.
-- 90 passing Python tests, including eight new bridge checks, and a clean Ruff check.
+- Synthetic regression checks for reconciliation, extraction, source references, and the bridge.
+- A timeline from reviewed facts and optional, explicit Codex/API case analysis.
 
-Live OpenAI extraction has not been tested because no API key was configured.
+The [Codex extraction check](demo.md#recorded-live-check) and
+[separate case-analysis check](demo.md#recorded-case-analysis-check) are recorded in
+the rehearsal guide. Case analysis was live-checked on four fictional scenarios
+using existing ChatGPT sign-in and the CLI's default model: paid, missing receipt,
+wrong account, and partial payment. All passed structural/citation checks; inspected
+explanations agreed with the deterministic $0, $150, unknown, and $100 balances,
+respectively. Runs took 14.2–15.3 seconds and changed no records or arithmetic.
+These synthetic checks are not a real-document accuracy estimate. Neither OpenAI
+API path has been live-tested.
 The local parser requires explicit labels; arbitrary layouts and OCR are unfinished.
 The legacy UI retains its Streamlit AppTest coverage. Check the primary UI with
 `npm run typecheck`, `npm run lint`, and `npm run build`, and rehearse in a browser.
+
+## Timeline and case analysis
+
+In **Connect the records**, **Your case, in order** is built from reviewed fields.
+Its dates and amounts are deterministic. A displayed record may be **Not used in
+balance**; preserve that distinction for mismatches, duplicates, and payment-status
+questions. The analysis provider is chosen under **Analysis method**, and
+**Explain this case** is the explicit network action.
+
+All included fields must be reviewed and valid before analysis. Only those facts,
+their original source passages and correction provenance, and the authoritative
+reconciliation are sent. Full document text and manually excluded records stay out
+of the model input. Validate citations against those facts and finding codes
+against the current result. Reject numeric prose and unknown
+references; these checks do not establish semantic correctness. Preserve user
+correction provenance. The model cannot change numerical/date cards or arithmetic.
+Changing the evidence or provider must clear the explanation, including a stale
+response that arrives after the change. Do not automatically run AI or fall back
+to another provider. Analysis text stays separate from the response letter and
+export in this iteration.
 
 ## Suggested parallel ownership
 

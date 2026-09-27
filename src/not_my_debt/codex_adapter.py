@@ -162,16 +162,16 @@ def run_codex(prompt: str, schema: dict) -> str:
             )
         except subprocess.TimeoutExpired:
             raise ValueError(
-                f"Codex extraction timed out after {timeout} seconds. Retry or select Local parser."
+                f"Codex request timed out after {timeout} seconds. Please retry."
             ) from None
         except OSError:
             raise ValueError("Codex could not start. Check its installation and sign-in.") from None
         if completed.returncode:
             # Never echo provider errors, stderr, prompt contents, or auth details into the UI.
             raise ValueError(
-                "Codex extraction failed. Check your ChatGPT usage, network, CLI version, and "
-                "NMD_CODEX_MODEL setting; then retry or select Local parser."
+                "Codex request failed. Check your ChatGPT usage, network, CLI version, and "
+                "NMD_CODEX_MODEL setting; then retry."
             )
         if not completed.stdout.strip() or len(completed.stdout) > 512_000:
-            raise ValueError("Codex returned no usable extraction. Retry or select Local parser.")
+            raise ValueError("Codex returned no usable result. Please retry.")
         return completed.stdout.strip()

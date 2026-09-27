@@ -13,6 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
+from not_my_debt.case_analysis import analyze_case, build_timeline
 from not_my_debt.codex_adapter import codex_available
 from not_my_debt.demo_documents import demo_cases
 from not_my_debt.domain import FIELD_LABELS, KINDS, Document, Fact
@@ -99,13 +100,18 @@ def handle_request(request: dict) -> dict:
         for fact in doc.fields.values():
             fact.confirmed = False
         return {"document": asdict(doc)}
-    if operation not in {"reconcile", "packet"}:
+    if operation not in {"reconcile", "packet", "analyze_case"}:
         raise ValueError("Choose a supported operation.")
     documents = documents_from_json(request.get("documents", []))
     result = reconcile(documents)
+    if operation == "analyze_case":
+        return {
+            "explanation": analyze_case(documents, result, method=request.get("method", "codex"))
+        }
     if operation == "reconcile":
         return {
             "result": asdict(result),
+            "timeline": build_timeline(documents, result),
             "drafts": {
                 key: draft_letter(documents, result, key) for key in ("provider", "collector")
             },
@@ -137,6 +143,11 @@ def main() -> None:
             message = (
                 "Document extraction failed. Check the selected method's setup, sign-in, "
                 "usage, file, and connection; then retry. No alternate extractor was used."
+            )
+        if isinstance(request, dict) and request.get("operation") == "analyze_case":
+            message = (
+                "Could not explain this case. Review the included facts and check your AI "
+                "sign-in, usage, and connection, then retry. Your records have not changed."
             )
         response = {"error": message}
     sys.stdout.write(json.dumps(response))

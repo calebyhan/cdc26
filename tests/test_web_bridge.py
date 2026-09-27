@@ -158,3 +158,79 @@ def test_bridge_extraction_error_is_useful_without_echoing_case_data(monkeypatch
     assert "sign-in" in output["error"]
     assert "No alternate extractor was used" in output["error"]
     assert "document" not in output
+
+
+def test_reconciliation_returns_local_timeline_without_calling_ai(monkeypatch):
+    def unexpected(*args, **kwargs):
+        raise AssertionError("Reconciliation must not make a model request")
+
+    monkeypatch.setattr("not_my_debt.web_bridge.analyze_case", unexpected)
+    response = handle_request({"operation": "reconcile", "documents": case()})
+    assert [event["document_id"] for event in response["timeline"]] == [
+        "eob",
+        "bill",
+        "receipt",
+        "collection",
+    ]
+    receipt = response["timeline"][2]
+    assert receipt["date"] == "2026-07-20"
+    assert receipt["amount_cents"] == 15000
+    assert "receipt.payment_amount" in receipt["refs"]
+    assert response["result"]["supported_balance_cents"] == 0
+
+
+def test_case_analysis_uses_server_reconciliation_and_explicit_method(monkeypatch):
+    calls = []
+
+    def analyze(documents, result, method):
+        calls.append((documents, result, method))
+        return {
+            "summary": {
+                "text": "Review the payment allocation.",
+                "refs": ["receipt.payment_amount"],
+            }
+        }
+
+    monkeypatch.setattr("not_my_debt.web_bridge.analyze_case", analyze)
+    response = handle_request(
+        {
+            "operation": "analyze_case",
+            "documents": case(),
+            "method": "codex",
+            "result": {"supported_balance_cents": 999999},
+        }
+    )
+    assert len(calls) == 1
+    documents, result, method = calls[0]
+    assert result.supported_balance_cents == 0
+    assert method == "codex"
+    assert len(documents) == 4
+    assert response["explanation"]["summary"]["refs"] == ["receipt.payment_amount"]
+    assert "html" not in response
+
+
+def test_analysis_failure_never_echoes_private_model_output(monkeypatch, capsys):
+    from not_my_debt import web_bridge
+
+    def fail(*args, **kwargs):
+        raise ValueError("PRIVATE MODEL OUTPUT")
+
+    monkeypatch.setattr(web_bridge, "analyze_case", fail)
+    monkeypatch.setattr(
+        web_bridge.sys,
+        "stdin",
+        io.StringIO(
+            json.dumps(
+                {
+                    "operation": "analyze_case",
+                    "documents": case(),
+                    "method": "codex",
+                }
+            )
+        ),
+    )
+    web_bridge.main()
+    output = json.loads(capsys.readouterr().out)
+    assert "PRIVATE MODEL OUTPUT" not in output["error"]
+    assert "Review the included facts" in output["error"]
+    assert "explanation" not in output
