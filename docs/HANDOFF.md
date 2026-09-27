@@ -29,9 +29,15 @@ research uses real CFPB aggregate data.
 - Synthetic regression checks for reconciliation, extraction, source references, and the bridge.
 - A timeline from reviewed facts and optional, explicit Codex/API case analysis.
 
-The bounded Codex extraction check is recorded in [the rehearsal guide](demo.md#recorded-live-check).
-The OpenAI API extraction path has not been live-checked. That recorded extraction
-run does not validate the separate case-analysis feature.
+The [Codex extraction check](demo.md#recorded-live-check) and
+[separate case-analysis check](demo.md#recorded-case-analysis-check) are recorded in
+the rehearsal guide. Case analysis was live-checked on four fictional scenarios
+using existing ChatGPT sign-in and the CLI's default model: paid, missing receipt,
+wrong account, and partial payment. All passed structural/citation checks; inspected
+explanations agreed with the deterministic $0, $150, unknown, and $100 balances,
+respectively. Runs took 14.2–15.3 seconds and changed no records or arithmetic.
+These synthetic checks are not a real-document accuracy estimate. Neither OpenAI
+API path has been live-tested.
 The local parser requires explicit labels; arbitrary layouts and OCR are unfinished.
 The legacy UI retains its Streamlit AppTest coverage. Check the primary UI with
 `npm run typecheck`, `npm run lint`, and `npm run build`, and rehearse in a browser.

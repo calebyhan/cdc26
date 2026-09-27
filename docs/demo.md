@@ -61,9 +61,27 @@ incomplete. A failed request shows an error without a fallback. The timeline and
 local reconciliation remain available. This explanation is not automatically
 inserted into the response letter or exported packet.
 
-Use the same connection setup and privacy considerations described below. A live
-case-analysis result has not yet been recorded here; the recorded extraction
-check later in this guide is a separate test.
+Use the same connection setup and privacy considerations described below. The
+[recorded case-analysis check](#recorded-case-analysis-check) is separate from the
+extraction check later in this guide.
+
+## Recorded case-analysis check
+
+A live Codex check used the existing ChatGPT sign-in and the installed CLI's default
+model on four fictional bootstrap scenarios. All four outputs passed structural
+and citation checks. Inspection found the explanations consistent with the
+following deterministic supplied-record balances:
+
+| Scenario | Supported balance | Elapsed time |
+| --- | --- | --- |
+| `paid` | $0 | 14.2 s |
+| `missing_receipt` | $150 | 14.5 s |
+| `wrong_account` | Unknown; withheld because the receipt does not match | 15.0 s |
+| `partial_payment` | $100 | 15.3 s |
+
+The records and arithmetic were unchanged. These are four synthetic integration
+checks, not an accuracy estimate for real patient documents or a performance
+guarantee. The OpenAI API analysis path was not live-tested.
 
 ## Optional live Codex extraction
 

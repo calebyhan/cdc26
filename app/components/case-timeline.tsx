@@ -143,8 +143,8 @@ export function CaseTimeline({
           <span className="nmd-timeline-eyebrow">THE SEQUENCE</span>
           <h2 id="case-timeline-title">Your case, in order</h2>
           <p>
-            See when each record arrived and where the balance needs a closer
-            look.
+            Follow the dates on your records and see where the balance needs
+            a closer look.
           </p>
         </div>
         <span className="nmd-timeline-count">
